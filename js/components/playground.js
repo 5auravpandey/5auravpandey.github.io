@@ -1159,11 +1159,14 @@ window.PORTFOLIO_PLAYGROUND = {
         break;
     }
 
+    const safeCmd = (typeof window.escapeHTML === "function") ? window.escapeHTML(cmd) : cmd.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const safeReply = (typeof window.escapeHTML === "function") ? window.escapeHTML(reply).replace(/\n/g, "<br>") : reply.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+
     const entry = document.createElement("div");
     entry.className = "term-entry";
     entry.innerHTML = `
-      <div class="term-cmd-echo"><span class="terminal-prompt">saurav@amethi:~$</span> ${cmd}</div>
-      <div class="term-reply">${reply.replace(/\n/g, "<br>")}</div>
+      <div class="term-cmd-echo"><span class="terminal-prompt">saurav@amethi:~$</span> ${safeCmd}</div>
+      <div class="term-reply">${safeReply}</div>
     `;
     history.appendChild(entry);
 

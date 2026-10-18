@@ -501,8 +501,8 @@ window.PORTFOLIO_ADMIN = {
     const editingItem = this.editingItemId ? shelfItems.find(i => i.id === this.editingItemId) : null;
     const pairedTotpKey = localStorage.getItem(this.STORAGE_TOTP_KEY);
 
-    // Google Authenticator Setup URI for enrolled devices
-    const activeTotpKey = pairedTotpKey || "SAURAVPANDEYMCA7";
+    // Google Authenticator Setup URI for enrolled devices (dynamic, zero hardcoded secrets)
+    const activeTotpKey = pairedTotpKey || this.generateRandomBase32();
     const otpUri = `otpauth://totp/SauravPortfolio:thesauravpandey@outlook.com?secret=${activeTotpKey}&issuer=SauravPortfolio&algorithm=SHA1&digits=6&period=30`;
     const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(otpUri)}`;
 

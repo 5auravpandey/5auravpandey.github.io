@@ -252,13 +252,34 @@ Decentralized applications on standard EVM networks encounter severe user experi
 window.PORTFOLIO_SHELF_STORE = {
   STORAGE_KEY: "portfolio_custom_shelf",
 
+  validateItem(item) {
+    if (!item || typeof item !== "object") return null;
+    const validCategories = ["research", "notes", "books", "games", "shows", "music"];
+    const category = validCategories.includes(item.category) ? item.category : "notes";
+    return {
+      id: String(item.id || `custom-${Date.now()}`),
+      type: String(item.type || category),
+      category: category,
+      badge: String(item.badge || "Note"),
+      title: String(item.title || "Untitled"),
+      meta: String(item.meta || ""),
+      rating: item.rating ? String(item.rating) : null,
+      summary: String(item.summary || ""),
+      media: item.media ? String(item.media) : "",
+      content: item.content ? String(item.content) : ""
+    };
+  },
+
   getAll() {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          const validated = parsed.map(item => this.validateItem(item)).filter(Boolean);
+          if (validated.length > 0) {
+            return validated;
+          }
         }
       }
     } catch (e) {
