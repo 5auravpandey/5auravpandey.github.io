@@ -469,36 +469,46 @@ function initUtilities() {
 
 /**
  * Mobile Navigation Dropdown Manager
+ * Applies modern navigation drawer patterns (inert background, accessible ARIA, auto-dismiss)
  */
 function initMobileNav() {
   const triggerBtn = document.getElementById("nav-dropdown-trigger");
   const dropdown = document.getElementById("mobile-dropdown");
   const backdrop = document.getElementById("dropdown-backdrop");
   const navBar = document.querySelector(".nav-bar");
+  const mainEl = document.querySelector("main");
+  const btnText = triggerBtn ? triggerBtn.querySelector(".dropdown-btn-text") : null;
   if (!triggerBtn || !dropdown) return;
 
   const closeDropdown = () => {
     dropdown.setAttribute("hidden", "");
+    dropdown.classList.remove("is-open");
     triggerBtn.setAttribute("aria-expanded", "false");
     triggerBtn.classList.remove("active");
+    if (btnText) btnText.textContent = "Menu";
     if (navBar) navBar.classList.remove("dropdown-open");
+    if (mainEl) mainEl.inert = false;
     document.body.classList.remove("dropdown-locked");
   };
 
   const openDropdown = () => {
     dropdown.removeAttribute("hidden");
+    dropdown.classList.add("is-open");
     triggerBtn.setAttribute("aria-expanded", "true");
     triggerBtn.classList.add("active");
+    if (btnText) btnText.textContent = "Close";
     if (navBar) navBar.classList.add("dropdown-open");
+    if (mainEl) mainEl.inert = true;
+    document.body.classList.add("dropdown-locked");
   };
 
   triggerBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    const isHidden = dropdown.hasAttribute("hidden");
-    if (isHidden) {
-      openDropdown();
-    } else {
+    const isOpen = dropdown.classList.contains("is-open") && !dropdown.hasAttribute("hidden");
+    if (isOpen) {
       closeDropdown();
+    } else {
+      openDropdown();
     }
   });
 
@@ -511,7 +521,10 @@ function initMobileNav() {
 
   // Close when clicking backdrop
   if (backdrop) {
-    backdrop.addEventListener("click", closeDropdown);
+    backdrop.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeDropdown();
+    });
   }
 
   // Close when clicking outside the navbar & dropdown
@@ -528,9 +541,9 @@ function initMobileNav() {
     }
   });
 
-  // Close if window resizes to desktop width (> 768px)
+  // Close if window resizes to desktop width (> 860px)
   window.addEventListener("resize", () => {
-    if (window.innerWidth > 768 && !dropdown.hasAttribute("hidden")) {
+    if (window.innerWidth > 860 && !dropdown.hasAttribute("hidden")) {
       closeDropdown();
     }
   });

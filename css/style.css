@@ -73,6 +73,7 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 body {
@@ -81,6 +82,7 @@ body {
   background-color: var(--paper);
   color: var(--ink);
   transition: background-color var(--transition-fast), color var(--transition-fast);
+  overflow-x: hidden;
 }
 
 a {
@@ -274,17 +276,25 @@ input:focus-visible {
 /* Mobile Dropdown Sheet & Backdrop */
 .mobile-dropdown-sheet {
   position: fixed;
-  top: 54px;
+  top: 52px;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 999;
+  z-index: 99999;
   display: flex;
   flex-direction: column;
+  pointer-events: auto;
 }
 
-.mobile-dropdown-sheet[hidden] {
+.mobile-dropdown-sheet[hidden],
+.mobile-dropdown-sheet:not(.is-open) {
   display: none !important;
+}
+
+@media (min-width: 861px) {
+  .mobile-dropdown-sheet {
+    display: none !important;
+  }
 }
 
 .dropdown-backdrop {
@@ -294,21 +304,22 @@ input:focus-visible {
   right: 0;
   bottom: 0;
   background-color: var(--dialog-backdrop);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity 0.25s ease;
 }
 
 .dropdown-panel {
   position: relative;
   background-color: var(--card);
   border-bottom: 2px solid var(--accent);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
-  max-height: calc(88dvh - 54px);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+  max-height: calc(88dvh - 52px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 16px;
-  animation: slideDropdown 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 1000;
+  animation: slideDropdown 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 100000;
 }
 
 @keyframes slideDropdown {
