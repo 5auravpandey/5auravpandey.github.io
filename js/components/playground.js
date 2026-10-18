@@ -584,6 +584,26 @@ window.PORTFOLIO_PLAYGROUND = {
   openInviteModal() {
     const dialog = document.getElementById("invite-dialog");
     if (dialog) {
+      const liveOrigin = window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
+        ? "https://5auravpandey.github.io"
+        : window.location.origin;
+      const shareUrl = `${liveOrigin}${window.location.pathname}?tab=focus&sprint=25`;
+      const input = document.getElementById("invite-link-input");
+      if (input) input.value = shareUrl;
+
+      const whatsapp = dialog.querySelector(".btn-social-share.whatsapp");
+      if (whatsapp) {
+        whatsapp.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`Hey! Join me for a 25-minute focus sprint on Saurav's dev site: ${shareUrl}`)}`;
+      }
+      const twitter = dialog.querySelector(".btn-social-share.twitter");
+      if (twitter) {
+        twitter.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Doing a deep work coding sprint with authentic Indian soundscapes on @5auravpandey's portfolio!&url=${shareUrl}`)}`;
+      }
+      const telegram = dialog.querySelector(".btn-social-share.telegram");
+      if (telegram) {
+        telegram.href = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Join me for a focus sprint!`)}`;
+      }
+
       dialog.showModal();
     }
   },

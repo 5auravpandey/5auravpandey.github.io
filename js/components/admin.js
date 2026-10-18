@@ -501,10 +501,8 @@ window.PORTFOLIO_ADMIN = {
     const editingItem = this.editingItemId ? shelfItems.find(i => i.id === this.editingItemId) : null;
     const pairedTotpKey = localStorage.getItem(this.STORAGE_TOTP_KEY);
 
-    // Google Authenticator Setup URI for enrolled devices (dynamic, zero hardcoded secrets)
+    // Google Authenticator Setup for enrolled devices (100% offline, zero third-party leak)
     const activeTotpKey = pairedTotpKey || this.generateRandomBase32();
-    const otpUri = `otpauth://totp/SauravPortfolio:thesauravpandey@outlook.com?secret=${activeTotpKey}&issuer=SauravPortfolio&algorithm=SHA1&digits=6&period=30`;
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(otpUri)}`;
 
     container.innerHTML = `
       <div class="admin-dashboard">
@@ -534,41 +532,48 @@ window.PORTFOLIO_ADMIN = {
           </div>
         </div>
 
-        <!-- Security & 2FA Device Pairing Card -->
+        <!-- Security & 2FA Device Pairing Card (100% Offline & Private) -->
         ${this.showSecuritySettings ? `
-          <div class="authenticator-setup-card" style="margin-bottom: 20px; border-left: 3px solid var(--accent); background: var(--paper);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div class="authenticator-setup-card" style="margin-bottom: 20px; border-left: 3px solid var(--accent); background: var(--paper); border-radius: var(--radius-sm); padding: 16px; border: 1px solid var(--rule);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
               <h4 style="margin: 0; font-size: 16px;">🔐 Google Authenticator (TOTP) Device Pairing</h4>
               <span style="font-size: 11.5px; font-family: var(--mono); padding: 2px 8px; border-radius: 999px; background: ${pairedTotpKey ? 'var(--ok-bg)' : 'var(--tint)'}; color: ${pairedTotpKey ? 'var(--ok)' : 'var(--accent)'}; border: 1px solid currentColor;">
                 ${pairedTotpKey ? '● Paired with this Browser' : '○ Not Yet Paired'}
               </span>
             </div>
             <p style="font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.45;">
-              Pairing stores a dedicated 2FA key in your personal browser's storage. On subsequent logins from this machine, you can simply type your 6-digit Google Authenticator code.
+              Pairing stores a dedicated 2FA key in your personal browser's local storage with zero network exposure. To pair, open Google Authenticator on your mobile phone, tap <strong>+</strong> &gt; <strong>Enter a setup key</strong>, and add this key.
             </p>
 
-            <div style="display: flex; gap: 18px; align-items: center; flex-wrap: wrap;">
-              <div style="text-align: center;">
-                <img src="${qrApiUrl}" alt="Authenticator QR Code" style="width: 150px; height: 150px; border-radius: 6px; border: 1px solid var(--rule); display: block;" loading="lazy">
-                <span style="font-size: 11px; color: var(--muted); margin-top: 4px; display: block;">Scan with Google Authenticator</span>
-              </div>
-              <div style="flex: 1; min-width: 220px;">
-                <label style="font-size: 12px; font-family: var(--mono); color: var(--muted); display: block; margin-bottom: 4px;">Active Base32 Secret Key:</label>
-                <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 12px;">
-                  <code id="display-totp-key" style="font-size: 13px; font-weight: bold; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--rule); letter-spacing: 0.08em;">${activeTotpKey}</code>
-                  <button type="button" id="btn-copy-totp-key" class="btn-copy" style="font-size: 11px;">Copy</button>
+            <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+              <div style="flex: 1.2; min-width: 250px; background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 14px;">
+                <label style="font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
+                  1. Setup Key (Enter in Google Authenticator):
+                </label>
+                <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 10px;">
+                  <code id="display-totp-key" style="font-size: 13.5px; font-weight: bold; background: var(--paper); padding: 7px 12px; border-radius: 4px; border: 1px solid var(--rule); letter-spacing: 0.1em; flex: 1; user-select: all;">${activeTotpKey}</code>
+                  <button type="button" id="btn-copy-totp-key" class="btn-copy" style="font-size: 11.5px; padding: 6px 12px;">Copy</button>
                 </div>
+                <div style="font-size: 12px; color: var(--muted); line-height: 1.5;">
+                  <div>• <strong>Account Name:</strong> <code>SauravPortfolio</code></div>
+                  <div>• <strong>Key Type:</strong> <code>Time-based (TOTP)</code></div>
+                </div>
+              </div>
 
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                  <button type="button" id="btn-pair-totp" class="btn-primary-action" style="font-size: 12px; padding: 6px 14px;">
-                    ${pairedTotpKey ? 'Update Browser Pairing' : 'Pair this Key to Browser'}
+              <div style="flex: 1; min-width: 220px;">
+                <label style="font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
+                  2. Device Pairing Actions:
+                </label>
+                <div style="display: flex; gap: 8px; flex-direction: column;">
+                  <button type="button" id="btn-pair-totp" class="btn-primary-action" style="font-size: 12.5px; padding: 8px 14px; text-align: center;">
+                    ${pairedTotpKey ? '✓ Update Browser Pairing' : '🔗 Pair this Key to Browser'}
                   </button>
-                  <button type="button" id="btn-regen-totp" class="btn-secondary-action" style="font-size: 12px; padding: 6px 14px;">
-                    Generate New Key
+                  <button type="button" id="btn-regen-totp" class="btn-secondary-action" style="font-size: 12px; padding: 6px 14px; text-align: center;">
+                    🔄 Generate New Key
                   </button>
                   ${pairedTotpKey ? `
-                    <button type="button" id="btn-unpair-totp" class="btn-secondary-action" style="font-size: 12px; padding: 6px 14px; color: #ef4444;">
-                      Unpair Device
+                    <button type="button" id="btn-unpair-totp" class="btn-ambient-action" style="font-size: 12px; padding: 6px 14px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
+                      ✕ Unpair Device
                     </button>
                   ` : ''}
                 </div>

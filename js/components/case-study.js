@@ -28,7 +28,7 @@ window.PORTFOLIO_CASE_STUDY = {
         rect.top <= e.clientY &&
         e.clientY <= rect.top + rect.height &&
         rect.left <= e.clientX &&
-        event.clientX <= rect.left + rect.width
+        e.clientX <= rect.left + rect.width
       );
       if (!isInDialog) {
         this.close();

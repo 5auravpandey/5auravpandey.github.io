@@ -776,9 +776,16 @@ h1.hero-title {
 /* Hero Quick Stats Badges */
 .hero-quick-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin-bottom: 24px;
+}
+
+@media (max-width: 1040px) and (min-width: 641px) {
+  .hero-quick-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
 }
 
 .stat-badge {
@@ -2728,9 +2735,14 @@ dialog#invite-dialog {
     padding: 14px 16px;
   }
 
+  /* Section Spacing on Mobile */
+  section {
+    margin-top: 42px;
+  }
+
   /* Section Headings */
   .section-head {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
 
   .section-title {
