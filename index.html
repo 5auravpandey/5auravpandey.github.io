@@ -28,7 +28,7 @@
 </head>
 <body>
 
-  <!-- Static Main Header & Navigation (Always visible in natural page flow for both mobile and desktop) -->
+  <!-- Fixed Stationary Header (Pinned at top for both mobile & desktop) -->
   <header class="nav-bar">
     <div class="nav-container">
       <div class="nav-brand-group">
@@ -42,7 +42,22 @@
         </a>
       </div>
 
-      <div class="nav-controls-group">
+      <!-- Desktop Navigation Menu (hidden on mobile) -->
+      <nav id="desktop-nav" class="desktop-nav" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#about" class="nav-link-item">About</a></li>
+          <li><a href="#experience" class="nav-link-item">Experiences</a></li>
+          <li><a href="#projects" class="nav-link-item">Projects</a></li>
+          <li><a href="#playground" class="nav-link-item">Dev Lab</a></li>
+          <li><a href="#curations" class="nav-link-item">Archive & Curations</a></li>
+          <li><a href="#skills" class="nav-link-item">Stack</a></li>
+          <li><a href="#education" class="nav-link-item">Education</a></li>
+          <li><a href="#contact" class="nav-link-item">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Desktop Perspective & Theme Controls (hidden on mobile) -->
+      <div class="desktop-controls">
         <div class="perspective-container" role="group" aria-label="Perspective Switcher">
           <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
             ⚡ Systems & Code
@@ -57,24 +72,88 @@
           <span class="theme-text-short">🌙</span>
         </button>
       </div>
-    </div>
 
-    <!-- Static Navigation Links (Instant direct access on mobile and desktop without dropdowns) -->
-    <nav class="nav-subbar" aria-label="Main Navigation">
-      <div class="nav-subbar-container">
-        <ul class="nav-links">
-          <li><a href="#about" class="nav-link-item">About</a></li>
-          <li><a href="#experience" class="nav-link-item">Experience</a></li>
-          <li><a href="#projects" class="nav-link-item">Projects</a></li>
-          <li><a href="#playground" class="nav-link-item">Dev Lab</a></li>
-          <li><a href="#curations" class="nav-link-item">Archive & Curations</a></li>
-          <li><a href="#skills" class="nav-link-item">Stack</a></li>
-          <li><a href="#education" class="nav-link-item">Education</a></li>
-          <li><a href="#contact" class="nav-link-item">Contact</a></li>
-        </ul>
+      <!-- Mobile Controls (Visible on mobile/tablet) -->
+      <div class="mobile-controls">
+        <button id="mobile-theme-btn" class="btn-theme mobile-theme-icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+          <span class="mobile-theme-icon">🌙</span>
+        </button>
+
+        <button id="nav-dropdown-trigger" class="nav-dropdown-btn" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-dropdown">
+          <span class="dropdown-btn-text">Menu</span>
+          <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
       </div>
-    </nav>
+    </div>
   </header>
+
+  <!-- Mobile Navigation Dropdown Menu (Outside header to prevent containing-block traps) -->
+  <div id="mobile-dropdown" class="mobile-dropdown-sheet" hidden>
+    <div class="dropdown-backdrop" id="dropdown-backdrop"></div>
+    <div class="dropdown-panel">
+      <!-- Perspective Switcher Inside Dropdown -->
+      <div class="dropdown-perspective-card">
+        <div class="dropdown-perspective-meta">
+          <span class="dropdown-section-title">Perspective Mode</span>
+          <span id="mobile-perspective-label" class="dropdown-perspective-indicator">⚡ Systems & Code</span>
+        </div>
+        <div class="dropdown-persp-toggle" role="group" aria-label="Mobile Perspective Switcher">
+          <button id="btn-mobile-eng" class="dropdown-persp-btn active" type="button">
+            ⚡ Systems & Code
+          </button>
+          <button id="btn-mobile-exec" class="dropdown-persp-btn" type="button">
+            💡 Quick Story
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Links with Icons -->
+      <nav class="dropdown-nav-list" aria-label="Mobile Dropdown Navigation">
+        <a href="#about" class="dropdown-nav-item">
+          <span class="nav-item-icon">👤</span>
+          <span class="nav-item-text">About Saurav</span>
+        </a>
+        <a href="#experience" class="dropdown-nav-item">
+          <span class="nav-item-icon">💼</span>
+          <span class="nav-item-text">Experiences (HAL)</span>
+        </a>
+        <a href="#projects" class="dropdown-nav-item">
+          <span class="nav-item-icon">💻</span>
+          <span class="nav-item-text">Projects</span>
+        </a>
+        <a href="#playground" class="dropdown-nav-item">
+          <span class="nav-item-icon">⚡</span>
+          <span class="nav-item-text">Dev Lab & Audio</span>
+        </a>
+        <a href="#curations" class="dropdown-nav-item">
+          <span class="nav-item-icon">📚</span>
+          <span class="nav-item-text">Archive & Curations</span>
+        </a>
+        <a href="#skills" class="dropdown-nav-item">
+          <span class="nav-item-icon">🛠️</span>
+          <span class="nav-item-text">Stack Matrix</span>
+        </a>
+        <a href="#education" class="dropdown-nav-item">
+          <span class="nav-item-icon">🎓</span>
+          <span class="nav-item-text">Academic Background</span>
+        </a>
+        <a href="#contact" class="dropdown-nav-item">
+          <span class="nav-item-icon">📬</span>
+          <span class="nav-item-text">Contact & Say Hello</span>
+        </a>
+      </nav>
+
+      <!-- Direct Social / Action Bar -->
+      <div class="dropdown-social-strip">
+        <a href="https://t.me/sauravpandey" target="_blank" rel="noopener noreferrer" class="dropdown-chip">Telegram</a>
+        <a href="https://github.com/5auravpandey" target="_blank" rel="noopener noreferrer" class="dropdown-chip">GitHub</a>
+        <a href="https://www.linkedin.com/in/5auravpandey" target="_blank" rel="noopener noreferrer" class="dropdown-chip">LinkedIn</a>
+        <a href="mailto:thesauravpandey@outlook.com" class="dropdown-chip">Email</a>
+      </div>
+    </div>
+  </div>
 
   <!-- Main Document Page -->
   <main class="page-container" id="top">

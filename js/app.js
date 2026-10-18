@@ -54,6 +54,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 8. Initialize Clipboard & Utility Actions
   initUtilities();
+
+  // 9. Initialize Mobile Navigation Dropdown Menu
+  initMobileNav();
 });
 
 /**
@@ -62,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function initTheme() {
   const root = document.documentElement;
   const themeBtn = document.getElementById("theme-toggle-btn");
+  const mobileThemeBtn = document.getElementById("mobile-theme-btn");
   
   const savedTheme = localStorage.getItem("portfolio_theme");
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -77,6 +81,14 @@ function initTheme() {
     });
   }
 
+  if (mobileThemeBtn) {
+    mobileThemeBtn.addEventListener("click", () => {
+      const current = root.getAttribute("data-theme") || "light";
+      const next = current === "dark" ? "light" : "dark";
+      setTheme(next);
+    });
+  }
+
   function setTheme(theme) {
     root.setAttribute("data-theme", theme);
     const isDark = theme === "dark";
@@ -84,6 +96,11 @@ function initTheme() {
       themeBtn.innerHTML = `<span class="theme-text-full">${isDark ? "Light mode" : "Dark mode"}</span><span class="theme-text-short">${isDark ? "☀️ Light" : "🌙 Dark"}</span>`;
       themeBtn.setAttribute("aria-pressed", isDark);
       themeBtn.setAttribute("title", isDark ? "Switch to Light mode" : "Switch to Dark mode");
+    }
+    if (mobileThemeBtn) {
+      mobileThemeBtn.innerHTML = `<span class="mobile-theme-icon">${isDark ? "☀️" : "🌙"}</span>`;
+      mobileThemeBtn.setAttribute("aria-label", isDark ? "Switch to Light mode" : "Switch to Dark mode");
+      mobileThemeBtn.setAttribute("title", isDark ? "Switch to Light mode" : "Switch to Dark mode");
     }
     try {
       localStorage.setItem("portfolio_theme", theme);
@@ -480,3 +497,83 @@ function initUtilities() {
     });
   }
 }
+
+/**
+ * Mobile Navigation Dropdown Manager
+ * Controls opening, closing, backdrop clicks, escape key, and smooth scroll dismissals
+ */
+function initMobileNav() {
+  const triggerBtn = document.getElementById("nav-dropdown-trigger");
+  const dropdown = document.getElementById("mobile-dropdown");
+  const backdrop = document.getElementById("dropdown-backdrop");
+  const navBar = document.querySelector(".nav-bar");
+  const btnText = triggerBtn ? triggerBtn.querySelector(".dropdown-btn-text") : null;
+
+  if (!triggerBtn || !dropdown) return;
+
+  const closeDropdown = () => {
+    dropdown.setAttribute("hidden", "");
+    dropdown.classList.remove("is-open");
+    triggerBtn.setAttribute("aria-expanded", "false");
+    triggerBtn.classList.remove("active");
+    if (btnText) btnText.textContent = "Menu";
+    if (navBar) navBar.classList.remove("dropdown-open");
+    document.body.classList.remove("dropdown-locked");
+  };
+
+  const openDropdown = () => {
+    dropdown.removeAttribute("hidden");
+    dropdown.classList.add("is-open");
+    triggerBtn.setAttribute("aria-expanded", "true");
+    triggerBtn.classList.add("active");
+    if (btnText) btnText.textContent = "Close";
+    if (navBar) navBar.classList.add("dropdown-open");
+  };
+
+  triggerBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = dropdown.classList.contains("is-open") && !dropdown.hasAttribute("hidden");
+    if (isOpen) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
+  });
+
+  // Close when clicking any nav link inside dropdown
+  dropdown.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", () => {
+      closeDropdown();
+    });
+  });
+
+  // Close when clicking backdrop
+  if (backdrop) {
+    backdrop.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeDropdown();
+    });
+  }
+
+  // Close when clicking outside the navbar & dropdown
+  document.addEventListener("click", (e) => {
+    if (!dropdown.hasAttribute("hidden") && !dropdown.contains(e.target) && !triggerBtn.contains(e.target)) {
+      closeDropdown();
+    }
+  });
+
+  // Close on Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !dropdown.hasAttribute("hidden")) {
+      closeDropdown();
+    }
+  });
+
+  // Close if window resizes to desktop width (> 960px)
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 960 && !dropdown.hasAttribute("hidden")) {
+      closeDropdown();
+    }
+  });
+}
+

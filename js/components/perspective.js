@@ -20,12 +20,20 @@ window.PORTFOLIO_PERSPECTIVE = {
   bindEvents() {
     const engBtn = document.getElementById("btn-perspective-eng");
     const overviewBtn = document.getElementById("btn-perspective-exec");
+    const mobileEngBtn = document.getElementById("btn-mobile-eng");
+    const mobileOverviewBtn = document.getElementById("btn-mobile-exec");
 
     if (engBtn) {
       engBtn.addEventListener("click", () => this.setPerspective("engineer"));
     }
     if (overviewBtn) {
       overviewBtn.addEventListener("click", () => this.setPerspective("overview"));
+    }
+    if (mobileEngBtn) {
+      mobileEngBtn.addEventListener("click", () => this.setPerspective("engineer"));
+    }
+    if (mobileOverviewBtn) {
+      mobileOverviewBtn.addEventListener("click", () => this.setPerspective("overview"));
     }
   },
 
@@ -51,9 +59,13 @@ window.PORTFOLIO_PERSPECTIVE = {
     if (!profile) return;
     const config = profile.perspectives[this.current] || profile.perspectives.engineer;
 
-    // 1. Update button states
+    // 1. Update button states (Desktop and Mobile)
     const engBtn = document.getElementById("btn-perspective-eng");
     const overviewBtn = document.getElementById("btn-perspective-exec");
+    const mobileEngBtn = document.getElementById("btn-mobile-eng");
+    const mobileOverviewBtn = document.getElementById("btn-mobile-exec");
+    const mobileLabel = document.getElementById("mobile-perspective-label");
+
     if (engBtn) {
       engBtn.setAttribute("aria-pressed", this.current === "engineer");
       engBtn.classList.toggle("active", this.current === "engineer");
@@ -61,6 +73,17 @@ window.PORTFOLIO_PERSPECTIVE = {
     if (overviewBtn) {
       overviewBtn.setAttribute("aria-pressed", this.current === "overview");
       overviewBtn.classList.toggle("active", this.current === "overview");
+    }
+    if (mobileEngBtn) {
+      mobileEngBtn.setAttribute("aria-pressed", this.current === "engineer");
+      mobileEngBtn.classList.toggle("active", this.current === "engineer");
+    }
+    if (mobileOverviewBtn) {
+      mobileOverviewBtn.setAttribute("aria-pressed", this.current === "overview");
+      mobileOverviewBtn.classList.toggle("active", this.current === "overview");
+    }
+    if (mobileLabel) {
+      mobileLabel.textContent = config.label;
     }
 
     // 2. Update Hero
