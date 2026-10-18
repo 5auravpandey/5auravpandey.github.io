@@ -37,6 +37,45 @@ window.PORTFOLIO_COMMAND_PALETTE = {
           window.PORTFOLIO_PLAYGROUND.toggleTimer();
         }
       }},
+      { id: "act-sync-room", type: "action", icon: "👥", title: "Invite Friends & Sync Music", desc: "Create a live synchronized study room with timer and audio", handler: () => {
+        window.location.hash = "#playground";
+        if (window.PORTFOLIO_PLAYGROUND) {
+          window.PORTFOLIO_PLAYGROUND.openInviteModal();
+        }
+      }},
+      { id: "act-game-snake", type: "action", icon: "🐍", title: "Play Matrix Snake (Dev Arcade)", desc: "Retro 20x20 canvas snake with Web Audio sound effects", handler: () => {
+        window.location.hash = "#playground";
+        if (window.PORTFOLIO_PLAYGROUND) {
+          window.PORTFOLIO_PLAYGROUND.currentTab = "games";
+          window.PORTFOLIO_PLAYGROUND.render();
+          if (window.PORTFOLIO_GAMES) {
+            window.PORTFOLIO_GAMES.activeGame = "snake";
+            window.PORTFOLIO_GAMES.render();
+          }
+        }
+      }},
+      { id: "act-game-ttt", type: "action", icon: "⚔️", title: "Play Tic-Tac-Toe / Dev Duel", desc: "Challenge HAL Minimax AI or 2-Player pass & play", handler: () => {
+        window.location.hash = "#playground";
+        if (window.PORTFOLIO_PLAYGROUND) {
+          window.PORTFOLIO_PLAYGROUND.currentTab = "games";
+          window.PORTFOLIO_PLAYGROUND.render();
+          if (window.PORTFOLIO_GAMES) {
+            window.PORTFOLIO_GAMES.activeGame = "tictactoe";
+            window.PORTFOLIO_GAMES.render();
+          }
+        }
+      }},
+      { id: "act-game-chess", type: "action", icon: "♟️", title: "Play Chess / Grandmaster Dev", desc: "Interactive 8x8 chessboard with DeepCode AI or 2-Player", handler: () => {
+        window.location.hash = "#playground";
+        if (window.PORTFOLIO_PLAYGROUND) {
+          window.PORTFOLIO_PLAYGROUND.currentTab = "games";
+          window.PORTFOLIO_PLAYGROUND.render();
+          if (window.PORTFOLIO_GAMES) {
+            window.PORTFOLIO_GAMES.activeGame = "chess";
+            window.PORTFOLIO_GAMES.render();
+          }
+        }
+      }},
       { id: "act-copy-link", type: "action", icon: "🔗", title: "Copy Portfolio URL", desc: "Copies https://sauravpandey.me to clipboard", handler: () => {
         if (navigator.clipboard) {
           navigator.clipboard.writeText("https://sauravpandey.me");

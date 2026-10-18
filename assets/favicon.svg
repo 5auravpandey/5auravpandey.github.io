@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <style>
+      .bg { fill: #0f141c; }
+      .border { stroke: rgba(255, 255, 255, 0.1); }
+      .stroke-s { stroke: url(#sGrad); }
+      .pulse-dot { fill: #22c55e; }
+      @media (prefers-color-scheme: light) {
+        .bg { fill: #ffffff; }
+        .border { stroke: rgba(0, 0, 0, 0.12); }
+      }
+    </style>
+    <linearGradient id="sGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#60a5fa" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect class="bg" width="32" height="32" rx="8" />
+  <rect class="border" width="30" height="30" x="1" y="1" rx="7" fill="none" stroke-width="1" />
+
+  <!-- Modern Sleek S Monogram -->
+  <path class="stroke-s" d="M21.5 10.8C21.5 8.1 19.1 6.5 16 6.5C12.8 6.5 10.5 8.2 10.5 10.8C10.5 14 13.8 15 16.2 15.8C19 16.8 21.5 18 21.5 21.2C21.5 24.2 19 25.8 16 25.8C12.5 25.8 10.2 23.8 10.2 21" 
+        fill="none" 
+        stroke-width="3.4" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" />
+
+  <!-- Active Online Dot -->
+  <circle class="pulse-dot" cx="24" cy="7.5" r="2.2" />
+</svg>

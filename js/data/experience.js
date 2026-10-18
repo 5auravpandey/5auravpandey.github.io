@@ -9,8 +9,8 @@ window.PORTFOLIO_EXPERIENCE = [
     department: "Avionics Department",
     company: "Hindustan Aeronautics Limited (HAL)",
     duration: "October 2026 – Present",
-    location: "Korwa Division, Amethi, UP, India",
-    overview: "Working as a Programming Assistant inside the Avionics Department at HAL (Korwa Division, Amethi, UP), India's leading aerospace organization.",
+    location: "Korwa, Amethi, UP, India",
+    overview: "Working as a Programming Assistant inside the Avionics Department at HAL (Korwa, Amethi, UP), India's leading aerospace organization.",
     summary: "I work with the team on internal software utilities, data processing scripts, and database queries that support the department's avionics operations.",
     responsibilities: [
       "Writing and maintaining internal utilities and scripts for the avionics team.",

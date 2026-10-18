@@ -14,7 +14,7 @@
 
   <!-- Canonical & Adaptive SVG Favicon -->
   <link rel="canonical" href="https://sauravpandey.me/">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23121214'/%3E%3Cpath d='M8 11l5 5-5 5' stroke='%233b82f6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cline x1='16' y1='21' x2='24' y2='21' stroke='%2322c55e' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='25' cy='9' r='2.5' fill='%2322c55e'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="alternate" type="application/rss+xml" title="Saurav Pandey - Engineering Notes &amp; Research" href="https://sauravpandey.me/rss.xml">
   <meta name="theme-color" content="#121214" id="meta-theme-color">
 
@@ -458,30 +458,54 @@
     </div>
   </dialog>
 
-  <!-- Invite Friends Dialog -->
-  <dialog id="invite-dialog" closedby="any" aria-labelledby="invite-dialog-title">
+  <!-- Synchronized Study & Music Invite Dialog -->
+  <dialog id="invite-dialog" class="invite-room-dialog" closedby="any" aria-labelledby="invite-dialog-title">
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-      <h3 id="invite-dialog-title" style="margin: 0; font-size: 22px;">Invite Friends to Focus</h3>
+      <div>
+        <span class="invite-badge">👥 Live Synchronized Room</span>
+        <h3 id="invite-dialog-title" style="margin: 4px 0 0; font-size: 21px;">Invite Friends to Study &amp; Sync Music</h3>
+      </div>
       <button type="button" class="dialog-close" id="invite-dialog-close" aria-label="Close">×</button>
     </div>
-    <p style="font-size: 15px; color: var(--ink-secondary); margin: 0 0 16px;">
-      Share this focus room with a friend to study or code together on a synchronized sprint!
+    <p style="font-size: 14.5px; color: var(--ink-secondary); margin: 0 0 16px; line-height: 1.5;">
+      Start a synchronized Pomodoro session with friends! When they open your link, their timer and background music sync in real-time with yours.
     </p>
 
-    <div style="background-color: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 10px; display: flex; gap: 8px; align-items: center;">
-      <input type="text" id="invite-link-input" class="focus-input" style="font-size: 13px; text-align: left; padding: 6px 10px;" value="https://sauravpandey.me/?tab=focus&sprint=25" readonly>
+    <!-- Synchronized Room Settings -->
+    <div class="invite-config-box" style="background-color: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+        <span style="font-family: var(--mono); font-size: 12px; color: var(--muted);">Room Code:</span>
+        <span id="invite-room-code-badge" style="font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); background: var(--tint); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--rule);">STUDY-2026</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+          <span style="color: var(--ink-secondary);">Audio Channel:</span>
+          <span id="invite-audio-channel-label" style="font-family: var(--mono); font-size: 12.5px; font-weight: 500;">🪕 Meditative Tanpura (Zero-lag Synth)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+          <span style="color: var(--ink-secondary);">Sprint Duration:</span>
+          <span id="invite-sprint-label" style="font-family: var(--mono); font-size: 12.5px; font-weight: 500;">25 Minutes Focus</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generated Shareable Room Link -->
+    <div style="background-color: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 10px; display: flex; gap: 8px; align-items: center; margin-bottom: 14px;">
+      <input type="text" id="invite-link-input" class="focus-input" style="font-size: 13px; text-align: left; padding: 6px 10px;" value="https://sauravpandey.me/?room=STUDY-2026&sound=tanpura&sprint=25" readonly>
       <button type="button" id="btn-copy-invite-link" class="btn-primary-action" style="padding: 6px 14px; font-size: 12.5px; white-space: nowrap;">Copy Link</button>
     </div>
 
+    <!-- Social Share Buttons -->
     <div class="invite-social-btns">
-      <a href="https://api.whatsapp.com/send?text=Hey!%20Join%20me%20for%20a%2025-minute%20focus%20sprint%20on%20Saurav's%20dev%20site:%20https://sauravpandey.me/?tab=focus&sprint=25" target="_blank" rel="noopener noreferrer" class="btn-social-share whatsapp">
+      <a href="#" target="_blank" rel="noopener noreferrer" class="btn-social-share whatsapp">
         WhatsApp
       </a>
-      <a href="https://twitter.com/intent/tweet?text=Doing%20a%20deep%20work%20coding%20sprint%20with%20ambient%20rain%20on%20@5auravpandey's%20portfolio!&url=https://sauravpandey.me/?tab=focus&sprint=25" target="_blank" rel="noopener noreferrer" class="btn-social-share twitter">
-        Twitter / X
-      </a>
-      <a href="https://t.me/share/url?url=https://sauravpandey.me/?tab=focus&sprint=25&text=Join%20me%20for%20a%20focus%20sprint!" target="_blank" rel="noopener noreferrer" class="btn-social-share telegram">
+      <a href="#" target="_blank" rel="noopener noreferrer" class="btn-social-share telegram">
         Telegram
+      </a>
+      <a href="#" target="_blank" rel="noopener noreferrer" class="btn-social-share twitter">
+        Twitter / X
       </a>
     </div>
   </dialog>
@@ -523,6 +547,7 @@
   <script src="js/components/case-study.js" defer></script>
   <script src="js/components/stack-explorer.js" defer></script>
   <script src="js/components/playground.js" defer></script>
+  <script src="js/components/games.js" defer></script>
   <script src="js/components/command-palette.js" defer></script>
   <script src="js/app.js" defer></script>
 </body>

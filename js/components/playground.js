@@ -1,11 +1,12 @@
 /**
  * Saurav Pandey - Interactive Dev Playground
- * 1. Focus Sprint (4 Web Audio Soundscapes, Spotify Embedded System, Invite Friends)
+ * 1. Focus Sprint & Synchronized Study Room (Zero-Lag Web Audio, Synced YouTube Lo-Fi, Spotify)
  * 2. CryptoLock Live Cipher (Two-Way Bitwise XOR Encrypt & Decrypt)
  * 3. Power Terminal Shell (Tab Autocompletion, Command History, Matrix Rain, CLI Controls)
+ * 4. Dev Arcade (Matrix Snake, Tic-Tac-Toe Dev Duel, Grandmaster Chess)
  */
 window.PORTFOLIO_PLAYGROUND = {
-  currentTab: "focus", // 'focus' | 'crypto' | 'terminal'
+  currentTab: "focus", // 'focus' | 'crypto' | 'terminal' | 'games'
   
   // Timer State
   timerDuration: 25 * 60,
@@ -13,10 +14,16 @@ window.PORTFOLIO_PLAYGROUND = {
   timerInterval: null,
   isRunning: false,
   sprintsCompleted: 0,
+
+  // Synchronized Study Room State
+  activeRoomId: null,
+  roomStartTime: null,
   
   // Music & Sound System
-  audioMode: "ambient", // 'ambient' | 'spotify'
+  audioMode: "ambient", // 'ambient' | 'youtube' | 'spotify'
   soundscape: "tanpura", // 'tanpura' | 'bansuri' | 'temple' | 'tabla'
+  youtubePreset: "indian-classical", // 'indian-classical' | 'lofi-focus' | 'deep-ambient'
+  customYoutubeUrl: "",
   audioCtx: null,
   activeNodes: [],
   masterGain: null,
@@ -35,8 +42,8 @@ window.PORTFOLIO_PLAYGROUND = {
   isMatrixRunning: false,
   matrixInterval: null,
   terminalCommands: [
-    "help", "about", "hal", "projects", "books", "games", "skills", 
-    "contact", "admin", "matrix", "theme", "timer", "crypto", "sound", "spotify", "weather", "quote", "clear", "sudo hire"
+    "help", "about", "hal", "projects", "books", "games", "arcade", "snake", "chess", "tictactoe", 
+    "skills", "contact", "admin", "matrix", "theme", "timer", "crypto", "sound", "spotify", "youtube", "sync", "invite", "weather", "quote", "clear", "sudo hire"
   ],
 
   init() {
@@ -48,6 +55,12 @@ window.PORTFOLIO_PLAYGROUND = {
   checkUrlParams() {
     try {
       const params = new URLSearchParams(window.location.search);
+      
+      if (params.has("room")) {
+        this.activeRoomId = params.get("room");
+        this.currentTab = "focus";
+      }
+
       if (params.has("sprint")) {
         const mins = parseInt(params.get("sprint"), 10);
         if (mins > 0 && mins <= 120) {
@@ -55,10 +68,51 @@ window.PORTFOLIO_PLAYGROUND = {
           this.timeLeft = mins * 60;
         }
       }
+
+      if (params.has("t")) {
+        const startMs = parseInt(params.get("t"), 10);
+        if (!isNaN(startMs)) {
+          this.roomStartTime = startMs;
+          const elapsedSec = Math.floor((Date.now() - startMs) / 1000);
+          if (elapsedSec >= 0 && elapsedSec < this.timerDuration) {
+            this.timeLeft = this.timerDuration - elapsedSec;
+            this.startSyncedTimer();
+          } else {
+            this.timeLeft = this.timerDuration;
+          }
+        }
+      }
+
+      if (params.has("sound")) {
+        const s = params.get("sound");
+        if (["tanpura", "bansuri", "temple", "tabla"].includes(s)) {
+          this.soundscape = s;
+        }
+      }
+
+      if (params.has("audioMode")) {
+        const am = params.get("audioMode");
+        if (["ambient", "youtube", "spotify"].includes(am)) {
+          this.audioMode = am;
+        }
+      }
+
+      if (params.has("yt")) {
+        this.youtubePreset = params.get("yt");
+      }
+
       if (params.has("tab")) {
         const t = params.get("tab");
-        if (["focus", "crypto", "terminal"].includes(t)) {
+        if (["focus", "crypto", "terminal", "games"].includes(t)) {
           this.currentTab = t;
+        }
+      }
+
+      if (params.has("game") && window.PORTFOLIO_GAMES) {
+        const g = params.get("game");
+        if (["snake", "tictactoe", "chess"].includes(g)) {
+          this.currentTab = "games";
+          window.PORTFOLIO_GAMES.activeGame = g;
         }
       }
     } catch (e) {}
@@ -73,13 +127,16 @@ window.PORTFOLIO_PLAYGROUND = {
         <!-- Tab Navigation -->
         <div class="playground-tabs" role="tablist">
           <button type="button" class="playground-tab ${this.currentTab === 'focus' ? 'active' : ''}" data-tab="focus">
-            ⏱️ Focus & Music System
+            ⏱️ Focus &amp; Sync Room
           </button>
           <button type="button" class="playground-tab ${this.currentTab === 'crypto' ? 'active' : ''}" data-tab="crypto">
-            🔐 CryptoLock (Encrypt & Decrypt)
+            🔐 CryptoLock (Cipher)
           </button>
           <button type="button" class="playground-tab ${this.currentTab === 'terminal' ? 'active' : ''}" data-tab="terminal">
             💻 Power Terminal Shell
+          </button>
+          <button type="button" class="playground-tab ${this.currentTab === 'games' ? 'active' : ''}" data-tab="games">
+            🎮 Dev Arcade (Games)
           </button>
         </div>
 
@@ -94,12 +151,35 @@ window.PORTFOLIO_PLAYGROUND = {
   },
 
   renderActiveTab() {
+    if (this.currentTab === "games") {
+      return `
+        <div id="dev-games-container"></div>
+      `;
+    }
+
     if (this.currentTab === "focus") {
       const minutes = Math.floor(this.timeLeft / 60).toString().padStart(2, "0");
       const seconds = (this.timeLeft % 60).toString().padStart(2, "0");
 
       return `
         <div class="focus-pane">
+          <!-- Active Synchronized Study Room Banner -->
+          ${this.activeRoomId ? `
+            <div class="sync-room-banner">
+              <div class="sync-room-left">
+                <span class="sync-live-dot"></span>
+                <div>
+                  <span class="sync-room-title">Room #${this.activeRoomId}</span>
+                  <span class="sync-room-sub">&bull; Live Synchronized Study Group</span>
+                </div>
+              </div>
+              <div class="sync-room-actions">
+                <button type="button" class="btn-sync-room-share" id="btn-sync-room-share">🔗 Share Room</button>
+                <button type="button" class="btn-sync-room-leave" id="btn-sync-room-leave" title="Exit this synchronized study room">✕ Leave</button>
+              </div>
+            </div>
+          ` : ''}
+
           <!-- Sprint Preset Selectors -->
           <div class="focus-modes">
             <button type="button" class="focus-mode-btn ${this.timerDuration === 25 * 60 ? 'active' : ''}" data-duration="1500">25m Sprint</button>
@@ -124,8 +204,8 @@ window.PORTFOLIO_PLAYGROUND = {
               ${this.isRunning ? "Pause" : "Start Sprint"}
             </button>
             <button type="button" id="btn-timer-reset" class="btn-secondary-action">Reset</button>
-            <button type="button" id="btn-invite-friend" class="btn-ambient-action" title="Invite a friend to sprint together">
-              👥 Invite a Friend
+            <button type="button" id="btn-invite-friend" class="btn-ambient-action" title="Invite friends to study and sync audio together">
+              👥 Invite Friends &amp; Sync
             </button>
           </div>
 
@@ -134,6 +214,9 @@ window.PORTFOLIO_PLAYGROUND = {
             <div class="audio-mode-switcher">
               <button type="button" class="audio-mode-tab ${this.audioMode === 'ambient' ? 'active' : ''}" id="btn-mode-ambient">
                 🪕 Indian Soundscapes
+              </button>
+              <button type="button" class="audio-mode-tab ${this.audioMode === 'youtube' ? 'active' : ''}" id="btn-mode-youtube">
+                🎧 YouTube Focus Stream
               </button>
               <button type="button" class="audio-mode-tab ${this.audioMode === 'spotify' ? 'active' : ''}" id="btn-mode-spotify">
                 🟢 Spotify Player
@@ -156,6 +239,29 @@ window.PORTFOLIO_PLAYGROUND = {
                     ${this.isAudioPlaying ? "⏸️ Pause Audio" : "▶️ Play Soundscape"}
                   </button>
                   <canvas id="soundscape-visualizer" class="soundscape-canvas" width="112" height="26" title="Live Web Audio Frequency Visualizer" style="border-radius: 4px; background: rgba(0,0,0,0.06); vertical-align: middle;"></canvas>
+                </div>
+              </div>
+            ` : this.audioMode === 'youtube' ? `
+              <div class="youtube-controls">
+                <div class="youtube-presets">
+                  <button type="button" class="youtube-pill ${this.youtubePreset === 'indian-classical' ? 'active' : ''}" data-youtube="indian-classical">Indian Classical Ragas</button>
+                  <button type="button" class="youtube-pill ${this.youtubePreset === 'lofi-focus' ? 'active' : ''}" data-youtube="lofi-focus">Lofi Study Beats</button>
+                  <button type="button" class="youtube-pill ${this.youtubePreset === 'deep-ambient' ? 'active' : ''}" data-youtube="deep-ambient">Deep Alpha Waves</button>
+                </div>
+                <div class="youtube-iframe-box" style="margin-top: 10px;">
+                  <iframe 
+                    style="border-radius: 12px; width: 100%; aspect-ratio: 16/9; max-height: 220px; border: 1px solid var(--rule);" 
+                    src="${this.getYoutubeEmbedUrl()}" 
+                    title="YouTube Synced Focus Stream"
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen
+                    loading="lazy">
+                  </iframe>
+                </div>
+                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                  <input type="text" id="youtube-custom-url" class="focus-input" placeholder="Or paste any YouTube video or live-stream URL..." style="font-size: 13px; text-align: left;" value="${this.customYoutubeUrl}">
+                  <button type="button" id="btn-youtube-load" class="btn-secondary-action" style="font-size: 12px; padding: 4px 12px;">Load</button>
                 </div>
               </div>
             ` : `
@@ -292,6 +398,24 @@ window.PORTFOLIO_PLAYGROUND = {
     return "";
   },
 
+  getYoutubeEmbedUrl() {
+    const defaultIds = {
+      "indian-classical": "qQ1UeR_Vqfg",
+      "lofi-focus": "jfKfPfyJRdk",
+      "deep-ambient": "WPni755-Krg"
+    };
+
+    if (this.customYoutubeUrl) {
+      const match = this.customYoutubeUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      if (match) {
+        return `https://www.youtube-nocookie.com/embed/${match[1]}?autoplay=0&rel=0`;
+      }
+    }
+
+    const vidId = defaultIds[this.youtubePreset] || defaultIds["indian-classical"];
+    return `https://www.youtube-nocookie.com/embed/${vidId}?autoplay=0&rel=0`;
+  },
+
   getSpotifyEmbedUrl() {
     if (this.customSpotifyUrl) {
       const match = this.customSpotifyUrl.match(/(playlist|album|track)\/([a-zA-Z0-9]+)/);
@@ -318,6 +442,9 @@ window.PORTFOLIO_PLAYGROUND = {
       tab.addEventListener("click", () => {
         const next = tab.dataset.tab;
         if (this.currentTab === next) return;
+        if (this.currentTab === "games" && window.PORTFOLIO_GAMES && typeof window.PORTFOLIO_GAMES.destroyCurrentGame === "function") {
+          window.PORTFOLIO_GAMES.destroyCurrentGame();
+        }
         this.currentTab = next;
         this.render();
       });
@@ -341,13 +468,40 @@ window.PORTFOLIO_PLAYGROUND = {
         });
       });
 
-      // Audio Mode Tabs (Ambient vs Spotify)
+      // Synchronized Room Banner Actions
+      const bannerShareBtn = document.getElementById("btn-sync-room-share");
+      if (bannerShareBtn) bannerShareBtn.addEventListener("click", () => this.openInviteModal());
+
+      const bannerLeaveBtn = document.getElementById("btn-sync-room-leave");
+      if (bannerLeaveBtn) {
+        bannerLeaveBtn.addEventListener("click", () => {
+          this.activeRoomId = null;
+          this.roomStartTime = null;
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("room");
+            url.searchParams.delete("t");
+            window.history.replaceState({}, "", url.toString());
+          } catch (e) {}
+          this.render();
+        });
+      }
+
+      // Audio Mode Tabs (Ambient vs YouTube vs Spotify)
       const ambientModeBtn = document.getElementById("btn-mode-ambient");
+      const ytModeBtn = document.getElementById("btn-mode-youtube");
       const spotifyModeBtn = document.getElementById("btn-mode-spotify");
 
       if (ambientModeBtn) {
         ambientModeBtn.addEventListener("click", () => {
           this.audioMode = "ambient";
+          this.render();
+        });
+      }
+      if (ytModeBtn) {
+        ytModeBtn.addEventListener("click", () => {
+          this.audioMode = "youtube";
+          if (this.isAudioPlaying) this.toggleAmbientAudio(); // pause synth if playing
           this.render();
         });
       }
@@ -382,6 +536,25 @@ window.PORTFOLIO_PLAYGROUND = {
         setTimeout(() => this.startVisualizer(), 60);
       } else {
         setTimeout(() => this.clearVisualizer(), 60);
+      }
+
+      // YouTube Presets & Custom URL
+      const ytPills = document.querySelectorAll(".youtube-pill");
+      ytPills.forEach(pill => {
+        pill.addEventListener("click", () => {
+          this.youtubePreset = pill.dataset.youtube;
+          this.customYoutubeUrl = "";
+          this.render();
+        });
+      });
+
+      const loadYtBtn = document.getElementById("btn-youtube-load");
+      const customYtInput = document.getElementById("youtube-custom-url");
+      if (loadYtBtn && customYtInput) {
+        loadYtBtn.addEventListener("click", () => {
+          this.customYoutubeUrl = customYtInput.value.trim();
+          this.render();
+        });
       }
 
       // Spotify Presets
@@ -540,9 +713,35 @@ window.PORTFOLIO_PLAYGROUND = {
         });
       });
     }
+
+    // --- Tab 4: Games Arcade Events ---
+    if (this.currentTab === "games") {
+      if (window.PORTFOLIO_GAMES && typeof window.PORTFOLIO_GAMES.init === "function") {
+        window.PORTFOLIO_GAMES.init();
+      }
+    }
   },
 
   // --- Focus Timer Methods ---
+  startSyncedTimer() {
+    if (this.isRunning) return;
+    this.isRunning = true;
+    this.timerInterval = setInterval(() => {
+      if (this.timeLeft > 0) {
+        this.timeLeft--;
+        this.updateClockDisplay();
+      } else {
+        clearInterval(this.timerInterval);
+        this.isRunning = false;
+        this.sprintsCompleted++;
+        localStorage.setItem("portfolio_sprints", this.sprintsCompleted.toString());
+        alert("🎉 Synchronized study sprint completed with your study group! Time for a quick break!");
+        this.timeLeft = this.timerDuration;
+        this.render();
+      }
+    }, 1000);
+  },
+
   toggleTimer() {
     if (this.isRunning) {
       clearInterval(this.timerInterval);
@@ -592,32 +791,81 @@ window.PORTFOLIO_PLAYGROUND = {
     el.textContent = `${minutes}:${seconds}`;
   },
 
-  // Invite Modal
+  // Synchronized Study Room Invite Modal
   openInviteModal() {
     const dialog = document.getElementById("invite-dialog");
-    if (dialog) {
-      const liveOrigin = window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.protocol === "file:"
-        ? "https://sauravpandey.me"
-        : window.location.origin;
-      const shareUrl = `${liveOrigin}${window.location.pathname}?tab=focus&sprint=25`;
-      const input = document.getElementById("invite-link-input");
-      if (input) input.value = shareUrl;
+    if (!dialog) return;
 
-      const whatsapp = dialog.querySelector(".btn-social-share.whatsapp");
-      if (whatsapp) {
-        whatsapp.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`Hey! Join me for a 25-minute focus sprint on Saurav's dev site: ${shareUrl}`)}`;
-      }
-      const twitter = dialog.querySelector(".btn-social-share.twitter");
-      if (twitter) {
-        twitter.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Doing a deep work coding sprint with authentic Indian soundscapes on @5auravpandey's portfolio!&url=${shareUrl}`)}`;
-      }
-      const telegram = dialog.querySelector(".btn-social-share.telegram");
-      if (telegram) {
-        telegram.href = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Join me for a focus sprint!`)}`;
-      }
-
-      dialog.showModal();
+    if (!this.activeRoomId) {
+      this.activeRoomId = "STUDY-" + Math.floor(1000 + Math.random() * 9000);
+      this.roomStartTime = Date.now() - (this.timerDuration - this.timeLeft) * 1000;
     }
+
+    const liveOrigin = window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.protocol === "file:"
+      ? "https://sauravpandey.me"
+      : window.location.origin;
+
+    const sprintMins = Math.round(this.timerDuration / 60);
+    const t = this.roomStartTime || Date.now();
+    let shareUrl = `${liveOrigin}${window.location.pathname}?tab=focus&room=${this.activeRoomId}&sprint=${sprintMins}&audioMode=${this.audioMode}&t=${t}`;
+
+    if (this.audioMode === "ambient") {
+      shareUrl += `&sound=${this.soundscape}`;
+    } else if (this.audioMode === "youtube") {
+      shareUrl += `&yt=${this.youtubePreset}`;
+    }
+
+    const codeBadge = document.getElementById("invite-room-code-badge");
+    if (codeBadge) codeBadge.textContent = this.activeRoomId;
+
+    const audioLabel = document.getElementById("invite-audio-channel-label");
+    if (audioLabel) {
+      if (this.audioMode === "ambient") {
+        const soundMap = {
+          tanpura: "🪕 Meditative Tanpura (Zero-lag Synth)",
+          bansuri: "🪈 Bansuri Flute Wind Resonance",
+          temple: "🕉️ Sacred Temple Om Bowl (432Hz)",
+          tabla: "🪘 Tabla Bayan Calming Pulse"
+        };
+        audioLabel.textContent = soundMap[this.soundscape] || "🪕 Indian Soundscapes";
+      } else if (this.audioMode === "youtube") {
+        audioLabel.textContent = "🎧 YouTube Synced Focus Stream";
+      } else {
+        audioLabel.textContent = "🟢 Spotify Ambient Player";
+      }
+    }
+
+    const sprintLabel = document.getElementById("invite-sprint-label");
+    if (sprintLabel) sprintLabel.textContent = `${sprintMins} Minutes Focus Sprint`;
+
+    const input = document.getElementById("invite-link-input");
+    if (input) input.value = shareUrl;
+
+    const copyBtn = document.getElementById("btn-copy-invite-link");
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          copyBtn.textContent = "Copied! ✓";
+          setTimeout(() => { copyBtn.textContent = "Copy Link"; }, 2000);
+        });
+      };
+    }
+
+    const whatsapp = dialog.querySelector(".btn-social-share.whatsapp");
+    if (whatsapp) {
+      whatsapp.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`Hey! Join me in study room #${this.activeRoomId} for a synchronized ${sprintMins}-minute focus sprint with music on Saurav's site: ${shareUrl}`)}`;
+    }
+    const twitter = dialog.querySelector(".btn-social-share.twitter");
+    if (twitter) {
+      twitter.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Studying together in synchronized Room #${this.activeRoomId} on @5auravpandey's dev lab! Join the focus sprint:`)}&url=${encodeURIComponent(shareUrl)}`;
+    }
+    const telegram = dialog.querySelector(".btn-social-share.telegram");
+    if (telegram) {
+      telegram.href = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Hey! Join my synchronized study session in Room #${this.activeRoomId}: ${shareUrl}`)}`;
+    }
+
+    dialog.showModal();
+    this.render();
   },
 
   // --- Web Audio Synthesized Soundscapes ---
@@ -1226,7 +1474,7 @@ window.PORTFOLIO_PLAYGROUND = {
         break;
 
       case "hal":
-        reply = "Role: Programming Assistant in Avionics Department at Hindustan Aeronautics Limited (HAL), Korwa Division, Amethi, UP. Assisting with internal software tooling, automation scripts, and database operations.";
+        reply = "Role: Programming Assistant in Avionics Department at Hindustan Aeronautics Limited (HAL), Korwa, Amethi, UP. Assisting with internal software tooling, automation scripts, and database operations.";
         break;
 
       case "projects":
@@ -1238,7 +1486,55 @@ window.PORTFOLIO_PLAYGROUND = {
         break;
 
       case "games":
-        reply = "Favorite games: Elden Ring (Masterpiece RPG), Portal 2 (Physics puzzle genius), and Cyberpunk 2077 (Dark lofi aesthetic).";
+      case "arcade":
+        this.currentTab = "games";
+        this.render();
+        reply = "🎮 Switched to Dev Arcade! Choose from Retro Matrix Snake, Tic-Tac-Toe, or Interactive Chess.";
+        break;
+
+      case "snake":
+        this.currentTab = "games";
+        this.render();
+        if (window.PORTFOLIO_GAMES) {
+          window.PORTFOLIO_GAMES.activeGame = "snake";
+          window.PORTFOLIO_GAMES.render();
+        }
+        reply = "🐍 Launching Retro Matrix Snake!";
+        break;
+
+      case "chess":
+        this.currentTab = "games";
+        this.render();
+        if (window.PORTFOLIO_GAMES) {
+          window.PORTFOLIO_GAMES.activeGame = "chess";
+          window.PORTFOLIO_GAMES.render();
+        }
+        reply = "♟️ Launching Grandmaster Dev Chess!";
+        break;
+
+      case "tictactoe":
+      case "ttt":
+        this.currentTab = "games";
+        this.render();
+        if (window.PORTFOLIO_GAMES) {
+          window.PORTFOLIO_GAMES.activeGame = "tictactoe";
+          window.PORTFOLIO_GAMES.render();
+        }
+        reply = "⚔️ Launching Tic-Tac-Toe / Dev Duel!";
+        break;
+
+      case "sync":
+      case "invite":
+      case "study":
+        this.openInviteModal();
+        reply = "👥 Opening Synchronized Study Room modal! Share with friends to sync timer and focus music.";
+        break;
+
+      case "youtube":
+        this.audioMode = "youtube";
+        if (this.isAudioPlaying) this.toggleAmbientAudio();
+        this.render();
+        reply = "🎧 Switched audio to YouTube Synced Focus Stream.";
         break;
 
       case "skills":
