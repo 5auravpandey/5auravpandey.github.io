@@ -47,6 +47,8 @@ function initTheme() {
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
 
+  const mobileThemeBtn = document.getElementById("mobile-theme-btn");
+
   setTheme(initialTheme);
 
   if (themeBtn) {
@@ -57,13 +59,26 @@ function initTheme() {
     });
   }
 
+  if (mobileThemeBtn) {
+    mobileThemeBtn.addEventListener("click", () => {
+      const current = root.getAttribute("data-theme") || "light";
+      const next = current === "dark" ? "light" : "dark";
+      setTheme(next);
+    });
+  }
+
   function setTheme(theme) {
     root.setAttribute("data-theme", theme);
+    const isDark = theme === "dark";
     if (themeBtn) {
-      const isDark = theme === "dark";
       themeBtn.innerHTML = `<span class="theme-text-full">${isDark ? "Light mode" : "Dark mode"}</span><span class="theme-text-short">${isDark ? "☀️ Light" : "🌙 Dark"}</span>`;
       themeBtn.setAttribute("aria-pressed", isDark);
       themeBtn.setAttribute("title", isDark ? "Switch to Light mode" : "Switch to Dark mode");
+    }
+    if (mobileThemeBtn) {
+      mobileThemeBtn.innerHTML = `<span class="mobile-theme-icon">${isDark ? "☀️" : "🌙"}</span>`;
+      mobileThemeBtn.setAttribute("aria-label", isDark ? "Switch to Light mode" : "Switch to Dark mode");
+      mobileThemeBtn.setAttribute("title", isDark ? "Switch to Light mode" : "Switch to Dark mode");
     }
     try {
       localStorage.setItem("portfolio_theme", theme);
@@ -453,62 +468,70 @@ function initUtilities() {
 }
 
 /**
- * Mobile Navigation Drawer Manager
+ * Mobile Navigation Dropdown Manager
  */
 function initMobileNav() {
-  const toggleBtn = document.getElementById("nav-toggle-btn");
+  const triggerBtn = document.getElementById("nav-dropdown-trigger");
+  const dropdown = document.getElementById("mobile-dropdown");
+  const backdrop = document.getElementById("dropdown-backdrop");
   const navBar = document.querySelector(".nav-bar");
-  const navMenu = document.getElementById("main-nav");
-  if (!toggleBtn || !navBar) return;
+  if (!triggerBtn || !dropdown) return;
 
-  const closeMenu = () => {
-    navBar.classList.remove("nav-menu-open");
-    toggleBtn.setAttribute("aria-expanded", "false");
-    document.body.classList.remove("nav-open-lock");
+  const closeDropdown = () => {
+    dropdown.setAttribute("hidden", "");
+    triggerBtn.setAttribute("aria-expanded", "false");
+    triggerBtn.classList.remove("active");
+    if (navBar) navBar.classList.remove("dropdown-open");
+    document.body.classList.remove("dropdown-locked");
   };
 
-  const openMenu = () => {
-    navBar.classList.add("nav-menu-open");
-    toggleBtn.setAttribute("aria-expanded", "true");
+  const openDropdown = () => {
+    dropdown.removeAttribute("hidden");
+    triggerBtn.setAttribute("aria-expanded", "true");
+    triggerBtn.classList.add("active");
+    if (navBar) navBar.classList.add("dropdown-open");
   };
 
-  toggleBtn.addEventListener("click", (e) => {
+  triggerBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    const isOpen = navBar.classList.contains("nav-menu-open");
-    if (isOpen) {
-      closeMenu();
+    const isHidden = dropdown.hasAttribute("hidden");
+    if (isHidden) {
+      openDropdown();
     } else {
-      openMenu();
+      closeDropdown();
     }
   });
 
-  // Close when clicking any nav link
-  if (navMenu) {
-    navMenu.querySelectorAll("a").forEach(link => {
-      link.addEventListener("click", () => {
-        closeMenu();
-      });
+  // Close when clicking any nav link inside dropdown
+  dropdown.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", () => {
+      closeDropdown();
     });
+  });
+
+  // Close when clicking backdrop
+  if (backdrop) {
+    backdrop.addEventListener("click", closeDropdown);
   }
 
-  // Close when clicking outside the nav-bar
+  // Close when clicking outside the navbar & dropdown
   document.addEventListener("click", (e) => {
-    if (navBar.classList.contains("nav-menu-open") && !navBar.contains(e.target)) {
-      closeMenu();
+    if (!dropdown.hasAttribute("hidden") && !dropdown.contains(e.target) && !triggerBtn.contains(e.target)) {
+      closeDropdown();
     }
   });
 
   // Close on Escape key
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && navBar.classList.contains("nav-menu-open")) {
-      closeMenu();
+    if (e.key === "Escape" && !dropdown.hasAttribute("hidden")) {
+      closeDropdown();
     }
   });
 
   // Close if window resizes to desktop width (> 768px)
   window.addEventListener("resize", () => {
-    if (window.innerWidth > 768 && navBar.classList.contains("nav-menu-open")) {
-      closeMenu();
+    if (window.innerWidth > 768 && !dropdown.hasAttribute("hidden")) {
+      closeDropdown();
     }
   });
 }

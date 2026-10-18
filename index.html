@@ -30,41 +30,13 @@
         <strong>Saurav Pandey</strong>
         <span class="status-indicator">
           <span class="pulse-dot" aria-hidden="true"></span>
-          <span class="status-text-full">IT Intern at HAL • Open to Roles</span>
-          <span class="status-text-short">HAL Intern</span>
+          <span class="status-text-full">Programming Assistant at HAL</span>
+          <span class="status-text-short">HAL</span>
         </span>
       </a>
 
-      <!-- Right Controls Cluster -->
-      <div class="nav-controls-cluster">
-        <!-- The Dual-Perspective Switcher -->
-        <div class="perspective-container" role="group" aria-label="Perspective Switcher">
-          <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
-            <span class="perspective-label-full">⚡ Systems & Code</span>
-            <span class="perspective-label-short">⚡ Code</span>
-          </button>
-          <button id="btn-perspective-exec" class="perspective-btn" type="button" aria-pressed="false" title="Switch to Quick Overview">
-            <span class="perspective-label-full">💡 Quick Story</span>
-            <span class="perspective-label-short">💡 Story</span>
-          </button>
-        </div>
-
-        <!-- Theme Switcher -->
-        <button id="theme-toggle-btn" class="btn-theme" type="button" aria-pressed="false" title="Toggle color theme">
-          <span class="theme-text-full">Dark mode</span>
-          <span class="theme-text-short">🌙</span>
-        </button>
-
-        <!-- Mobile Menu Hamburger Button -->
-        <button id="nav-toggle-btn" class="nav-hamburger" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="main-nav">
-          <span class="hamburger-bar" aria-hidden="true"></span>
-          <span class="hamburger-bar" aria-hidden="true"></span>
-          <span class="hamburger-bar" aria-hidden="true"></span>
-        </button>
-      </div>
-
-      <!-- Main Navigation Menu -->
-      <nav id="main-nav" class="nav-menu" aria-label="Main Navigation">
+      <!-- Desktop Navigation Menu (hidden on mobile) -->
+      <nav id="desktop-nav" class="desktop-nav" aria-label="Main Navigation">
         <ul class="nav-links">
           <li><a href="#about">About</a></li>
           <li><a href="#experience">Experiences</a></li>
@@ -76,6 +48,103 @@
           <li><a href="#contact">Contact</a></li>
         </ul>
       </nav>
+
+      <!-- Desktop Perspective & Theme Controls (hidden on mobile) -->
+      <div class="desktop-controls">
+        <div class="perspective-container" role="group" aria-label="Perspective Switcher">
+          <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
+            ⚡ Systems & Code
+          </button>
+          <button id="btn-perspective-exec" class="perspective-btn" type="button" aria-pressed="false" title="Switch to Quick Overview">
+            💡 Quick Story
+          </button>
+        </div>
+
+        <button id="theme-toggle-btn" class="btn-theme" type="button" aria-pressed="false" title="Toggle color theme">
+          <span class="theme-text-full">Dark mode</span>
+          <span class="theme-text-short">🌙</span>
+        </button>
+      </div>
+
+      <!-- Mobile Top Bar Controls (visible only on mobile) -->
+      <div class="mobile-top-bar">
+        <button id="mobile-theme-btn" class="btn-theme mobile-theme-icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+          <span class="mobile-theme-icon">🌙</span>
+        </button>
+
+        <button id="nav-dropdown-trigger" class="nav-dropdown-btn" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-dropdown">
+          <span class="dropdown-btn-text">Menu</span>
+          <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Dropdown Menu -->
+    <div id="mobile-dropdown" class="mobile-dropdown-sheet" hidden>
+      <div class="dropdown-backdrop" id="dropdown-backdrop"></div>
+      <div class="dropdown-panel">
+        <!-- Perspective Switcher Inside Dropdown -->
+        <div class="dropdown-perspective-card">
+          <div class="dropdown-perspective-meta">
+            <span class="dropdown-section-title">Perspective Mode</span>
+            <span id="mobile-perspective-label" class="dropdown-perspective-indicator">⚡ Systems & Code</span>
+          </div>
+          <div class="dropdown-persp-toggle" role="group" aria-label="Mobile Perspective Switcher">
+            <button id="btn-mobile-eng" class="dropdown-persp-btn active" type="button">
+              ⚡ Systems & Code
+            </button>
+            <button id="btn-mobile-exec" class="dropdown-persp-btn" type="button">
+              💡 Quick Story
+            </button>
+          </div>
+        </div>
+
+        <!-- Navigation Links with Icons -->
+        <nav class="dropdown-nav-list" aria-label="Mobile Dropdown Navigation">
+          <a href="#about" class="dropdown-nav-item">
+            <span class="nav-item-icon">👤</span>
+            <span class="nav-item-text">About Saurav</span>
+          </a>
+          <a href="#experience" class="dropdown-nav-item">
+            <span class="nav-item-icon">🛩️</span>
+            <span class="nav-item-text">HAL Work Experience</span>
+          </a>
+          <a href="#projects" class="dropdown-nav-item">
+            <span class="nav-item-icon">💻</span>
+            <span class="nav-item-text">Projects I've Built</span>
+          </a>
+          <a href="#playground" class="dropdown-nav-item">
+            <span class="nav-item-icon">⚡</span>
+            <span class="nav-item-text">Dev Playground & Lab</span>
+          </a>
+          <a href="#curations" class="dropdown-nav-item">
+            <span class="nav-item-icon">📚</span>
+            <span class="nav-item-text">Archive & Curations</span>
+          </a>
+          <a href="#skills" class="dropdown-nav-item">
+            <span class="nav-item-icon">🛠️</span>
+            <span class="nav-item-text">Technical Stack Matrix</span>
+          </a>
+          <a href="#education" class="dropdown-nav-item">
+            <span class="nav-item-icon">🎓</span>
+            <span class="nav-item-text">Academic Background</span>
+          </a>
+          <a href="#contact" class="dropdown-nav-item">
+            <span class="nav-item-icon">📬</span>
+            <span class="nav-item-text">Contact & Say Hello</span>
+          </a>
+        </nav>
+
+        <!-- Direct Social / Action Bar -->
+        <div class="dropdown-social-strip">
+          <a href="https://t.me/sauravpandey" target="_blank" rel="noopener noreferrer" class="dropdown-chip">Telegram</a>
+          <a href="https://github.com/5auravpandey" target="_blank" rel="noopener noreferrer" class="dropdown-chip">GitHub</a>
+          <a href="https://www.linkedin.com/in/5auravpandey" target="_blank" rel="noopener noreferrer" class="dropdown-chip">LinkedIn</a>
+          <a href="mailto:thesauravpandey@outlook.com" class="dropdown-chip">Email</a>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -94,6 +163,38 @@
           <p class="hero-lede" id="hero-bio">
             Hey, I'm Saurav! I'm an MCA student at IIIT Ranchi and IIT Patna, and working as a Programming Assistant in the Avionics Department at HAL. I like understanding how software works from scratch — whether that's managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized apps on the Internet Computer.
           </p>
+
+          <!-- Hero Action CTAs (Making the mobile body active & useful) -->
+          <div class="hero-actions">
+            <a href="#projects" class="btn-hero-primary">🚀 Explore Projects</a>
+            <a href="#playground" class="btn-hero-secondary">⚡ Dev Lab & Audio</a>
+            <a href="#contact" class="btn-hero-ambient">📬 Contact Me</a>
+          </div>
+
+          <!-- Hero Quick Stats Badges (Puts screen to use right away on mobile) -->
+          <div class="hero-quick-stats">
+            <div class="stat-badge">
+              <span class="stat-icon">🛩️</span>
+              <div class="stat-details">
+                <span class="stat-label">Active Role</span>
+                <strong class="stat-val">Programming Assistant @ HAL</strong>
+              </div>
+            </div>
+            <div class="stat-badge">
+              <span class="stat-icon">🎓</span>
+              <div class="stat-details">
+                <span class="stat-label">Education</span>
+                <strong class="stat-val">MCA @ IIIT Ranchi & IIT Patna</strong>
+              </div>
+            </div>
+            <div class="stat-badge">
+              <span class="stat-icon">📍</span>
+              <div class="stat-details">
+                <span class="stat-label">Location</span>
+                <strong class="stat-val">Amethi, UP, India</strong>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

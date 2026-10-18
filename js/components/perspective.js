@@ -19,12 +19,20 @@ window.PORTFOLIO_PERSPECTIVE = {
   bindEvents() {
     const engBtn = document.getElementById("btn-perspective-eng");
     const overviewBtn = document.getElementById("btn-perspective-exec");
+    const mobileEngBtn = document.getElementById("btn-mobile-eng");
+    const mobileOverviewBtn = document.getElementById("btn-mobile-exec");
 
     if (engBtn) {
       engBtn.addEventListener("click", () => this.setPerspective("engineer"));
     }
     if (overviewBtn) {
       overviewBtn.addEventListener("click", () => this.setPerspective("overview"));
+    }
+    if (mobileEngBtn) {
+      mobileEngBtn.addEventListener("click", () => this.setPerspective("engineer"));
+    }
+    if (mobileOverviewBtn) {
+      mobileOverviewBtn.addEventListener("click", () => this.setPerspective("overview"));
     }
   },
 
@@ -45,11 +53,27 @@ window.PORTFOLIO_PERSPECTIVE = {
     const profile = window.PORTFOLIO_PROFILE;
     const config = profile.perspectives[this.current] || profile.perspectives.engineer;
 
-    // 1. Update button states
+    // 1. Update button states (Desktop)
     const engBtn = document.getElementById("btn-perspective-eng");
     const overviewBtn = document.getElementById("btn-perspective-exec");
     if (engBtn) engBtn.setAttribute("aria-pressed", this.current === "engineer");
     if (overviewBtn) overviewBtn.setAttribute("aria-pressed", this.current === "overview");
+
+    // 1b. Update button states (Mobile Dropdown)
+    const mobileEngBtn = document.getElementById("btn-mobile-eng");
+    const mobileOverviewBtn = document.getElementById("btn-mobile-exec");
+    const mobilePerspLabel = document.getElementById("mobile-perspective-label");
+    if (mobileEngBtn) {
+      mobileEngBtn.classList.toggle("active", this.current === "engineer");
+      mobileEngBtn.setAttribute("aria-pressed", this.current === "engineer");
+    }
+    if (mobileOverviewBtn) {
+      mobileOverviewBtn.classList.toggle("active", this.current === "overview");
+      mobileOverviewBtn.setAttribute("aria-pressed", this.current === "overview");
+    }
+    if (mobilePerspLabel) {
+      mobilePerspLabel.textContent = this.current === "engineer" ? "⚡ Systems & Code" : "💡 Quick Story";
+    }
 
     // 2. Update Hero
     const heroRole = document.getElementById("hero-role");
