@@ -93,7 +93,7 @@ function initTheme() {
     root.setAttribute("data-theme", theme);
     const isDark = theme === "dark";
     if (themeBtn) {
-      themeBtn.innerHTML = `<span class="theme-text-full">${isDark ? "Light mode" : "Dark mode"}</span><span class="theme-text-short">${isDark ? "☀️ Light" : "🌙 Dark"}</span>`;
+      themeBtn.innerHTML = `<span class="theme-icon">${isDark ? "☀️" : "🌙"}</span><span class="theme-text">${isDark ? "Light" : "Dark"}</span>`;
       themeBtn.setAttribute("aria-pressed", isDark);
       themeBtn.setAttribute("title", isDark ? "Switch to Light mode" : "Switch to Dark mode");
     }

@@ -28,67 +28,66 @@
 </head>
 <body>
 
-  <!-- Header & Navigation (Static on Desktop, Mobile Dropdown) -->
-  <header class="nav-bar">
+  <!-- Fixed Header & Modern Navigation (Pinned at Top for Desktop & Mobile) -->
+  <header class="nav-bar" id="main-nav-bar">
     <div class="nav-container">
       <div class="nav-brand-group">
         <a href="#top" class="nav-brand" aria-label="Saurav Pandey Home">
-          <strong>Saurav Pandey</strong>
+          <span class="brand-name">Saurav Pandey</span>
           <span class="status-indicator">
             <span class="pulse-dot" aria-hidden="true"></span>
-            <span class="status-text-full">Programming Assistant at HAL</span>
+            <span class="status-text-full">Programming Assistant @ HAL</span>
             <span class="status-text-short">HAL</span>
           </span>
         </a>
       </div>
 
-      <!-- Desktop Perspective & Theme Controls (hidden on mobile) -->
-      <div class="desktop-controls">
-        <div class="perspective-container" role="group" aria-label="Perspective Switcher">
-          <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
-            ⚡ Systems & Code
-          </button>
-          <button id="btn-perspective-exec" class="perspective-btn" type="button" aria-pressed="false" title="Switch to Quick Overview">
-            💡 Quick Story
-          </button>
-        </div>
-
-        <button id="theme-toggle-btn" class="btn-theme" type="button" aria-pressed="false" title="Toggle color theme">
-          <span class="theme-text-full">Dark mode</span>
-          <span class="theme-text-short">🌙</span>
-        </button>
-      </div>
-
-      <!-- Mobile Controls (Visible on mobile/tablet) -->
-      <div class="mobile-controls">
-        <button id="mobile-theme-btn" class="btn-theme mobile-theme-icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
-          <span class="mobile-theme-icon">🌙</span>
-        </button>
-
-        <button id="nav-dropdown-trigger" class="nav-dropdown-btn" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-dropdown">
-          <span class="dropdown-btn-text">Menu</span>
-          <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Desktop Navigation Subbar (Previous desktop navigation menu) -->
-    <nav class="nav-subbar" aria-label="Main Navigation">
-      <div class="nav-subbar-container">
+      <!-- Desktop Navigation Menu (hidden on mobile) -->
+      <nav id="desktop-nav" class="desktop-nav" aria-label="Main Navigation">
         <ul class="nav-links">
           <li><a href="#about" class="nav-link-item">About</a></li>
           <li><a href="#experience" class="nav-link-item">Experiences</a></li>
           <li><a href="#projects" class="nav-link-item">Projects</a></li>
           <li><a href="#playground" class="nav-link-item">Dev Lab</a></li>
-          <li><a href="#curations" class="nav-link-item">Archive & Curations</a></li>
+          <li><a href="#curations" class="nav-link-item">Archive</a></li>
           <li><a href="#skills" class="nav-link-item">Stack</a></li>
           <li><a href="#education" class="nav-link-item">Education</a></li>
           <li><a href="#contact" class="nav-link-item">Contact</a></li>
         </ul>
+      </nav>
+
+      <!-- Desktop Perspective & Theme Controls (hidden on mobile) -->
+      <div class="desktop-controls">
+        <div class="perspective-container" role="group" aria-label="Perspective Switcher">
+          <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
+            ⚡ Systems
+          </button>
+          <button id="btn-perspective-exec" class="perspective-btn" type="button" aria-pressed="false" title="Switch to Quick Story">
+            💡 Story
+          </button>
+        </div>
+
+        <button id="theme-toggle-btn" class="btn-theme-toggle" type="button" aria-pressed="false" title="Toggle color theme">
+          <span class="theme-icon">🌙</span>
+          <span class="theme-text">Dark</span>
+        </button>
       </div>
-    </nav>
+
+      <!-- Mobile Controls (Visible on mobile/tablet) -->
+      <div class="mobile-controls">
+        <button id="mobile-theme-btn" class="btn-theme-toggle mobile-theme-icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+          <span class="mobile-theme-icon">🌙</span>
+        </button>
+
+        <button id="nav-dropdown-trigger" class="nav-dropdown-btn" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-dropdown">
+          <span class="dropdown-hamburger" aria-hidden="true">
+            <span></span>
+            <span></span>
+          </span>
+          <span class="dropdown-btn-text">Menu</span>
+        </button>
+      </div>
+    </div>
   </header>
 
   <!-- Mobile Navigation Dropdown Menu (Outside header to prevent containing-block traps) -->
@@ -111,39 +110,47 @@
         </div>
       </div>
 
-      <!-- Navigation Links with Icons -->
+      <!-- Navigation Links with Icons & Chevrons -->
       <nav class="dropdown-nav-list" aria-label="Mobile Dropdown Navigation">
         <a href="#about" class="dropdown-nav-item">
           <span class="nav-item-icon">👤</span>
           <span class="nav-item-text">About Saurav</span>
+          <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#experience" class="dropdown-nav-item">
           <span class="nav-item-icon">💼</span>
           <span class="nav-item-text">Experiences (HAL)</span>
+          <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#projects" class="dropdown-nav-item">
           <span class="nav-item-icon">💻</span>
-          <span class="nav-item-text">Projects</span>
+          <span class="nav-item-text">Projects & Code</span>
+          <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#playground" class="dropdown-nav-item">
           <span class="nav-item-icon">⚡</span>
           <span class="nav-item-text">Dev Lab & Audio</span>
+          <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#curations" class="dropdown-nav-item">
           <span class="nav-item-icon">📚</span>
           <span class="nav-item-text">Archive & Curations</span>
+          <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#skills" class="dropdown-nav-item">
           <span class="nav-item-icon">🛠️</span>
           <span class="nav-item-text">Stack Matrix</span>
+          <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#education" class="dropdown-nav-item">
           <span class="nav-item-icon">🎓</span>
           <span class="nav-item-text">Academic Background</span>
+          <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#contact" class="dropdown-nav-item">
           <span class="nav-item-icon">📬</span>
           <span class="nav-item-text">Contact & Say Hello</span>
+          <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
       </nav>
 
