@@ -259,18 +259,18 @@ window.PORTFOLIO_PLAYGROUND = {
               <span class="dot yellow"></span>
               <span class="dot green"></span>
             </div>
-            <span class="term-title-text">saurav@amethi: ~ (zsh)</span>
+            <span class="term-title-text">saurav@gopalganj: ~ (zsh)</span>
             <button type="button" id="btn-term-expand" class="term-expand-btn" title="Toggle Terminal Size">⛶ Expand</button>
           </div>
 
           <div class="terminal-window" id="terminal-window">
             <div class="terminal-banner">
-              Saurav Pandey OS [Version 2.5.0] (x86_64-pc-amethi)<br>
+              Saurav Pandey OS [Version 2.5.0] (x86_64-pc-gopalganj)<br>
               Type '<span style="color: var(--accent);">help</span>' for commands. Supports <kbd>Tab</kbd> completion & <kbd>↑</kbd>/<kbd>↓</kbd> history.
             </div>
             <div class="terminal-history" id="terminal-history"></div>
             <div class="terminal-prompt-row">
-              <span class="terminal-prompt">saurav@amethi:~$</span>
+              <span class="terminal-prompt">saurav@gopalganj:~$</span>
               <input type="text" id="terminal-input" class="terminal-input" autofocus autocomplete="off" spellcheck="false">
             </div>
           </div>
@@ -1121,7 +1121,7 @@ window.PORTFOLIO_PLAYGROUND = {
   sound [tanpura|bansuri|temple|tabla|off] - Play Indian soundscapes
   spotify         - Switch focus audio to Spotify
   crypto [enc|dec] <key> <msg> - Quick bitwise cipher
-  weather         - Mock local weather in Amethi, UP
+  weather         - Local weather (Gopalganj, Bihar & HAL Korwa)
   quote           - Dev & systems wisdom
   clear           - Clear terminal window`;
         break;
@@ -1222,11 +1222,11 @@ window.PORTFOLIO_PLAYGROUND = {
         break;
 
       case "about":
-        reply = "Saurav Pandey: MCA student at IIIT Ranchi and IIT Patna, and Programming Assistant in the Avionics Department at HAL. I like understanding software from scratch.";
+        reply = "Saurav Pandey: BCA graduate, MCA student at IIIT Ranchi and IIT Patna, and Programming Assistant in Avionics at HAL (Korwa, Amethi). Home base: Gopalganj, Bihar.";
         break;
 
       case "hal":
-        reply = "Role: Programming Assistant in Avionics Department at Hindustan Aeronautics Limited (HAL). Assisting with internal software tooling, automation scripts, and database operations.";
+        reply = "Role: Programming Assistant in Avionics Department at Hindustan Aeronautics Limited (HAL), Korwa Division, Amethi, UP. Assisting with internal software tooling, automation scripts, and database operations.";
         break;
 
       case "projects":
@@ -1246,7 +1246,7 @@ window.PORTFOLIO_PLAYGROUND = {
         break;
 
       case "weather":
-        reply = "🌤️ Amethi, UP, India: 28°C • Mild breeze • Great weather for writing code!";
+        reply = "🌤️ Gopalganj, Bihar: 27°C • Clear skies\n✈️ HAL Korwa, Amethi: 28°C • Mild breeze\nGreat weather for writing code!";
         break;
 
       case "quote":
@@ -1282,7 +1282,7 @@ window.PORTFOLIO_PLAYGROUND = {
     const entry = document.createElement("div");
     entry.className = "term-entry";
     entry.innerHTML = `
-      <div class="term-cmd-echo"><span class="terminal-prompt">saurav@amethi:~$</span> ${safeCmd}</div>
+      <div class="term-cmd-echo"><span class="terminal-prompt">saurav@gopalganj:~$</span> ${safeCmd}</div>
       <div class="term-reply">${safeReply}</div>
     `;
     history.appendChild(entry);

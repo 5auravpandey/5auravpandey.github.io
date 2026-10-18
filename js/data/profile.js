@@ -5,7 +5,7 @@
 window.PORTFOLIO_PROFILE = {
   name: "Saurav Pandey",
   handle: "@5auravpandey",
-  location: "Amethi, UP, India",
+  location: "Gopalganj, Bihar, India",
   timezone: "Asia/Kolkata",
   status: "Open to Work (Full-Stack, Systems & Web3)",
   email: "thesauravpandey@outlook.com",
@@ -30,7 +30,7 @@ window.PORTFOLIO_PROFILE = {
       label: "💡 Quick Overview",
       role: "MCA Student & Software Builder",
       tagline: "Learning computer science at IIIT Ranchi & IIT Patna, and writing code at HAL.",
-      bio: "I'm a passionate computer science student from Amethi, UP. I enjoy building useful software, learning core engineering fundamentals, and solving practical problems with technology. Outside of programming, I love reading books, playing video games, and exploring tech.",
+      bio: "I'm a passionate computer science student from Gopalganj, Bihar. I enjoy building useful software, learning core engineering fundamentals, and solving practical problems with technology. Outside of programming, I love reading books, playing video games, and exploring tech.",
       keyPillars: [
         { title: "HAL Experience", desc: "Programming Assistant at Hindustan Aeronautics Limited." },
         { title: "MCA Student", desc: "Studying computer applications with IIIT Ranchi & IIT Patna." },
