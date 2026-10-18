@@ -28,7 +28,7 @@
 </head>
 <body>
 
-  <!-- Fixed Stationary Header (Pinned at top for both mobile & desktop) -->
+  <!-- Header & Navigation (Static on Desktop, Mobile Dropdown) -->
   <header class="nav-bar">
     <div class="nav-container">
       <div class="nav-brand-group">
@@ -41,20 +41,6 @@
           </span>
         </a>
       </div>
-
-      <!-- Desktop Navigation Menu (hidden on mobile) -->
-      <nav id="desktop-nav" class="desktop-nav" aria-label="Main Navigation">
-        <ul class="nav-links">
-          <li><a href="#about" class="nav-link-item">About</a></li>
-          <li><a href="#experience" class="nav-link-item">Experiences</a></li>
-          <li><a href="#projects" class="nav-link-item">Projects</a></li>
-          <li><a href="#playground" class="nav-link-item">Dev Lab</a></li>
-          <li><a href="#curations" class="nav-link-item">Archive & Curations</a></li>
-          <li><a href="#skills" class="nav-link-item">Stack</a></li>
-          <li><a href="#education" class="nav-link-item">Education</a></li>
-          <li><a href="#contact" class="nav-link-item">Contact</a></li>
-        </ul>
-      </nav>
 
       <!-- Desktop Perspective & Theme Controls (hidden on mobile) -->
       <div class="desktop-controls">
@@ -87,6 +73,22 @@
         </button>
       </div>
     </div>
+
+    <!-- Desktop Navigation Subbar (Previous desktop navigation menu) -->
+    <nav class="nav-subbar" aria-label="Main Navigation">
+      <div class="nav-subbar-container">
+        <ul class="nav-links">
+          <li><a href="#about" class="nav-link-item">About</a></li>
+          <li><a href="#experience" class="nav-link-item">Experiences</a></li>
+          <li><a href="#projects" class="nav-link-item">Projects</a></li>
+          <li><a href="#playground" class="nav-link-item">Dev Lab</a></li>
+          <li><a href="#curations" class="nav-link-item">Archive & Curations</a></li>
+          <li><a href="#skills" class="nav-link-item">Stack</a></li>
+          <li><a href="#education" class="nav-link-item">Education</a></li>
+          <li><a href="#contact" class="nav-link-item">Contact</a></li>
+        </ul>
+      </div>
+    </nav>
   </header>
 
   <!-- Mobile Navigation Dropdown Menu (Outside header to prevent containing-block traps) -->
