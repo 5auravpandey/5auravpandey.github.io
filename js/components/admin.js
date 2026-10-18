@@ -14,6 +14,10 @@ window.PORTFOLIO_ADMIN = {
   editingItemId: null,
   showSecuritySettings: false,
   lockoutInterval: null,
+  isEnrolling2FA: false,
+  pendingEnrollKey: null,
+  authErrorMessage: "",
+  isRePairingMode: false,
 
   // Zero-Knowledge PBKDF2-HMAC-SHA256 Reference Parameters
   // (Plaintext credentials are NEVER stored in code or repository)
@@ -306,6 +310,10 @@ window.PORTFOLIO_ADMIN = {
       this.dialog.close();
       this.editingItemId = null;
       this.showSecuritySettings = false;
+      this.isEnrolling2FA = false;
+      this.pendingEnrollKey = null;
+      this.authErrorMessage = "";
+      this.isRePairingMode = false;
       if (this.lockoutInterval) {
         clearInterval(this.lockoutInterval);
         this.lockoutInterval = null;
@@ -320,47 +328,171 @@ window.PORTFOLIO_ADMIN = {
     } catch (e) {}
     this.editingItemId = null;
     this.showSecuritySettings = false;
+    this.isEnrolling2FA = false;
+    this.pendingEnrollKey = null;
+    this.authErrorMessage = "";
+    this.isRePairingMode = false;
     this.render();
   },
 
-  // Master Authentication Evaluation
-  async verifyCredentials(inputString) {
-    const cleaned = inputString.trim();
-    if (!cleaned) return false;
+  // Format Base32 secret for clean, legible UI display (blocks of 4)
+  formatKey(key) {
+    if (!key) return "";
+    return key.replace(/(.{4})/g, "$1 ").trim();
+  },
 
-    // Artificial randomized delay to defeat timing analysis (350 - 500ms)
-    await new Promise(r => setTimeout(r, 350 + Math.random() * 150));
-
-    // 1. Check Device-Paired 6-Digit Google Authenticator Token (if enrolled on this device)
-    if (/^\d{6}$/.test(cleaned)) {
-      const storedKey = localStorage.getItem(this.STORAGE_TOTP_KEY);
-      if (storedKey) {
-        for (let offset = -1; offset <= 1; offset++) {
-          const expectedCode = await this.calculateTOTP(storedKey, offset);
-          if (expectedCode && this.timingSafeEqual(expectedCode, cleaned)) {
-            this.clearFailedAttempts();
-            await this.createSession();
-            return true;
-          }
+  // Robust clipboard copy with fallback
+  copyToClipboard(text, btnElement, successMsg = "✓ Copied!", defaultMsg = "📋 Copy Key") {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        if (btnElement) {
+          btnElement.textContent = successMsg;
+          setTimeout(() => { btnElement.textContent = defaultMsg; }, 1500);
         }
-      }
+      } catch (err) {}
+      document.body.removeChild(textarea);
+      return;
     }
+    navigator.clipboard.writeText(text).then(() => {
+      if (btnElement) {
+        btnElement.textContent = successMsg;
+        setTimeout(() => { btnElement.textContent = defaultMsg; }, 1500);
+      }
+    }).catch(() => {});
+  },
 
-    // 2. Zero-Knowledge PBKDF2 Verification
+  // 1. Verify Master Passphrase against zero-knowledge PBKDF2 hash
+  async verifyPassword(passphrase) {
+    if (!passphrase || typeof passphrase !== "string") return false;
     try {
-      const derivedHash = await this.deriveKey(cleaned, this.PBKDF2_SALT_HEX);
-      if (this.timingSafeEqual(derivedHash, this.PBKDF2_HASH_HEX)) {
-        this.clearFailedAttempts();
-        await this.createSession();
+      const derivedHash = await this.deriveKey(passphrase.trim(), this.PBKDF2_SALT_HEX);
+      return this.timingSafeEqual(derivedHash, this.PBKDF2_HASH_HEX);
+    } catch (e) {
+      return false;
+    }
+  },
+
+  // 2. Verify 6-digit TOTP code against a Base32 secret key (RFC 6238 standard)
+  async verifyTOTP(otpInput, secretBase32) {
+    if (!otpInput || !secretBase32) return false;
+    const cleaned = String(otpInput).trim().replace(/\s+/g, "");
+    if (!/^\d{6}$/.test(cleaned)) return false;
+    for (let offset = -1; offset <= 1; offset++) {
+      const expected = await this.calculateTOTP(secretBase32, offset);
+      if (expected && this.timingSafeEqual(expected, cleaned)) {
         return true;
       }
-    } catch (e) {
-      console.error("Cryptographic verification error:", e);
+    }
+    return false;
+  },
+
+  // 3. Full Mandatory 2FA Login: Requires BOTH Master Passphrase AND Google Authenticator Code
+  async loginWith2FA(passphrase, otpInput) {
+    // Artificial jitter delay to defeat timing attacks (350-500ms)
+    await new Promise(r => setTimeout(r, 350 + Math.random() * 150));
+
+    const storedKey = localStorage.getItem(this.STORAGE_TOTP_KEY);
+    if (!storedKey) {
+      return { success: false, reason: "not_enrolled" };
     }
 
-    // Record failure for progressive rate limiting
-    this.recordFailedAttempt();
-    return false;
+    const isPwdValid = await this.verifyPassword(passphrase);
+    if (!isPwdValid) {
+      this.recordFailedAttempt();
+      return { success: false, reason: "invalid_password" };
+    }
+
+    const isTotpValid = await this.verifyTOTP(otpInput, storedKey);
+    if (!isTotpValid) {
+      this.recordFailedAttempt();
+      return { success: false, reason: "invalid_totp" };
+    }
+
+    this.clearFailedAttempts();
+    await this.createSession();
+    this.authErrorMessage = "";
+    return { success: true };
+  },
+
+  // 4. Start 2FA Enrollment: Verify Master Passphrase to initialize Authenticator device pairing
+  async start2FAEnrollment(passphrase) {
+    await new Promise(r => setTimeout(r, 300 + Math.random() * 100));
+
+    const isPwdValid = await this.verifyPassword(passphrase);
+    if (!isPwdValid) {
+      this.recordFailedAttempt();
+      this.authErrorMessage = "❌ Invalid Master Passphrase. Access denied.";
+      this.render();
+      return false;
+    }
+
+    this.clearFailedAttempts();
+    this.pendingEnrollKey = this.generateRandomBase32();
+    this.isEnrolling2FA = true;
+    this.authErrorMessage = "";
+    this.render();
+    return true;
+  },
+
+  // 5. Confirm 2FA Enrollment: User enters 6-digit code from Google Authenticator to activate
+  async confirm2FAEnrollment(otpInput) {
+    await new Promise(r => setTimeout(r, 300 + Math.random() * 100));
+    if (!this.pendingEnrollKey) return false;
+
+    const isTotpValid = await this.verifyTOTP(otpInput, this.pendingEnrollKey);
+    if (!isTotpValid) {
+      this.recordFailedAttempt();
+      this.authErrorMessage = "❌ Invalid 6-digit code. Check your Google Authenticator app and try again.";
+      this.render();
+      return false;
+    }
+
+    localStorage.setItem(this.STORAGE_TOTP_KEY, this.pendingEnrollKey);
+    this.clearFailedAttempts();
+    this.isEnrolling2FA = false;
+    this.pendingEnrollKey = null;
+    this.authErrorMessage = "";
+    await this.createSession();
+    if (typeof showToast === "function") {
+      showToast("Google Authenticator paired! 2FA is now permanently active.");
+    }
+    this.render();
+    return true;
+  },
+
+  bindLockoutTimer(lockout) {
+    if (!lockout.isLocked) return;
+    this.lockoutInterval = setInterval(() => {
+      const current = this.getLockoutStatus();
+      const countdownEl = document.getElementById("lockout-countdown");
+      if (countdownEl) {
+        countdownEl.textContent = `${current.remainingSeconds}s`;
+      }
+      if (!current.isLocked) {
+        clearInterval(this.lockoutInterval);
+        this.lockoutInterval = null;
+        this.render();
+      }
+    }, 1000);
+  },
+
+  bindPasswordToggle(inputId, toggleBtnId) {
+    const pwdInput = document.getElementById(inputId);
+    const toggleBtn = document.getElementById(toggleBtnId);
+    if (toggleBtn && pwdInput) {
+      toggleBtn.addEventListener("click", () => {
+        const isPwd = pwdInput.type === "password";
+        pwdInput.type = isPwd ? "text" : "password";
+        toggleBtn.textContent = isPwd ? "🙈" : "👁️";
+      });
+    }
   },
 
   render() {
@@ -373,121 +505,373 @@ window.PORTFOLIO_ADMIN = {
     }
 
     // -------------------------------------------------------------
-    // UNAUTHENTICATED VIEW: Zero-Knowledge Security Gate
-    // (Never reveals QR codes, secrets, or enrollment keys publicly)
+    // UNAUTHENTICATED VIEW: Mandatory 2-Factor Authentication Gate
+    // Requires BOTH Master Passphrase AND Google Authenticator OTP
     // -------------------------------------------------------------
     if (!this.isAuthenticated) {
       const lockout = this.getLockoutStatus();
+      const storedKey = localStorage.getItem(this.STORAGE_TOTP_KEY);
+      const has2FA = !!storedKey;
 
+      const lockoutHtml = lockout.isLocked ? `
+        <div id="lockout-alert" style="background-color: rgba(239, 68, 68, 0.12); border: 1px solid #ef4444; border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 16px; color: #ef4444; font-size: 13.5px; text-align: center;">
+          <strong>⚠️ Security Lockout Active</strong>
+          <div style="margin-top: 4px; font-family: var(--mono); font-size: 13px;">
+            Too many failed attempts. Retry in: <span id="lockout-countdown">${lockout.remainingSeconds}s</span>
+          </div>
+        </div>
+      ` : '';
+
+      const errorHtml = this.authErrorMessage ? `
+        <div id="admin-auth-error" style="color: #ef4444; font-size: 13px; margin: 12px 0 0; text-align: center; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-sm); padding: 8px 12px;">
+          ${this.escapeHTML(this.authErrorMessage)}
+        </div>
+      ` : '';
+
+      // ----------------------------------------------------------------------
+      // SCREEN A: ENROLLMENT STEP 2 (PAIR GOOGLE AUTHENTICATOR APP)
+      // ----------------------------------------------------------------------
+      if (this.isEnrolling2FA && this.pendingEnrollKey) {
+        const formattedKey = this.formatKey(this.pendingEnrollKey);
+        container.innerHTML = `
+          <div class="admin-auth-box" style="max-width: 480px;">
+            <div style="font-size: 36px; margin-bottom: 6px;">📱</div>
+            <h3 style="margin: 0 0 6px; font-size: 21px;">Set Up Google Authenticator</h3>
+            <p style="margin: 0 0 16px; color: var(--muted); font-size: 13.5px; line-height: 1.45;">
+              Pair your phone to enable mandatory Two-Factor Authentication (2FA) for your portfolio studio.
+            </p>
+
+            ${lockoutHtml}
+
+            <div style="background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 14px; text-align: left; margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold;">
+                  Step 1: Your Setup Key
+                </span>
+                <span style="font-size: 11px; font-family: var(--mono); color: var(--ok); background: var(--ok-bg); padding: 2px 6px; border-radius: 4px; border: 1px solid currentColor;">
+                  100% Offline &amp; Private
+                </span>
+              </div>
+
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+                <code id="enroll-key-display" style="font-size: 15px; font-weight: bold; background: var(--paper); padding: 8px 12px; border-radius: 4px; border: 1px solid var(--rule); letter-spacing: 0.12em; flex: 1; user-select: all; text-align: center; color: var(--ink); font-family: var(--mono);">${formattedKey}</code>
+                <button type="button" id="btn-copy-enroll-key" class="btn-primary-action" style="font-size: 12px; padding: 8px 14px; white-space: nowrap;">
+                  📋 Copy Key
+                </button>
+              </div>
+
+              <div style="font-size: 12px; color: var(--ink); line-height: 1.55; background: var(--paper); padding: 10px 12px; border-radius: 6px; border: 1px solid var(--rule-light);">
+                <strong style="display: block; margin-bottom: 4px; font-size: 11.5px; text-transform: uppercase; color: var(--muted);">
+                  In Google Authenticator app:
+                </strong>
+                <ol style="margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.6;">
+                  <li>Open <strong>Google Authenticator</strong> (or Microsoft Authenticator).</li>
+                  <li>Tap the <strong>+</strong> button &gt; Select <strong>Enter a setup key</strong>.</li>
+                  <li>Account Name: <code>Saurav Portfolio</code></li>
+                  <li>Your Key: <strong>Paste</strong> the copied key.</li>
+                  <li>Type of key: <strong>Time-based</strong> &gt; Tap <strong>Add</strong>.</li>
+                </ol>
+              </div>
+            </div>
+
+            <form id="admin-enroll-confirm-form" style="display: flex; flex-direction: column; gap: 12px; width: 100%; text-align: left;">
+              <div>
+                <label for="admin-enroll-otp" style="font-size: 11.5px; font-family: var(--mono); color: var(--muted); display: block; margin-bottom: 4px; text-transform: uppercase; font-weight: bold;">
+                  Step 2: Enter 6-Digit Code from Authenticator:
+                </label>
+                <input 
+                  type="text" 
+                  id="admin-enroll-otp" 
+                  class="otp-code-input focus-input" 
+                  maxlength="6" 
+                  pattern="[0-9]{6}" 
+                  inputmode="numeric" 
+                  placeholder="••••••" 
+                  autocomplete="one-time-code" 
+                  ${lockout.isLocked ? 'disabled' : ''} 
+                  required 
+                  autofocus>
+              </div>
+
+              <div style="display: flex; gap: 8px;">
+                <button type="submit" id="btn-admin-confirm-2fa" class="btn-primary-action" style="flex: 1; padding: 10px; font-size: 14px;" ${lockout.isLocked ? 'disabled' : ''}>
+                  ✓ Verify &amp; Activate 2FA
+                </button>
+                <button type="button" id="btn-admin-cancel-enroll" class="btn-secondary-action" style="padding: 10px 14px; font-size: 13px;">
+                  Cancel
+                </button>
+              </div>
+            </form>
+
+            ${errorHtml}
+          </div>
+        `;
+
+        this.bindLockoutTimer(lockout);
+
+        // Copy Key event
+        const copyBtn = document.getElementById("btn-copy-enroll-key");
+        if (copyBtn) {
+          copyBtn.addEventListener("click", () => {
+            this.copyToClipboard(this.pendingEnrollKey, copyBtn, "✓ Copied!", "📋 Copy Key");
+          });
+        }
+
+        // Cancel event
+        const cancelBtn = document.getElementById("btn-admin-cancel-enroll");
+        if (cancelBtn) {
+          cancelBtn.addEventListener("click", () => {
+            this.isEnrolling2FA = false;
+            this.pendingEnrollKey = null;
+            this.authErrorMessage = "";
+            this.render();
+          });
+        }
+
+        // Confirm Form Submit
+        const enrollForm = document.getElementById("admin-enroll-confirm-form");
+        if (enrollForm) {
+          enrollForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (this.getLockoutStatus().isLocked) return;
+            const otpInput = document.getElementById("admin-enroll-otp");
+            const val = otpInput ? otpInput.value.trim() : "";
+            if (!val) return;
+
+            const submitBtn = document.getElementById("btn-admin-confirm-2fa");
+            if (submitBtn) {
+              submitBtn.disabled = true;
+              submitBtn.textContent = "Verifying...";
+            }
+
+            await this.confirm2FAEnrollment(val);
+          });
+        }
+
+        return;
+      }
+
+      // ----------------------------------------------------------------------
+      // SCREEN B: MANDATORY 2FA LOGIN (PASSWORD + GOOGLE AUTHENTICATOR CODE)
+      // Shown when 2FA has already been paired on this browser
+      // ----------------------------------------------------------------------
+      if (has2FA && !this.isRePairingMode) {
+        container.innerHTML = `
+          <div class="admin-auth-box">
+            <div style="font-size: 38px; margin-bottom: 8px;">🛡️</div>
+            <h3 style="margin: 0 0 6px; font-size: 22px;">Studio 2FA Security Gate</h3>
+            <p style="margin: 0 0 16px; color: var(--muted); font-size: 14px; line-height: 1.45; max-width: 360px; margin-left: auto; margin-right: auto;">
+              Two-Factor Authentication is active. Enter your Master Passphrase and 6-digit Google Authenticator code to log in.
+            </p>
+
+            ${lockoutHtml}
+
+            <form id="admin-login-2fa-form" style="display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 330px; margin: 0 auto; text-align: left;">
+              <div>
+                <label for="admin-auth-passphrase" style="font-size: 11.5px; font-family: var(--mono); color: var(--muted); display: block; margin-bottom: 4px; text-transform: uppercase; font-weight: bold;">
+                  1. Master Passphrase:
+                </label>
+                <div style="position: relative;">
+                  <input 
+                    type="password" 
+                    id="admin-auth-passphrase" 
+                    class="focus-input" 
+                    style="width: 100%; padding-right: 42px; font-size: 14.5px;" 
+                    placeholder="Enter Master Passphrase" 
+                    autocomplete="current-password" 
+                    ${lockout.isLocked ? 'disabled' : ''} 
+                    autofocus 
+                    required>
+                  <button 
+                    type="button" 
+                    id="btn-toggle-pwd" 
+                    aria-label="Toggle password visibility" 
+                    style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px; color: var(--muted);"
+                    ${lockout.isLocked ? 'disabled' : ''}>
+                    👁️
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label for="admin-auth-totp" style="font-size: 11.5px; font-family: var(--mono); color: var(--muted); display: block; margin-bottom: 4px; text-transform: uppercase; font-weight: bold;">
+                  2. Google Authenticator (6 Digits):
+                </label>
+                <input 
+                  type="text" 
+                  id="admin-auth-totp" 
+                  class="otp-code-input focus-input" 
+                  style="margin: 0 auto; width: 100%; max-width: 100%;" 
+                  maxlength="6" 
+                  pattern="[0-9]{6}" 
+                  inputmode="numeric" 
+                  placeholder="••••••" 
+                  autocomplete="one-time-code" 
+                  ${lockout.isLocked ? 'disabled' : ''} 
+                  required>
+              </div>
+
+              <button type="submit" id="btn-admin-verify" class="btn-primary-action" style="width: 100%; padding: 10px; font-size: 14.5px; margin-top: 4px;" ${lockout.isLocked ? 'disabled' : ''}>
+                🔒 Log In with 2FA
+              </button>
+            </form>
+
+            ${errorHtml}
+
+            <div style="margin-top: 22px; font-size: 12px; color: var(--muted); text-align: center; border-top: 1px solid var(--rule-light); padding-top: 12px;">
+              <button type="button" id="btn-switch-to-repair" style="background: none; border: none; color: var(--accent); cursor: pointer; text-decoration: underline; font-size: 12px; padding: 0;">
+                Lost phone or need to re-pair Google Authenticator?
+              </button>
+            </div>
+          </div>
+        `;
+
+        this.bindLockoutTimer(lockout);
+        this.bindPasswordToggle("admin-auth-passphrase", "btn-toggle-pwd");
+
+        // Switch to re-pairing mode
+        const repairBtn = document.getElementById("btn-switch-to-repair");
+        if (repairBtn) {
+          repairBtn.addEventListener("click", () => {
+            this.isRePairingMode = true;
+            this.authErrorMessage = "";
+            this.render();
+          });
+        }
+
+        // Form Submit
+        const form = document.getElementById("admin-login-2fa-form");
+        if (form) {
+          form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (this.getLockoutStatus().isLocked) return;
+
+            const pwdInput = document.getElementById("admin-auth-passphrase");
+            const totpInput = document.getElementById("admin-auth-totp");
+            const pwdVal = pwdInput ? pwdInput.value : "";
+            const totpVal = totpInput ? totpInput.value.trim() : "";
+
+            if (!pwdVal || !totpVal) return;
+
+            const verifyBtn = document.getElementById("btn-admin-verify");
+            if (verifyBtn) {
+              verifyBtn.disabled = true;
+              verifyBtn.textContent = "Verifying 2FA...";
+            }
+
+            const res = await this.loginWith2FA(pwdVal, totpVal);
+            if (res.success) {
+              this.render();
+            } else {
+              if (res.reason === "invalid_password") {
+                this.authErrorMessage = "❌ Invalid Master Passphrase.";
+              } else if (res.reason === "invalid_totp") {
+                this.authErrorMessage = "❌ Invalid 6-digit Authenticator code. Check Google Authenticator.";
+              } else {
+                this.authErrorMessage = "❌ 2FA verification failed. Access denied.";
+              }
+              this.render();
+            }
+          });
+        }
+
+        return;
+      }
+
+      // ----------------------------------------------------------------------
+      // SCREEN C: ENROLLMENT STEP 1 (INITIAL SETUP OR RE-PAIRING)
+      // Enter Master Passphrase to initialize Google Authenticator
+      // ----------------------------------------------------------------------
       container.innerHTML = `
         <div class="admin-auth-box">
           <div style="font-size: 38px; margin-bottom: 8px;">🔐</div>
-          <h3 style="margin: 0 0 6px; font-size: 22px;">Studio Security Gate</h3>
-          <p style="margin: 0 0 16px; color: var(--muted); font-size: 14.5px; line-height: 1.45; max-width: 380px; margin-left: auto; margin-right: auto;">
-            Restricted access for Saurav Pandey. Enter your Master Passphrase or 6-digit Authenticator Token.
+          <h3 style="margin: 0 0 6px; font-size: 22px;">
+            ${this.isRePairingMode ? "Reconfigure Authenticator" : "Set Up 2-Factor Auth"}
+          </h3>
+          <p style="margin: 0 0 16px; color: var(--muted); font-size: 14px; line-height: 1.45; max-width: 360px; margin-left: auto; margin-right: auto;">
+            ${this.isRePairingMode 
+              ? "Enter your Master Passphrase to pair a new device with Google Authenticator."
+              : "Welcome Saurav. To protect your portfolio, mandatory 2-Factor Authentication (Password + Google Authenticator) must be initialized."}
           </p>
 
-          ${lockout.isLocked ? `
-            <div id="lockout-alert" style="background-color: rgba(239, 68, 68, 0.12); border: 1px solid #ef4444; border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 16px; color: #ef4444; font-size: 13.5px; text-align: center;">
-              <strong>⚠️ Security Lockout Active</strong>
-              <div style="margin-top: 4px; font-family: var(--mono); font-size: 13px;">
-                Too many failed attempts. Retry in: <span id="lockout-countdown">${lockout.remainingSeconds}s</span>
+          ${lockoutHtml}
+
+          <form id="admin-setup-step1-form" style="display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; margin: 0 auto; text-align: left;">
+            <div>
+              <label for="admin-auth-passphrase" style="font-size: 11.5px; font-family: var(--mono); color: var(--muted); display: block; margin-bottom: 4px; text-transform: uppercase; font-weight: bold;">
+                Master Passphrase:
+              </label>
+              <div style="position: relative;">
+                <input 
+                  type="password" 
+                  id="admin-auth-passphrase" 
+                  class="focus-input" 
+                  style="width: 100%; padding-right: 42px; font-size: 14.5px;" 
+                  placeholder="Enter Master Passphrase" 
+                  autocomplete="current-password" 
+                  ${lockout.isLocked ? 'disabled' : ''} 
+                  autofocus 
+                  required>
+                <button 
+                  type="button" 
+                  id="btn-toggle-pwd" 
+                  aria-label="Toggle password visibility" 
+                  style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px; color: var(--muted);"
+                  ${lockout.isLocked ? 'disabled' : ''}>
+                  👁️
+                </button>
               </div>
             </div>
-          ` : ''}
 
-          <form id="admin-auth-form" style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 320px; margin: 0 auto;">
-            <div style="position: relative; width: 100%;">
-              <input 
-                type="password" 
-                id="admin-auth-input" 
-                class="focus-input" 
-                style="width: 100%; padding-right: 42px; font-size: 15px; text-align: center;" 
-                placeholder="Passphrase or 6-digit OTP" 
-                autocomplete="current-password" 
-                ${lockout.isLocked ? 'disabled' : ''} 
-                autofocus 
-                required>
-              <button 
-                type="button" 
-                id="btn-toggle-pwd" 
-                aria-label="Toggle password visibility" 
-                style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px; color: var(--muted);"
-                ${lockout.isLocked ? 'disabled' : ''}>
-                👁️
-              </button>
-            </div>
-
-            <button type="submit" id="btn-admin-verify" class="btn-primary-action" style="width: 100%; padding: 10px; font-size: 14px;" ${lockout.isLocked ? 'disabled' : ''}>
-              Verify Credentials
+            <button type="submit" id="btn-admin-continue-2fa" class="btn-primary-action" style="width: 100%; padding: 10px; font-size: 14px; margin-top: 4px;" ${lockout.isLocked ? 'disabled' : ''}>
+              Continue to Authenticator Setup →
             </button>
+
+            ${this.isRePairingMode ? `
+              <button type="button" id="btn-admin-cancel-repair" class="btn-secondary-action" style="width: 100%; padding: 8px; font-size: 13px;">
+                Cancel (Back to 2FA Login)
+              </button>
+            ` : ''}
           </form>
 
-          <p id="admin-auth-error" style="color: #ef4444; font-size: 13px; margin: 12px 0 0; display: none;">
-            ❌ Invalid credentials. Access denied.
-          </p>
+          ${errorHtml}
 
-          <div style="margin-top: 22px; font-size: 12px; color: var(--muted); font-family: var(--mono); border-top: 1px solid var(--rule-light); padding-top: 12px;">
-            🛡️ Zero-Knowledge PBKDF2 • SHA-256 HMAC • Device 2FA
+          <div style="margin-top: 22px; font-size: 12px; color: var(--muted); font-family: var(--mono); border-top: 1px solid var(--rule-light); padding-top: 12px; text-align: center;">
+            🛡️ Zero-Knowledge PBKDF2 • RFC 6238 TOTP • SHA-256 HMAC
           </div>
         </div>
       `;
 
-      // Live Lockout Countdown
-      if (lockout.isLocked) {
-        this.lockoutInterval = setInterval(() => {
-          const current = this.getLockoutStatus();
-          const countdownEl = document.getElementById("lockout-countdown");
-          if (countdownEl) {
-            countdownEl.textContent = `${current.remainingSeconds}s`;
-          }
-          if (!current.isLocked) {
-            clearInterval(this.lockoutInterval);
-            this.lockoutInterval = null;
+      this.bindLockoutTimer(lockout);
+      this.bindPasswordToggle("admin-auth-passphrase", "btn-toggle-pwd");
+
+      if (this.isRePairingMode) {
+        const cancelRepairBtn = document.getElementById("btn-admin-cancel-repair");
+        if (cancelRepairBtn) {
+          cancelRepairBtn.addEventListener("click", () => {
+            this.isRePairingMode = false;
+            this.authErrorMessage = "";
             this.render();
-          }
-        }, 1000);
+          });
+        }
       }
 
-      // Password visibility toggle
-      const pwdInput = document.getElementById("admin-auth-input");
-      const togglePwdBtn = document.getElementById("btn-toggle-pwd");
-      if (togglePwdBtn && pwdInput) {
-        togglePwdBtn.addEventListener("click", () => {
-          const isPwd = pwdInput.type === "password";
-          pwdInput.type = isPwd ? "text" : "password";
-          togglePwdBtn.textContent = isPwd ? "🙈" : "👁️";
-        });
-      }
-
-      // Authentication Form Submit
-      const authForm = document.getElementById("admin-auth-form");
-      const errorMsg = document.getElementById("admin-auth-error");
-      const verifyBtn = document.getElementById("btn-admin-verify");
-
-      if (authForm) {
-        authForm.addEventListener("submit", async (e) => {
+      const step1Form = document.getElementById("admin-setup-step1-form");
+      if (step1Form) {
+        step1Form.addEventListener("submit", async (e) => {
           e.preventDefault();
           if (this.getLockoutStatus().isLocked) return;
-
+          const pwdInput = document.getElementById("admin-auth-passphrase");
           const val = pwdInput ? pwdInput.value : "";
           if (!val) return;
 
-          if (verifyBtn) {
-            verifyBtn.disabled = true;
-            verifyBtn.textContent = "Verifying...";
+          const submitBtn = document.getElementById("btn-admin-continue-2fa");
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Verifying...";
           }
-          if (errorMsg) errorMsg.style.display = "none";
 
-          const success = await this.verifyCredentials(val);
-
-          if (success) {
-            this.render();
-          } else {
-            this.render();
-            const reloadedError = document.getElementById("admin-auth-error");
-            if (reloadedError) reloadedError.style.display = "block";
-          }
+          await this.start2FAEnrollment(val);
         });
       }
 
@@ -538,42 +922,39 @@ window.PORTFOLIO_ADMIN = {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
               <h4 style="margin: 0; font-size: 16px;">🔐 Google Authenticator (TOTP) Device Pairing</h4>
               <span style="font-size: 11.5px; font-family: var(--mono); padding: 2px 8px; border-radius: 999px; background: ${pairedTotpKey ? 'var(--ok-bg)' : 'var(--tint)'}; color: ${pairedTotpKey ? 'var(--ok)' : 'var(--accent)'}; border: 1px solid currentColor;">
-                ${pairedTotpKey ? '● Paired with this Browser' : '○ Not Yet Paired'}
+                ${pairedTotpKey ? '● 2FA Active & Enforced' : '○ Not Yet Paired'}
               </span>
             </div>
             <p style="font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.45;">
-              Pairing stores a dedicated 2FA key in your personal browser's local storage with zero network exposure. To pair, open Google Authenticator on your mobile phone, tap <strong>+</strong> &gt; <strong>Enter a setup key</strong>, and add this key.
+              Two-Factor Authentication is permanently enforced. Every login requires BOTH your Master Passphrase and the 6-digit Google Authenticator code.
             </p>
 
             <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
               <div style="flex: 1.2; min-width: 250px; background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 14px;">
                 <label style="font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
-                  1. Setup Key (Enter in Google Authenticator):
+                  Active Device Setup Key:
                 </label>
                 <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 10px;">
-                  <code id="display-totp-key" style="font-size: 13.5px; font-weight: bold; background: var(--paper); padding: 7px 12px; border-radius: 4px; border: 1px solid var(--rule); letter-spacing: 0.1em; flex: 1; user-select: all;">${activeTotpKey}</code>
+                  <code id="display-totp-key" style="font-size: 13.5px; font-weight: bold; background: var(--paper); padding: 7px 12px; border-radius: 4px; border: 1px solid var(--rule); letter-spacing: 0.1em; flex: 1; user-select: all;">${pairedTotpKey ? this.formatKey(pairedTotpKey) : 'NOT PAIRED'}</code>
                   <button type="button" id="btn-copy-totp-key" class="btn-copy" style="font-size: 11.5px; padding: 6px 12px;">Copy</button>
                 </div>
                 <div style="font-size: 12px; color: var(--muted); line-height: 1.5;">
-                  <div>• <strong>Account Name:</strong> <code>SauravPortfolio</code></div>
-                  <div>• <strong>Key Type:</strong> <code>Time-based (TOTP)</code></div>
+                  <div>• <strong>Account Name:</strong> <code>Saurav Portfolio</code></div>
+                  <div>• <strong>Key Type:</strong> <code>Time-based (RFC 6238 TOTP)</code></div>
                 </div>
               </div>
 
               <div style="flex: 1; min-width: 220px;">
                 <label style="font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
-                  2. Device Pairing Actions:
+                  Device Management:
                 </label>
                 <div style="display: flex; gap: 8px; flex-direction: column;">
-                  <button type="button" id="btn-pair-totp" class="btn-primary-action" style="font-size: 12.5px; padding: 8px 14px; text-align: center;">
-                    ${pairedTotpKey ? '✓ Update Browser Pairing' : '🔗 Pair this Key to Browser'}
-                  </button>
-                  <button type="button" id="btn-regen-totp" class="btn-secondary-action" style="font-size: 12px; padding: 6px 14px; text-align: center;">
-                    🔄 Generate New Key
+                  <button type="button" id="btn-regen-totp" class="btn-primary-action" style="font-size: 12px; padding: 8px 14px; text-align: center;">
+                    📱 Pair New Phone / Re-generate Key
                   </button>
                   ${pairedTotpKey ? `
                     <button type="button" id="btn-unpair-totp" class="btn-ambient-action" style="font-size: 12px; padding: 6px 14px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
-                      ✕ Unpair Device
+                      ✕ Reset 2FA Pairing
                     </button>
                   ` : ''}
                 </div>
@@ -681,45 +1062,40 @@ window.PORTFOLIO_ADMIN = {
       });
     }
 
-    // Copy TOTP Key
+    // Copy active TOTP Key
     const copyKeyBtn = document.getElementById("btn-copy-totp-key");
-    if (copyKeyBtn) {
+    const pairedTotpKey = localStorage.getItem(this.STORAGE_TOTP_KEY);
+    if (copyKeyBtn && pairedTotpKey) {
       copyKeyBtn.addEventListener("click", () => {
-        navigator.clipboard.writeText(currentTotpKey).then(() => {
-          copyKeyBtn.textContent = "Copied!";
-          setTimeout(() => { copyKeyBtn.textContent = "Copy"; }, 1500);
-        });
+        this.copyToClipboard(pairedTotpKey, copyKeyBtn, "✓ Copied!", "Copy");
       });
     }
 
-    // Pair TOTP Key to this browser
-    const pairBtn = document.getElementById("btn-pair-totp");
-    if (pairBtn) {
-      pairBtn.addEventListener("click", () => {
-        localStorage.setItem(this.STORAGE_TOTP_KEY, currentTotpKey);
-        if (typeof showToast === "function") showToast("Google Authenticator paired to this browser!");
-        this.render();
-      });
-    }
-
-    // Generate New Random TOTP Key
+    // Pair New Phone / Re-generate Key
     const regenBtn = document.getElementById("btn-regen-totp");
     if (regenBtn) {
       regenBtn.addEventListener("click", () => {
-        const newKey = this.generateRandomBase32();
-        localStorage.setItem(this.STORAGE_TOTP_KEY, newKey);
-        if (typeof showToast === "function") showToast("New Authenticator key generated!");
-        this.render();
+        if (confirm("Pair a new phone or generate a new Authenticator key? You will be guided through the setup verification step.")) {
+          this.pendingEnrollKey = this.generateRandomBase32();
+          this.isEnrolling2FA = true;
+          this.isAuthenticated = false;
+          try {
+            sessionStorage.removeItem(this.SESSION_TOKEN_KEY);
+          } catch (e) {}
+          this.render();
+        }
       });
     }
 
-    // Unpair TOTP Key from this browser
+    // Reset 2FA Pairing
     const unpairBtn = document.getElementById("btn-unpair-totp");
     if (unpairBtn) {
       unpairBtn.addEventListener("click", () => {
-        localStorage.removeItem(this.STORAGE_TOTP_KEY);
-        if (typeof showToast === "function") showToast("Device unpaired. Master passphrase remains active.");
-        this.render();
+        if (confirm("Reset 2FA pairing? You will be prompted to set up Google Authenticator again on your next login.")) {
+          localStorage.removeItem(this.STORAGE_TOTP_KEY);
+          this.logout();
+          if (typeof showToast === "function") showToast("2FA pairing reset. Please set up Authenticator on next login.");
+        }
       });
     }
 
