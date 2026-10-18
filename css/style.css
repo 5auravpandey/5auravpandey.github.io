@@ -2566,15 +2566,39 @@ dialog#invite-dialog {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
   }
 
   .nav-brand-group {
-    gap: 8px;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  .nav-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
   }
 
   .brand-name {
-    font-size: 16px;
+    font-size: 14.5px;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .status-indicator {
+    font-size: 9.5px;
+    padding: 1.5px 6.5px;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  .pulse-dot {
+    width: 5px;
+    height: 5px;
   }
 
   .status-text-full {
@@ -2598,6 +2622,21 @@ dialog#invite-dialog {
 
   .mobile-dropdown-sheet {
     top: calc(54px + max(0px, env(safe-area-inset-top)));
+  }
+
+  @media (min-width: 640px) {
+    .nav-brand {
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-name {
+      font-size: 15px;
+    }
+    .status-indicator {
+      font-size: 10px;
+      padding: 2px 7.5px;
+    }
   }
 
   /* Page Layout & Container on mobile */
