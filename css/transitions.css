@@ -1,0 +1,63 @@
+/**
+ * Saurav Pandey - Transitions & Animations
+ * Governs View Transitions API styling, smooth cross-fades, and reduced-motion compliance.
+ */
+
+/* View Transition Root Animation */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.22s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Perspective State Transition */
+.perspective-transitioning {
+  view-transition-name: active-perspective;
+}
+
+::view-transition-old(active-perspective),
+::view-transition-new(active-perspective) {
+  animation-duration: 0.24s;
+}
+
+/* Case Study Dialog Transition */
+dialog#case-study-dialog[open] {
+  animation: dialog-fade-in 0.2s ease-out;
+}
+
+@keyframes dialog-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Fix Aspect Ratio Stretching for Text Elements */
+.hero-title,
+.hero-role,
+.hero-subtitle,
+.dialog-title {
+  width: fit-content;
+}
+
+/* Mandatory Accessibility: Respect User Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

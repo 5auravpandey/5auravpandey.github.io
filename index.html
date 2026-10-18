@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Saurav Pandey | Full-Stack, Systems & Web3 Developer | MCA @ IIIT Ranchi & IIT Patna</title>
+  <meta name="description" content="Portfolio of Saurav Pandey: Full-Stack & Web3 Developer, MCA student at IIIT Ranchi and IIT Patna, and IT Intern at Hindustan Aeronautics Limited (HAL).">
+  <meta name="author" content="Saurav Pandey">
+
+  <!-- Open Graph / Meta -->
+  <meta property="og:title" content="Saurav Pandey | Full-Stack, Systems & Web3 Developer">
+  <meta property="og:description" content="MCA student at IIIT Ranchi & IIT Patna. IT Intern at HAL. Practical software systems in Java, Node.js, C++, Python, PostgreSQL, and the Internet Computer.">
+  <meta property="og:type" content="website">
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/transitions.css">
+</head>
+<body>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="nav-bar">
+    <div class="nav-container">
+      <a href="#top" class="nav-brand">
+        <strong>Saurav Pandey</strong>
+        <span class="status-indicator">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span>IT Intern at HAL • Open to Roles</span>
+        </span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#about">About</a></li>
+          <li><a href="#experience">Experiences</a></li>
+          <li><a href="#projects">Projects</a></li>
+          <li><a href="#playground">Playground</a></li>
+          <li><a href="#curations">Archive & Curations</a></li>
+          <li><a href="#skills">Stack</a></li>
+          <li><a href="#education">Education</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Action Controls -->
+      <div class="nav-actions">
+        <!-- The Dual-Perspective Switcher -->
+        <div class="perspective-container" role="group" aria-label="Perspective Switcher">
+          <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
+            ⚡ Systems & Code
+          </button>
+          <button id="btn-perspective-exec" class="perspective-btn" type="button" aria-pressed="false" title="Switch to Quick Overview">
+            💡 Quick Story
+          </button>
+        </div>
+
+        <!-- Theme Switcher -->
+        <button id="theme-toggle-btn" class="btn-theme" type="button" aria-pressed="false">
+          Dark mode
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Document Page -->
+  <main class="page-container" id="top">
+
+    <!-- Hero Section -->
+    <header class="hero-section" id="about">
+      <div class="hero-header">
+        <div class="hero-main">
+          <div class="hero-tag">Amethi, UP, India • IIIT Ranchi & IIT Patna • Programming Assistant at HAL</div>
+          <h1 class="hero-title">Saurav Pandey</h1>
+          <div class="hero-role" id="hero-role">Full-Stack, Systems & Web3 Developer</div>
+          <div class="hero-subtitle" id="hero-subtitle">I like building practical web apps, low-level utilities, and experimenting with Web3.</div>
+          <div class="perspective-banner" id="perspective-pill">⚡ Systems & Code</div>
+          <p class="hero-lede" id="hero-bio">
+            Hey, I'm Saurav! I'm an MCA student at IIIT Ranchi and IIT Patna, and working as a Programming Assistant in the Avionics Department at HAL. I like understanding how software works from scratch — whether that's managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized apps on the Internet Computer.
+          </p>
+        </div>
+      </div>
+
+      <!-- Perspective Dynamic Pillars -->
+      <div class="pillars-grid" id="hero-pillars">
+        <!-- Dynamically injected via perspective.js -->
+      </div>
+    </header>
+
+    <!-- Work Experience: HAL Avionics Department -->
+    <section id="experience">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Work Experience</h2>
+          <p class="section-sub">Programming Assistant in the Avionics Department at Hindustan Aeronautics Limited (HAL).</p>
+        </div>
+      </div>
+      <div id="spotlight-container">
+        <!-- Injected via app.js -->
+      </div>
+    </section>
+
+    <!-- Projects Grid -->
+    <section id="projects">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Projects I've Built</h2>
+          <p class="section-sub">Practical software from low-level C++ tools to Web3 DApps.</p>
+        </div>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div class="filter-tabs" id="project-filter-tabs">
+        <!-- Injected via app.js -->
+      </div>
+
+      <!-- Grid -->
+      <div class="projects-grid" id="projects-grid">
+        <!-- Injected via app.js -->
+      </div>
+    </section>
+
+    <!-- Engaging Playground Section -->
+    <section id="playground">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Interactive Dev Playground</h2>
+          <p class="section-sub">Try out my focus sprint timer with authentic Indian soundscapes, test the live CryptoLock cipher, or poke around in the mini terminal!</p>
+        </div>
+      </div>
+
+      <div id="playground-mount">
+        <!-- Injected via playground.js -->
+      </div>
+    </section>
+
+    <!-- Archive & Curations Section (Research, Notes, Books, Games, Shows, Music) -->
+    <section id="curations">
+      <a id="shelf" style="position: absolute; pointer-events: none; opacity: 0;"></a>
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Archive & Curations</h2>
+          <p class="section-sub">A personal collection of research papers, study notes, books, games, watched shows, and music playlists.</p>
+        </div>
+      </div>
+
+      <div class="filter-tabs" id="shelf-filter-tabs">
+        <!-- Injected via app.js -->
+      </div>
+
+      <div class="shelf-grid" id="shelf-grid">
+        <!-- Injected via app.js -->
+      </div>
+    </section>
+
+    <!-- Interactive Stack Explorer Matrix -->
+    <section id="skills">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Technical Competencies & Stack Matrix</h2>
+          <p class="section-sub">Select any technology below to inspect practical implementations and real project connections.</p>
+        </div>
+      </div>
+
+      <div class="stack-explorer-wrapper">
+        <div id="stack-explorer-content">
+          <!-- Injected via stack-explorer.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Education Timeline -->
+    <section id="education">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Academic Background</h2>
+          <p class="section-sub">Formal education and coursework.</p>
+        </div>
+      </div>
+
+      <ol class="timeline" id="education-timeline">
+        <!-- Injected via app.js -->
+      </ol>
+
+      <div style="margin-top: 24px; padding: 14px 18px; background-color: var(--card); border: 1px solid var(--rule); border-radius: var(--radius-sm); font-size: 15px;">
+        <strong>Certification:</strong> The Complete Full-Stack Web Development Bootcamp by Dr. Angela Yu (React.js, Node.js, Express, PostgreSQL, Web3, REST APIs).
+      </div>
+    </section>
+
+    <!-- Contact & Live Telemetry -->
+    <section id="contact">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Contact & Say Hello</h2>
+          <p class="section-sub">Feel free to reach out anytime for roles, ideas, or tech discussions.</p>
+        </div>
+      </div>
+
+      <div class="contact-card">
+        <div class="contact-main">
+          <h3>Get In Touch</h3>
+          <p style="font-size: 17px; color: var(--ink-secondary); margin: 0 0 12px;">
+            Whether you want to chat about a software engineering role, discuss projects, or just talk about books and video games, my inbox is always open.
+          </p>
+
+          <div class="contact-email-row">
+            <a href="mailto:thesauravpandey@outlook.com" class="contact-email">thesauravpandey@outlook.com</a>
+            <button type="button" class="btn-copy" id="btn-copy-email" title="Copy email address to clipboard">
+              Copy Email
+            </button>
+          </div>
+
+          <ul class="contact-links">
+            <li><a href="https://t.me/sauravpandey" target="_blank" rel="noopener noreferrer">Telegram (@sauravpandey)</a></li>
+            <li><a href="https://github.com/5auravpandey" target="_blank" rel="noopener noreferrer">GitHub (@5auravpandey)</a></li>
+            <li><a href="https://www.linkedin.com/in/5auravpandey" target="_blank" rel="noopener noreferrer">LinkedIn (@5auravpandey)</a></li>
+          </ul>
+        </div>
+
+        <div class="contact-telemetry">
+          <div class="telemetry-item">
+            <span class="telemetry-label">Location</span>
+            <span class="telemetry-val">Amethi, UP, India</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">Local Clock</span>
+            <span class="telemetry-val" id="telemetry-time">Loading...</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">Active Role</span>
+            <span class="telemetry-val">Programming Assistant at HAL</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">Current Studies</span>
+            <span class="telemetry-val">MCA (IIIT Ranchi & IIT Patna)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>Saurav Pandey • Handcrafted with Semantic HTML, CSS & Modern Vanilla JavaScript • Amethi, UP, India</p>
+      <p style="font-size: 12px; margin-top: 4px;">Zero dependencies • Open source on <a href="https://github.com/5auravpandey/5auravpandey.github.io" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+    </footer>
+  </main>
+
+  <!-- Accessible Case Study Modal / Drawer -->
+  <dialog id="case-study-dialog" closedby="any" aria-labelledby="dialog-project-title">
+    <div class="dialog-inner">
+      <header class="dialog-header">
+        <div class="dialog-header-info">
+          <span class="dialog-badge" id="dialog-project-badge">Category</span>
+          <h3 class="dialog-title" id="dialog-project-title">Project Case Study</h3>
+        </div>
+        <button type="button" class="dialog-close" id="dialog-close-btn" aria-label="Close dialog">×</button>
+      </header>
+
+      <div class="dialog-content" id="dialog-project-body">
+        <!-- Dynamically injected via case-study.js -->
+      </div>
+
+      <footer class="dialog-footer">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="btn-theme" id="dialog-github-link" style="text-decoration: none;">
+          View Source Repository on GitHub ↗
+        </a>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- Admin Studio Dialog -->
+  <dialog id="admin-dialog" closedby="any" aria-labelledby="admin-dialog-title">
+    <div class="dialog-inner">
+      <header class="dialog-header">
+        <div class="dialog-header-info">
+          <span class="dialog-badge" style="background-color: var(--accent-soft); color: var(--accent);">Admin Panel</span>
+          <h3 class="dialog-title" id="admin-dialog-title">Studio & Content Manager</h3>
+        </div>
+        <button type="button" class="dialog-close" id="admin-dialog-close" aria-label="Close dialog">×</button>
+      </header>
+
+      <div class="dialog-content" id="admin-dialog-body">
+        <!-- Dynamically injected via admin.js -->
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Invite Friends Dialog -->
+  <dialog id="invite-dialog" closedby="any" aria-labelledby="invite-dialog-title">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+      <h3 id="invite-dialog-title" style="margin: 0; font-size: 22px;">Invite Friends to Focus</h3>
+      <button type="button" class="dialog-close" onclick="document.getElementById('invite-dialog').close()" aria-label="Close">×</button>
+    </div>
+    <p style="font-size: 15px; color: var(--ink-secondary); margin: 0 0 16px;">
+      Share this focus room with a friend to study or code together on a synchronized sprint!
+    </p>
+
+    <div style="background-color: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 10px; display: flex; gap: 8px; align-items: center;">
+      <input type="text" id="invite-link-input" class="focus-input" style="font-size: 13px; text-align: left; padding: 6px 10px;" value="http://localhost:8000/?tab=focus&sprint=25" readonly>
+      <button type="button" id="btn-copy-invite-link" class="btn-primary-action" style="padding: 6px 14px; font-size: 12.5px; white-space: nowrap;">Copy Link</button>
+    </div>
+
+    <div class="invite-social-btns">
+      <a href="https://api.whatsapp.com/send?text=Hey!%20Join%20me%20for%20a%2025-minute%20focus%20sprint%20on%20Saurav's%20dev%20site:%20http://localhost:8000/?tab=focus&sprint=25" target="_blank" rel="noopener noreferrer" class="btn-social-share whatsapp">
+        WhatsApp
+      </a>
+      <a href="https://twitter.com/intent/tweet?text=Doing%20a%20deep%20work%20coding%20sprint%20with%20ambient%20rain%20on%20@5auravpandey's%20portfolio!&url=http://localhost:8000/?tab=focus&sprint=25" target="_blank" rel="noopener noreferrer" class="btn-social-share twitter">
+        Twitter / X
+      </a>
+      <a href="https://t.me/share/url?url=http://localhost:8000/?tab=focus&sprint=25&text=Join%20me%20for%20a%20focus%20sprint!" target="_blank" rel="noopener noreferrer" class="btn-social-share telegram">
+        Telegram
+      </a>
+    </div>
+  </dialog>
+
+  <!-- Live Toast Notification Container -->
+  <div id="toast" class="toast-msg" role="status" aria-live="polite"></div>
+
+  <!-- Modular Scripts (Zero Bundler Required, 100% Native & Portable) -->
+  <script src="js/data/profile.js"></script>
+  <script src="js/data/experience.js"></script>
+  <script src="js/data/projects.js"></script>
+  <script src="js/data/skills.js"></script>
+  <script src="js/data/shelf.js"></script>
+  <script src="js/transitions.js"></script>
+  <script src="js/components/perspective.js"></script>
+  <script src="js/components/case-study.js"></script>
+  <script src="js/components/stack-explorer.js"></script>
+  <script src="js/components/playground.js"></script>
+  <script src="js/components/admin.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
