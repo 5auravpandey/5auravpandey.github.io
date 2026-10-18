@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Saurav Pandey - Engineering Notes &amp; Research</title>
+    <link>https://sauravpandey.me/</link>
+    <description>Technical writings, systems research, and software reflections by Saurav Pandey (IT Intern at HAL, MCA student).</description>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 19 Oct 2026 00:00:00 +0530</lastBuildDate>
+    <atom:link href="https://sauravpandey.me/rss.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>Why I Built an E-Commerce Backend in Pure Java Servlets</title>
+      <link>https://sauravpandey.me/#curations</link>
+      <guid isPermaLink="false">note-servlets-jvm</guid>
+      <pubDate>Thu, 01 Oct 2026 00:00:00 +0530</pubDate>
+      <description><![CDATA[Why avoiding Spring Boot for a college project was the best decision I made for learning HTTP lifecycles, multithreaded servlet concurrency, and pure JDBC thread safety.]]></description>
+    </item>
+
+    <item>
+      <title>Decentralized State: What I Learned Building on the Internet Computer</title>
+      <link>https://sauravpandey.me/#curations</link>
+      <guid isPermaLink="false">note-icp-blockchain</guid>
+      <pubDate>Tue, 01 Sep 2026 00:00:00 +0530</pubDate>
+      <description><![CDATA[How WebAssembly canisters work, why users do not pay gas fees via the reverse gas model, and hosting frontend code completely on-chain.]]></description>
+    </item>
+
+    <item>
+      <title>Lightweight Symmetric Bitwise Ciphers for Resource-Constrained Embedded Controllers</title>
+      <link>https://sauravpandey.me/#curations</link>
+      <guid isPermaLink="false">research-lightweight-ciphers</guid>
+      <pubDate>Sat, 15 Aug 2026 00:00:00 +0530</pubDate>
+      <description><![CDATA[Investigating trade-offs between computational overhead, RAM consumption, and entropy dispersion in lightweight circular-rotation XOR cipher blocks for low-memory microcontrollers.]]></description>
+    </item>
+
+    <item>
+      <title>Playing with Bitwise Math and Binary Files in C++</title>
+      <link>https://sauravpandey.me/#curations</link>
+      <guid isPermaLink="false">note-cpp-bitwise</guid>
+      <pubDate>Sat, 01 Aug 2026 00:00:00 +0530</pubDate>
+      <description><![CDATA[Streaming bytes with std::fstream, fixed-size chunk buffers, and why opening files in binary mode prevents newline corruption on Windows.]]></description>
+    </item>
+
+    <item>
+      <title>Orthogonal Persistence vs Gas-Metered EVM: Architectural Analysis of the Internet Computer</title>
+      <link>https://sauravpandey.me/#curations</link>
+      <guid isPermaLink="false">research-icp-state-consensus</guid>
+      <pubDate>Wed, 15 Jul 2026 00:00:00 +0530</pubDate>
+      <description><![CDATA[Comparative analysis of WebAssembly orthogonal memory persistence versus Ethereum Virtual Machine gas metering and state trie architectures.]]></description>
+    </item>
+  </channel>
+</rss>

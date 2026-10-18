@@ -50,12 +50,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.PORTFOLIO_CASE_STUDY) window.PORTFOLIO_CASE_STUDY.init();
   if (window.PORTFOLIO_STACK_EXPLORER) window.PORTFOLIO_STACK_EXPLORER.init();
   if (window.PORTFOLIO_PLAYGROUND) window.PORTFOLIO_PLAYGROUND.init();
+  if (window.PORTFOLIO_COMMAND_PALETTE) window.PORTFOLIO_COMMAND_PALETTE.init();
   initAdminLazyLoader();
 
-  // 8. Initialize Clipboard & Utility Actions
+  // 8. Initialize Clipboard, Print CV & Utility Actions
   initUtilities();
 
-  // 9. Initialize Mobile Navigation Dropdown Menu
+  // 9. Initialize Interactive Card Spotlight
+  initCardSpotlight();
+
+  // 10. Initialize Mobile Navigation Dropdown Menu
   initMobileNav();
 });
 
@@ -609,6 +613,28 @@ function initUtilities() {
       });
     });
   }
+
+  // Print CV trigger
+  const printBtn = document.getElementById("btn-print-cv");
+  if (printBtn) {
+    printBtn.addEventListener("click", () => window.print());
+  }
+}
+
+/**
+ * Card Mouse-Tracking Spotlight Glow (Desktop & Fine Pointer Only)
+ */
+function initCardSpotlight() {
+  if (window.matchMedia("(pointer: coarse)").matches) return;
+  document.addEventListener("pointermove", (e) => {
+    const card = e.target.closest(".project-card, .shelf-card, .spotlight-card, .pillar-card, .contact-card, .playground-card");
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    card.style.setProperty("--mouse-x", `${x}px`);
+    card.style.setProperty("--mouse-y", `${y}px`);
+  }, { passive: true });
 }
 
 /**

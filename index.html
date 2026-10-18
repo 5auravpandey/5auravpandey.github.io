@@ -15,6 +15,7 @@
   <!-- Canonical & Adaptive SVG Favicon -->
   <link rel="canonical" href="https://sauravpandey.me/">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23121214'/%3E%3Cpath d='M8 11l5 5-5 5' stroke='%233b82f6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cline x1='16' y1='21' x2='24' y2='21' stroke='%2322c55e' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='25' cy='9' r='2.5' fill='%2322c55e'/%3E%3C/svg%3E">
+  <link rel="alternate" type="application/rss+xml" title="Saurav Pandey - Engineering Notes &amp; Research" href="https://sauravpandey.me/rss.xml">
   <meta name="theme-color" content="#121214" id="meta-theme-color">
 
   <!-- Open Graph / Social Graph -->
@@ -85,6 +86,11 @@
           </button>
         </div>
 
+        <button id="btn-cmd-palette-desktop" class="btn-cmd-trigger" type="button" aria-label="Open Command Palette (Cmd+K)" title="Quick search (Cmd+K / Ctrl+K)">
+          <span class="cmd-icon">⌘</span>
+          <span class="cmd-label">K</span>
+        </button>
+
         <button id="theme-toggle-btn" class="btn-theme-toggle" type="button" aria-pressed="false" title="Toggle color theme">
           <span class="theme-icon">🌙</span>
           <span class="theme-text">Dark</span>
@@ -93,6 +99,10 @@
 
       <!-- Mobile Controls (Visible on mobile/tablet) -->
       <div class="mobile-controls">
+        <button id="btn-cmd-palette-mobile" class="btn-theme-toggle mobile-theme-icon-btn" type="button" aria-label="Search portfolio (Command Palette)" title="Search (Cmd+K)">
+          <span class="mobile-theme-icon">🔍</span>
+        </button>
+
         <button id="mobile-theme-btn" class="btn-theme-toggle mobile-theme-icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
           <span class="mobile-theme-icon">🌙</span>
         </button>
@@ -202,6 +212,7 @@
           <div class="hero-actions">
             <a href="#projects" class="btn-hero-primary">🚀 Explore Projects</a>
             <a href="#playground" class="btn-hero-secondary">⚡ Dev Lab & Audio</a>
+            <button type="button" id="btn-print-cv" class="btn-hero-ambient" title="Print or Save ATS-friendly CV">📄 Print CV</button>
             <a href="#contact" class="btn-hero-ambient">📬 Contact Me</a>
           </div>
 
@@ -475,6 +486,29 @@
     </div>
   </dialog>
 
+  <!-- Global Command Palette Modal (Cmd+K / Ctrl+K) -->
+  <dialog id="command-palette-dialog" class="command-palette-dialog" aria-label="Command Palette">
+    <div class="cmd-palette-box">
+      <div class="cmd-search-row">
+        <span class="cmd-search-icon" aria-hidden="true">🔍</span>
+        <input 
+          type="text" 
+          id="cmd-palette-input" 
+          class="cmd-palette-input" 
+          placeholder="Search projects, notes, jump sections, or run actions..." 
+          autocomplete="off" 
+          spellcheck="false">
+        <button type="button" class="cmd-esc-kbd" title="Close (ESC)">ESC</button>
+      </div>
+      <div id="cmd-palette-results" class="cmd-palette-results" role="listbox"></div>
+      <div class="cmd-palette-footer">
+        <span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+        <span><kbd>↵</kbd> Select</span>
+        <span><kbd>ESC</kbd> Close</span>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Live Toast Notification Container -->
   <div id="toast" class="toast-msg" role="status" aria-live="polite"></div>
 
@@ -489,6 +523,7 @@
   <script src="js/components/case-study.js" defer></script>
   <script src="js/components/stack-explorer.js" defer></script>
   <script src="js/components/playground.js" defer></script>
+  <script src="js/components/command-palette.js" defer></script>
   <script src="js/app.js" defer></script>
 </body>
 </html>

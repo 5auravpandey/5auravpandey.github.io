@@ -20,6 +20,8 @@ window.PORTFOLIO_PLAYGROUND = {
   audioCtx: null,
   activeNodes: [],
   masterGain: null,
+  analyser: null,
+  animFrameId: null,
   isAudioPlaying: false,
   spotifyPreset: "indian-classical",
   customSpotifyUrl: "",
@@ -149,9 +151,12 @@ window.PORTFOLIO_PLAYGROUND = {
                     <option value="tabla" ${this.soundscape === 'tabla' ? 'selected' : ''}>🪘 Tabla Bayan Calming Pulse</option>
                   </select>
                 </div>
-                <button type="button" id="btn-audio-toggle" class="btn-ambient-action ${this.isAudioPlaying ? 'playing' : ''}">
-                  ${this.isAudioPlaying ? "⏸️ Pause Audio" : "▶️ Play Soundscape"}
-                </button>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" id="btn-audio-toggle" class="btn-ambient-action ${this.isAudioPlaying ? 'playing' : ''}">
+                    ${this.isAudioPlaying ? "⏸️ Pause Audio" : "▶️ Play Soundscape"}
+                  </button>
+                  <canvas id="soundscape-visualizer" class="soundscape-canvas" width="112" height="26" title="Live Web Audio Frequency Visualizer" style="border-radius: 4px; background: rgba(0,0,0,0.06); vertical-align: middle;"></canvas>
+                </div>
               </div>
             ` : `
               <div class="spotify-controls">
@@ -370,6 +375,13 @@ window.PORTFOLIO_PLAYGROUND = {
 
       if (audioBtn) {
         audioBtn.addEventListener("click", () => this.toggleAmbientAudio());
+      }
+
+      // Initialize or restore audio frequency visualizer state
+      if (this.isAudioPlaying) {
+        setTimeout(() => this.startVisualizer(), 60);
+      } else {
+        setTimeout(() => this.clearVisualizer(), 60);
       }
 
       // Spotify Presets
@@ -620,6 +632,7 @@ window.PORTFOLIO_PLAYGROUND = {
     this.startSynthesizedSound();
     this.isAudioPlaying = true;
     this.render();
+    setTimeout(() => this.startVisualizer(), 60);
   },
 
   startSynthesizedSound() {
@@ -633,7 +646,13 @@ window.PORTFOLIO_PLAYGROUND = {
 
       this.masterGain = this.audioCtx.createGain();
       this.masterGain.gain.value = 0.15;
-      this.masterGain.connect(this.audioCtx.destination);
+
+      // Connect Analyser for frequency visualizer
+      this.analyser = this.audioCtx.createAnalyser();
+      this.analyser.fftSize = 64;
+      this.analyser.smoothingTimeConstant = 0.82;
+      this.masterGain.connect(this.analyser);
+      this.analyser.connect(this.audioCtx.destination);
 
       if (this.soundscape === "tanpura") {
         this.createTanpuraDrone();
@@ -649,7 +668,85 @@ window.PORTFOLIO_PLAYGROUND = {
     }
   },
 
+  startVisualizer() {
+    this.stopVisualizer();
+    const canvas = document.getElementById("soundscape-visualizer");
+    if (!canvas || !this.analyser) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const bufferLength = this.analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const draw = () => {
+      if (!this.isAudioPlaying) {
+        this.clearVisualizer(canvas, ctx);
+        return;
+      }
+      this.animFrameId = requestAnimationFrame(draw);
+      this.analyser.getByteFrequencyData(dataArray);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const numBars = 16;
+      const spacing = 2;
+      const barWidth = Math.floor((canvas.width - (numBars + 1) * spacing) / numBars);
+      let x = spacing;
+
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+
+      for (let i = 0; i < numBars; i++) {
+        const binIndex = Math.min(i * 2, bufferLength - 1);
+        const val = dataArray[binIndex] || 0;
+        const norm = val / 255;
+        const minHeight = 3;
+        const barHeight = Math.max(minHeight, norm * (canvas.height - 4));
+        const y = canvas.height - barHeight - 2;
+
+        ctx.fillStyle = isDark
+          ? `rgba(96, 165, 250, ${0.45 + norm * 0.55})`
+          : `rgba(37, 99, 235, ${0.5 + norm * 0.5})`;
+
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(x, y, barWidth, barHeight, 2);
+        } else {
+          ctx.rect(x, y, barWidth, barHeight);
+        }
+        ctx.fill();
+
+        x += barWidth + spacing;
+      }
+    };
+    draw();
+  },
+
+  clearVisualizer(canvas, ctx) {
+    if (!canvas) canvas = document.getElementById("soundscape-visualizer");
+    if (!canvas) return;
+    if (!ctx) ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const numBars = 16;
+    const spacing = 2;
+    const barWidth = Math.floor((canvas.width - (numBars + 1) * spacing) / numBars);
+    let x = spacing;
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    ctx.fillStyle = isDark ? "rgba(255, 255, 255, 0.18)" : "rgba(0, 0, 0, 0.12)";
+    for (let i = 0; i < numBars; i++) {
+      ctx.fillRect(x, canvas.height - 4, barWidth, 2);
+      x += barWidth + spacing;
+    }
+  },
+
+  stopVisualizer() {
+    if (this.animFrameId) {
+      cancelAnimationFrame(this.animFrameId);
+      this.animFrameId = null;
+    }
+  },
+
   stopAllAudioNodes() {
+    this.stopVisualizer();
+    this.clearVisualizer();
     this.activeNodes.forEach(n => {
       try {
         if (n && n.stop) n.stop();
