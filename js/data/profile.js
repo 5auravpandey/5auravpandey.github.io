@@ -7,7 +7,7 @@ window.PORTFOLIO_PROFILE = {
   handle: "@5auravpandey",
   location: "Amethi, UP, India",
   timezone: "Asia/Kolkata",
-  status: "Open to Full-Stack & Web3 Opportunities",
+  status: "Open to Work (Full-Stack, Systems & Web3)",
   email: "thesauravpandey@outlook.com",
   phone: "+91 7319889930",
   github: "https://github.com/5auravpandey",
