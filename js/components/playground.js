@@ -584,8 +584,8 @@ window.PORTFOLIO_PLAYGROUND = {
   openInviteModal() {
     const dialog = document.getElementById("invite-dialog");
     if (dialog) {
-      const liveOrigin = window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
-        ? "https://5auravpandey.github.io"
+      const liveOrigin = window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.protocol === "file:"
+        ? "https://sauravpandey.me"
         : window.location.origin;
       const shareUrl = `${liveOrigin}${window.location.pathname}?tab=focus&sprint=25`;
       const input = document.getElementById("invite-link-input");

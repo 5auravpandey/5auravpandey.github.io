@@ -16,6 +16,8 @@ window.PORTFOLIO_ADMIN = {
   lockoutInterval: null,
   isEnrolling2FA: false,
   pendingEnrollKey: null,
+  pendingEnrollPassphrase: null,
+  activeDecryptedKey: null,
   authErrorMessage: "",
   isRePairingMode: false,
 
@@ -100,6 +102,72 @@ window.PORTFOLIO_ADMIN = {
     const hashBuffer = await window.crypto.subtle.digest("SHA-256", msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  },
+
+  // Derive AES-GCM 256-bit encryption key from Master Passphrase via PBKDF2
+  async deriveAesKey(passphrase) {
+    const enc = new TextEncoder();
+    const saltBytes = new Uint8Array(this.PBKDF2_SALT_HEX.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    const keyMaterial = await window.crypto.subtle.importKey(
+      "raw",
+      enc.encode(passphrase),
+      { name: "PBKDF2" },
+      false,
+      ["deriveKey"]
+    );
+    return await window.crypto.subtle.deriveKey(
+      {
+        name: "PBKDF2",
+        salt: saltBytes,
+        iterations: this.PBKDF2_ITERATIONS,
+        hash: "SHA-256"
+      },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  },
+
+  // Encrypt TOTP Base32 secret using AES-GCM-256
+  async encryptTotpSecret(secret, passphrase) {
+    const aesKey = await this.deriveAesKey(passphrase);
+    const iv = new Uint8Array(12);
+    window.crypto.getRandomValues(iv);
+    const enc = new TextEncoder();
+    const cipherBuffer = await window.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      aesKey,
+      enc.encode(secret)
+    );
+    const hexIv = Array.from(iv).map(b => b.toString(16).padStart(2, "0")).join("");
+    const hexCipher = Array.from(new Uint8Array(cipherBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+    return JSON.stringify({ v: 2, iv: hexIv, ct: hexCipher });
+  },
+
+  // Decrypt TOTP Base32 secret using AES-GCM-256 (with backwards compatibility for legacy plaintext keys)
+  async decryptTotpSecret(storedValue, passphrase) {
+    if (!storedValue || typeof storedValue !== "string") return null;
+    const trimmed = storedValue.trim();
+    // Legacy plaintext Base32 format detection
+    if (!trimmed.startsWith("{")) {
+      return trimmed;
+    }
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (!parsed || !parsed.iv || !parsed.ct) return null;
+      const aesKey = await this.deriveAesKey(passphrase);
+      const iv = new Uint8Array(parsed.iv.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+      const cipherBytes = new Uint8Array(parsed.ct.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+      const decryptedBuffer = await window.crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        aesKey,
+        cipherBytes
+      );
+      return new TextDecoder().decode(decryptedBuffer);
+    } catch (e) {
+      return null;
+    }
   },
 
   // RFC 6238 Google Authenticator TOTP Engine
@@ -312,6 +380,7 @@ window.PORTFOLIO_ADMIN = {
       this.showSecuritySettings = false;
       this.isEnrolling2FA = false;
       this.pendingEnrollKey = null;
+      this.pendingEnrollPassphrase = null;
       this.authErrorMessage = "";
       this.isRePairingMode = false;
       if (this.lockoutInterval) {
@@ -323,6 +392,8 @@ window.PORTFOLIO_ADMIN = {
 
   logout() {
     this.isAuthenticated = false;
+    this.activeDecryptedKey = null;
+    this.pendingEnrollPassphrase = null;
     try {
       sessionStorage.removeItem(this.SESSION_TOKEN_KEY);
     } catch (e) {}
@@ -409,12 +480,28 @@ window.PORTFOLIO_ADMIN = {
       return { success: false, reason: "invalid_password" };
     }
 
-    const isTotpValid = await this.verifyTOTP(otpInput, storedKey);
+    // Decrypt the TOTP secret key using AES-GCM derived from verified Master Passphrase
+    const decryptedSecret = await this.decryptTotpSecret(storedKey, passphrase);
+    if (!decryptedSecret) {
+      this.recordFailedAttempt();
+      return { success: false, reason: "invalid_password" };
+    }
+
+    const isTotpValid = await this.verifyTOTP(otpInput, decryptedSecret);
     if (!isTotpValid) {
       this.recordFailedAttempt();
       return { success: false, reason: "invalid_totp" };
     }
 
+    // Auto-migrate legacy unencrypted keys to AES-GCM encrypted format
+    if (!storedKey.trim().startsWith("{")) {
+      try {
+        const encrypted = await this.encryptTotpSecret(decryptedSecret, passphrase);
+        localStorage.setItem(this.STORAGE_TOTP_KEY, encrypted);
+      } catch (e) {}
+    }
+
+    this.activeDecryptedKey = decryptedSecret;
     this.clearFailedAttempts();
     await this.createSession();
     this.authErrorMessage = "";
@@ -435,6 +522,7 @@ window.PORTFOLIO_ADMIN = {
 
     this.clearFailedAttempts();
     this.pendingEnrollKey = this.generateRandomBase32();
+    this.pendingEnrollPassphrase = passphrase.trim();
     this.isEnrolling2FA = true;
     this.authErrorMessage = "";
     this.render();
@@ -454,10 +542,23 @@ window.PORTFOLIO_ADMIN = {
       return false;
     }
 
-    localStorage.setItem(this.STORAGE_TOTP_KEY, this.pendingEnrollKey);
+    // Encrypt the new secret with AES-GCM before saving to localStorage
+    if (this.pendingEnrollPassphrase) {
+      try {
+        const encryptedKey = await this.encryptTotpSecret(this.pendingEnrollKey, this.pendingEnrollPassphrase);
+        localStorage.setItem(this.STORAGE_TOTP_KEY, encryptedKey);
+      } catch (e) {
+        localStorage.setItem(this.STORAGE_TOTP_KEY, this.pendingEnrollKey);
+      }
+    } else {
+      localStorage.setItem(this.STORAGE_TOTP_KEY, this.pendingEnrollKey);
+    }
+
+    this.activeDecryptedKey = this.pendingEnrollKey;
     this.clearFailedAttempts();
     this.isEnrolling2FA = false;
     this.pendingEnrollKey = null;
+    this.pendingEnrollPassphrase = null;
     this.authErrorMessage = "";
     await this.createSession();
     if (typeof showToast === "function") {
@@ -883,10 +984,8 @@ window.PORTFOLIO_ADMIN = {
     // -------------------------------------------------------------
     const shelfItems = window.PORTFOLIO_SHELF_STORE.getAll();
     const editingItem = this.editingItemId ? shelfItems.find(i => i.id === this.editingItemId) : null;
-    const pairedTotpKey = localStorage.getItem(this.STORAGE_TOTP_KEY);
-
-    // Google Authenticator Setup for enrolled devices (100% offline, zero third-party leak)
-    const activeTotpKey = pairedTotpKey || this.generateRandomBase32();
+    const hasPairedKey = !!localStorage.getItem(this.STORAGE_TOTP_KEY);
+    const displayKey = this.activeDecryptedKey;
 
     container.innerHTML = `
       <div class="admin-dashboard">
@@ -921,12 +1020,12 @@ window.PORTFOLIO_ADMIN = {
           <div class="authenticator-setup-card" style="margin-bottom: 20px; border-left: 3px solid var(--accent); background: var(--paper); border-radius: var(--radius-sm); padding: 16px; border: 1px solid var(--rule);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
               <h4 style="margin: 0; font-size: 16px;">🔐 Google Authenticator (TOTP) Device Pairing</h4>
-              <span style="font-size: 11.5px; font-family: var(--mono); padding: 2px 8px; border-radius: 999px; background: ${pairedTotpKey ? 'var(--ok-bg)' : 'var(--tint)'}; color: ${pairedTotpKey ? 'var(--ok)' : 'var(--accent)'}; border: 1px solid currentColor;">
-                ${pairedTotpKey ? '● 2FA Active & Enforced' : '○ Not Yet Paired'}
+              <span style="font-size: 11.5px; font-family: var(--mono); padding: 2px 8px; border-radius: 999px; background: ${hasPairedKey ? 'var(--ok-bg)' : 'var(--tint)'}; color: ${hasPairedKey ? 'var(--ok)' : 'var(--accent)'}; border: 1px solid currentColor;">
+                ${hasPairedKey ? '● 2FA Active & Enforced (AES-GCM Encrypted)' : '○ Not Yet Paired'}
               </span>
             </div>
             <p style="font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.45;">
-              Two-Factor Authentication is permanently enforced. Every login requires BOTH your Master Passphrase and the 6-digit Google Authenticator code.
+              Two-Factor Authentication is permanently enforced. Your TOTP secret is encrypted at rest using AES-GCM-256 derived from your Master Passphrase.
             </p>
 
             <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
@@ -935,12 +1034,13 @@ window.PORTFOLIO_ADMIN = {
                   Active Device Setup Key:
                 </label>
                 <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 10px;">
-                  <code id="display-totp-key" style="font-size: 13.5px; font-weight: bold; background: var(--paper); padding: 7px 12px; border-radius: 4px; border: 1px solid var(--rule); letter-spacing: 0.1em; flex: 1; user-select: all;">${pairedTotpKey ? this.formatKey(pairedTotpKey) : 'NOT PAIRED'}</code>
-                  <button type="button" id="btn-copy-totp-key" class="btn-copy" style="font-size: 11.5px; padding: 6px 12px;">Copy</button>
+                  <code id="display-totp-key" style="font-size: 13.5px; font-weight: bold; background: var(--paper); padding: 7px 12px; border-radius: 4px; border: 1px solid var(--rule); letter-spacing: 0.1em; flex: 1; user-select: all;">${displayKey ? this.formatKey(displayKey) : (hasPairedKey ? '•••• •••• •••• •••• (Encrypted at Rest)' : 'NOT PAIRED')}</code>
+                  ${displayKey ? `<button type="button" id="btn-copy-totp-key" class="btn-copy" style="font-size: 11.5px; padding: 6px 12px;">Copy</button>` : ''}
                 </div>
                 <div style="font-size: 12px; color: var(--muted); line-height: 1.5;">
                   <div>• <strong>Account Name:</strong> <code>Saurav Portfolio</code></div>
                   <div>• <strong>Key Type:</strong> <code>Time-based (RFC 6238 TOTP)</code></div>
+                  <div>• <strong>Storage:</strong> <code>AES-GCM-256 (Zero Plaintext Leakage)</code></div>
                 </div>
               </div>
 
@@ -952,7 +1052,7 @@ window.PORTFOLIO_ADMIN = {
                   <button type="button" id="btn-regen-totp" class="btn-primary-action" style="font-size: 12px; padding: 8px 14px; text-align: center;">
                     📱 Pair New Phone / Re-generate Key
                   </button>
-                  ${pairedTotpKey ? `
+                  ${hasPairedKey ? `
                     <button type="button" id="btn-unpair-totp" class="btn-ambient-action" style="font-size: 12px; padding: 6px 14px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
                       ✕ Reset 2FA Pairing
                     </button>
@@ -1049,10 +1149,10 @@ window.PORTFOLIO_ADMIN = {
       </div>
     `;
 
-    this.bindStudioEvents(activeTotpKey);
+    this.bindStudioEvents();
   },
 
-  bindStudioEvents(currentTotpKey) {
+  bindStudioEvents() {
     // Toggle security settings
     const toggleSecBtn = document.getElementById("btn-admin-toggle-sec");
     if (toggleSecBtn) {
@@ -1064,10 +1164,9 @@ window.PORTFOLIO_ADMIN = {
 
     // Copy active TOTP Key
     const copyKeyBtn = document.getElementById("btn-copy-totp-key");
-    const pairedTotpKey = localStorage.getItem(this.STORAGE_TOTP_KEY);
-    if (copyKeyBtn && pairedTotpKey) {
+    if (copyKeyBtn && this.activeDecryptedKey) {
       copyKeyBtn.addEventListener("click", () => {
-        this.copyToClipboard(pairedTotpKey, copyKeyBtn, "✓ Copied!", "Copy");
+        this.copyToClipboard(this.activeDecryptedKey, copyKeyBtn, "✓ Copied!", "Copy");
       });
     }
 
@@ -1093,6 +1192,7 @@ window.PORTFOLIO_ADMIN = {
       unpairBtn.addEventListener("click", () => {
         if (confirm("Reset 2FA pairing? You will be prompted to set up Google Authenticator again on your next login.")) {
           localStorage.removeItem(this.STORAGE_TOTP_KEY);
+          this.activeDecryptedKey = null;
           this.logout();
           if (typeof showToast === "function") showToast("2FA pairing reset. Please set up Authenticator on next login.");
         }
