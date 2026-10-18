@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.PORTFOLIO_CASE_STUDY) window.PORTFOLIO_CASE_STUDY.init();
   if (window.PORTFOLIO_STACK_EXPLORER) window.PORTFOLIO_STACK_EXPLORER.init();
   if (window.PORTFOLIO_PLAYGROUND) window.PORTFOLIO_PLAYGROUND.init();
-  if (window.PORTFOLIO_ADMIN) window.PORTFOLIO_ADMIN.init();
+  initAdminLazyLoader();
 
   // 8. Initialize Clipboard & Utility Actions
   initUtilities();
@@ -60,12 +60,92 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /**
- * Dark / Light Theme Manager
+ * Dynamic On-Demand Lazy Loader for Admin Studio
+ * Zero impact on visitor load time (saves ~51KB from critical path)
+ */
+let adminLoadPromise = null;
+function loadAdminStudio(autoOpen = true) {
+  if (window.PORTFOLIO_ADMIN) {
+    if (autoOpen) window.PORTFOLIO_ADMIN.open();
+    return Promise.resolve(window.PORTFOLIO_ADMIN);
+  }
+  if (!adminLoadPromise) {
+    adminLoadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "js/components/admin.js";
+      script.defer = true;
+      script.onload = () => {
+        if (window.PORTFOLIO_ADMIN) {
+          window.PORTFOLIO_ADMIN.init();
+          if (autoOpen) window.PORTFOLIO_ADMIN.open();
+          resolve(window.PORTFOLIO_ADMIN);
+        } else {
+          reject(new Error("Admin studio failed to load"));
+        }
+      };
+      script.onerror = (err) => {
+        adminLoadPromise = null;
+        reject(err);
+      };
+      document.body.appendChild(script);
+    });
+  } else {
+    adminLoadPromise.then(() => {
+      if (autoOpen && window.PORTFOLIO_ADMIN) window.PORTFOLIO_ADMIN.open();
+    });
+  }
+  return adminLoadPromise;
+}
+
+function initAdminLazyLoader() {
+  const hash = window.location.hash.toLowerCase();
+  const params = new URLSearchParams(window.location.search);
+  const hasActiveSession = !!sessionStorage.getItem("portfolio_admin_session_v2");
+
+  if (hash === "#admin" || params.get("admin") === "true" || params.get("admin") === "1") {
+    loadAdminStudio(true);
+  } else if (hasActiveSession) {
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(() => loadAdminStudio(false), { timeout: 3000 });
+    } else {
+      setTimeout(() => loadAdminStudio(false), 2000);
+    }
+  }
+
+  // Hotkey listener: Ctrl+Shift+A / Cmd+Shift+A
+  window.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "a") {
+      e.preventDefault();
+      loadAdminStudio(true);
+    }
+  });
+
+  // Footer triple-click trigger
+  const footer = document.querySelector("footer");
+  if (footer) {
+    footer.addEventListener("click", (e) => {
+      if (e.detail === 3) {
+        loadAdminStudio(true);
+      }
+    });
+  }
+
+  // Hashchange listener for direct navigation to #admin
+  window.addEventListener("hashchange", () => {
+    if (window.location.hash.toLowerCase() === "#admin") {
+      loadAdminStudio(true);
+    }
+  });
+}
+
+/**
+ * Dark / Light Theme Manager with View Transition Circular Reveal
  */
 function initTheme() {
   const root = document.documentElement;
   const themeBtn = document.getElementById("theme-toggle-btn");
   const mobileThemeBtn = document.getElementById("mobile-theme-btn");
+  const metaTheme = document.getElementById("meta-theme-color");
   
   const savedTheme = localStorage.getItem("portfolio_theme");
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -73,20 +153,50 @@ function initTheme() {
 
   setTheme(initialTheme);
 
-  if (themeBtn) {
-    themeBtn.addEventListener("click", () => {
-      const current = root.getAttribute("data-theme") || "light";
-      const next = current === "dark" ? "light" : "dark";
+  function handleThemeToggle(e) {
+    const current = root.getAttribute("data-theme") || "light";
+    const next = current === "dark" ? "light" : "dark";
+
+    const isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!document.startViewTransition || isReducedMotion) {
       setTheme(next);
+      return;
+    }
+
+    const x = e ? e.clientX : window.innerWidth / 2;
+    const y = e ? e.clientY : 0;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+      setTheme(next);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`
+          ]
+        },
+        {
+          duration: 380,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)"
+        }
+      );
     });
   }
 
+  if (themeBtn) {
+    themeBtn.addEventListener("click", (e) => handleThemeToggle(e));
+  }
+
   if (mobileThemeBtn) {
-    mobileThemeBtn.addEventListener("click", () => {
-      const current = root.getAttribute("data-theme") || "light";
-      const next = current === "dark" ? "light" : "dark";
-      setTheme(next);
-    });
+    mobileThemeBtn.addEventListener("click", (e) => handleThemeToggle(e));
   }
 
   function setTheme(theme) {
@@ -101,6 +211,9 @@ function initTheme() {
       mobileThemeBtn.innerHTML = `<span class="mobile-theme-icon">${isDark ? "☀️" : "🌙"}</span>`;
       mobileThemeBtn.setAttribute("aria-label", isDark ? "Switch to Light mode" : "Switch to Dark mode");
       mobileThemeBtn.setAttribute("title", isDark ? "Switch to Light mode" : "Switch to Dark mode");
+    }
+    if (metaTheme) {
+      metaTheme.setAttribute("content", isDark ? "#121214" : "#ffffff");
     }
     try {
       localStorage.setItem("portfolio_theme", theme);
