@@ -31,6 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 8. Initialize Clipboard & Utility Actions
   initUtilities();
+
+  // 9. Initialize Mobile Navigation Menu
+  initMobileNav();
 });
 
 /**
@@ -57,8 +60,10 @@ function initTheme() {
   function setTheme(theme) {
     root.setAttribute("data-theme", theme);
     if (themeBtn) {
-      themeBtn.textContent = theme === "dark" ? "Light mode" : "Dark mode";
-      themeBtn.setAttribute("aria-pressed", theme === "dark");
+      const isDark = theme === "dark";
+      themeBtn.innerHTML = `<span class="theme-text-full">${isDark ? "Light mode" : "Dark mode"}</span><span class="theme-text-short">${isDark ? "☀️ Light" : "🌙 Dark"}</span>`;
+      themeBtn.setAttribute("aria-pressed", isDark);
+      themeBtn.setAttribute("title", isDark ? "Switch to Light mode" : "Switch to Dark mode");
     }
     try {
       localStorage.setItem("portfolio_theme", theme);
@@ -445,4 +450,65 @@ function initUtilities() {
       });
     });
   }
+}
+
+/**
+ * Mobile Navigation Drawer Manager
+ */
+function initMobileNav() {
+  const toggleBtn = document.getElementById("nav-toggle-btn");
+  const navBar = document.querySelector(".nav-bar");
+  const navMenu = document.getElementById("main-nav");
+  if (!toggleBtn || !navBar) return;
+
+  const closeMenu = () => {
+    navBar.classList.remove("nav-menu-open");
+    toggleBtn.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("nav-open-lock");
+  };
+
+  const openMenu = () => {
+    navBar.classList.add("nav-menu-open");
+    toggleBtn.setAttribute("aria-expanded", "true");
+  };
+
+  toggleBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = navBar.classList.contains("nav-menu-open");
+    if (isOpen) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  });
+
+  // Close when clicking any nav link
+  if (navMenu) {
+    navMenu.querySelectorAll("a").forEach(link => {
+      link.addEventListener("click", () => {
+        closeMenu();
+      });
+    });
+  }
+
+  // Close when clicking outside the nav-bar
+  document.addEventListener("click", (e) => {
+    if (navBar.classList.contains("nav-menu-open") && !navBar.contains(e.target)) {
+      closeMenu();
+    }
+  });
+
+  // Close on Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && navBar.classList.contains("nav-menu-open")) {
+      closeMenu();
+    }
+  });
+
+  // Close if window resizes to desktop width (> 768px)
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768 && navBar.classList.contains("nav-menu-open")) {
+      closeMenu();
+    }
+  });
 }

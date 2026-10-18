@@ -2,7 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Saurav Pandey | Full-Stack, Systems & Web3 Developer | MCA @ IIIT Ranchi & IIT Patna</title>
   <meta name="description" content="Portfolio of Saurav Pandey: Full-Stack & Web3 Developer, MCA student at IIIT Ranchi and IIT Patna, and IT Intern at Hindustan Aeronautics Limited (HAL).">
   <meta name="author" content="Saurav Pandey">
@@ -30,11 +30,41 @@
         <strong>Saurav Pandey</strong>
         <span class="status-indicator">
           <span class="pulse-dot" aria-hidden="true"></span>
-          <span>IT Intern at HAL • Open to Roles</span>
+          <span class="status-text-full">IT Intern at HAL • Open to Roles</span>
+          <span class="status-text-short">HAL Intern</span>
         </span>
       </a>
 
-      <nav aria-label="Main Navigation">
+      <!-- Right Controls Cluster -->
+      <div class="nav-controls-cluster">
+        <!-- The Dual-Perspective Switcher -->
+        <div class="perspective-container" role="group" aria-label="Perspective Switcher">
+          <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
+            <span class="perspective-label-full">⚡ Systems & Code</span>
+            <span class="perspective-label-short">⚡ Code</span>
+          </button>
+          <button id="btn-perspective-exec" class="perspective-btn" type="button" aria-pressed="false" title="Switch to Quick Overview">
+            <span class="perspective-label-full">💡 Quick Story</span>
+            <span class="perspective-label-short">💡 Story</span>
+          </button>
+        </div>
+
+        <!-- Theme Switcher -->
+        <button id="theme-toggle-btn" class="btn-theme" type="button" aria-pressed="false" title="Toggle color theme">
+          <span class="theme-text-full">Dark mode</span>
+          <span class="theme-text-short">🌙</span>
+        </button>
+
+        <!-- Mobile Menu Hamburger Button -->
+        <button id="nav-toggle-btn" class="nav-hamburger" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="main-nav">
+          <span class="hamburger-bar" aria-hidden="true"></span>
+          <span class="hamburger-bar" aria-hidden="true"></span>
+          <span class="hamburger-bar" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <!-- Main Navigation Menu -->
+      <nav id="main-nav" class="nav-menu" aria-label="Main Navigation">
         <ul class="nav-links">
           <li><a href="#about">About</a></li>
           <li><a href="#experience">Experiences</a></li>
@@ -46,24 +76,6 @@
           <li><a href="#contact">Contact</a></li>
         </ul>
       </nav>
-
-      <!-- Nav Action Controls -->
-      <div class="nav-actions">
-        <!-- The Dual-Perspective Switcher -->
-        <div class="perspective-container" role="group" aria-label="Perspective Switcher">
-          <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
-            ⚡ Systems & Code
-          </button>
-          <button id="btn-perspective-exec" class="perspective-btn" type="button" aria-pressed="false" title="Switch to Quick Overview">
-            💡 Quick Story
-          </button>
-        </div>
-
-        <!-- Theme Switcher -->
-        <button id="theme-toggle-btn" class="btn-theme" type="button" aria-pressed="false">
-          Dark mode
-        </button>
-      </div>
     </div>
   </header>
 
