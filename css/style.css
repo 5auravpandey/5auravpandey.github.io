@@ -224,17 +224,19 @@ input:focus-visible {
   align-items: center;
   justify-content: center;
   flex: 1 1 auto;
-  margin: 0 auto;
+  margin: 0 4px;
   min-width: 0;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 3px;
   list-style: none;
   margin: 0;
   padding: 0;
+  flex-wrap: nowrap;
 }
 
 .nav-link-item {
@@ -243,12 +245,13 @@ input:focus-visible {
   text-decoration: none;
   color: var(--muted);
   font-family: var(--sans);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 500;
-  padding: 5px 8px;
-  border-radius: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
   transition: all 0.15s ease;
   white-space: nowrap;
+  line-height: 1;
 }
 
 .nav-link-item:hover {
@@ -258,6 +261,17 @@ input:focus-visible {
 
 :root[data-theme="dark"] .nav-link-item:hover {
   background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nav-link-item.active {
+  color: var(--accent);
+  background-color: var(--accent-soft);
+  font-weight: 600;
+}
+
+:root[data-theme="dark"] .nav-link-item.active {
+  color: var(--accent);
+  background-color: rgba(6, 182, 212, 0.15);
 }
 
 .nav-link-item:focus-visible {
@@ -271,18 +285,21 @@ input:focus-visible {
   align-items: center;
   justify-content: flex-end;
   flex: 0 0 auto;
-  gap: 8px;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 /* Perspective Switcher Widget */
 .perspective-container {
   display: inline-flex;
   align-items: center;
+  height: 32px;
   background-color: rgba(0, 0, 0, 0.04);
   border: 1px solid var(--rule);
   border-radius: 999px;
-  padding: 2.5px;
+  padding: 2px;
   gap: 2px;
+  box-sizing: border-box;
 }
 
 :root[data-theme="dark"] .perspective-container {
@@ -293,7 +310,8 @@ input:focus-visible {
   font-family: var(--sans);
   font-size: 11.5px;
   font-weight: 500;
-  padding: 4px 10px;
+  height: 26px;
+  padding: 0 9px;
   border: none;
   background: transparent;
   color: var(--muted);
@@ -301,6 +319,9 @@ input:focus-visible {
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .perspective-btn:hover {
@@ -312,7 +333,7 @@ input:focus-visible {
   background-color: var(--card);
   color: var(--ink);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--rule-light);
 }
 
@@ -320,8 +341,9 @@ input:focus-visible {
 .btn-theme-toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 0 11px;
   height: 32px;
   background-color: var(--card);
   border: 1px solid var(--rule);
@@ -333,12 +355,12 @@ input:focus-visible {
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .btn-theme-toggle:hover {
   border-color: var(--accent);
   background-color: var(--card-hover);
-  transform: translateY(-1px);
 }
 
 .theme-icon {
@@ -3010,18 +3032,11 @@ dialog#invite-dialog {
   }
 }
 
-/* Compact desktop scaling (961px - 1220px) */
-@media (max-width: 1220px) and (min-width: 961px) {
+/* Compact desktop scaling (961px - 1280px) */
+@media (max-width: 1280px) and (min-width: 1121px) {
   .nav-container {
     padding: 0 16px;
-    gap: 10px;
-  }
-  .brand-name {
-    font-size: 14.5px;
-  }
-  .status-indicator {
-    font-size: 10px;
-    padding: 2px 6px;
+    gap: 12px;
   }
   .status-text-full {
     display: none !important;
@@ -3032,22 +3047,70 @@ dialog#invite-dialog {
   .status-text-short {
     display: none !important;
   }
+  .nav-links {
+    gap: 2px;
+  }
+  .nav-link-item {
+    padding: 5px 7px;
+    font-size: 12.5px;
+  }
+}
+
+@media (max-width: 1120px) and (min-width: 961px) {
+  .nav-container {
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .brand-name {
+    font-size: 14px;
+  }
+  .status-indicator {
+    font-size: 9.5px;
+    padding: 2px 5px;
+  }
+  .status-text-full,
+  .status-text-compact {
+    display: none !important;
+  }
+  .status-text-short {
+    display: inline-block !important;
+  }
+  .nav-links {
+    gap: 1px;
+  }
   .nav-link-item {
     padding: 4px 6px;
-    font-size: 12px;
+    font-size: 11.5px;
+  }
+  .desktop-controls {
+    gap: 4px;
+  }
+  .perspective-container {
+    height: 30px;
+    padding: 2px;
   }
   .perspective-btn {
-    padding: 3px 6px;
+    height: 24px;
+    padding: 0 6px;
     font-size: 10.5px;
   }
-  .btn-theme-toggle {
-    padding: 3px 8px;
-    font-size: 11.5px;
+  .btn-cmd-trigger {
+    height: 30px;
+    padding: 0 7px;
+    font-size: 10.5px;
   }
   .btn-auth-pill {
-    padding: 3px 8px;
+    height: 30px;
+    padding: 0 8px;
     font-size: 11.5px;
-    gap: 4px;
+  }
+  .btn-theme-toggle {
+    height: 30px;
+    padding: 0 8px;
+    font-size: 11.5px;
+  }
+  .btn-theme-toggle .theme-text {
+    display: none !important;
   }
 }
 
@@ -3837,15 +3900,18 @@ dialog#invite-dialog {
 .btn-cmd-trigger {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 3px;
-  padding: 4px 8px;
+  height: 32px;
+  padding: 0 10px;
   font-size: 11.5px;
   font-family: var(--mono);
   background-color: var(--card);
   border: 1px solid var(--rule);
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   color: var(--muted);
   cursor: pointer;
+  box-sizing: border-box;
   transition: all var(--transition-fast);
 }
 
@@ -4760,15 +4826,19 @@ dialog#invite-dialog {
 .btn-auth-pill {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 4px 10px;
-  font-size: 13px;
-  font-family: var(--mono);
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  font-family: var(--sans);
+  font-weight: 500;
   border: 1px solid var(--rule);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
   cursor: pointer;
+  box-sizing: border-box;
   transition: all var(--transition-fast);
   white-space: nowrap;
 }

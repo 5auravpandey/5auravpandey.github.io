@@ -62,7 +62,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // 10. Initialize Mobile Navigation Dropdown Menu
   initMobileNav();
 
-  // 11. Initialize Global Unified Auth UI (Navbar Pills & Status)
+  // 11. Initialize Desktop Navigation & Scroll Spy
+  initDesktopNav();
+
+  // 12. Initialize Global Unified Auth UI (Navbar Pills & Status)
   initGlobalAuthUI();
 });
 
@@ -683,6 +686,105 @@ function initMobileNav() {
       closeDropdown();
     }
   });
+}
+
+/**
+ * Desktop Navigation Scroll Spy & Interactive Link Manager
+ * Highlights active section pill based on scroll position and click navigation
+ */
+function initDesktopNav() {
+  const desktopNav = document.getElementById("desktop-nav");
+  if (!desktopNav) return;
+
+  const navLinks = Array.from(desktopNav.querySelectorAll(".nav-link-item"));
+  if (!navLinks.length) return;
+
+  const sectionIds = ["about", "experience", "projects", "playground", "curations", "skills", "education", "contact"];
+  const sections = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
+
+  let activeSectionId = "";
+  let isClickScrolling = false;
+  let clickTimeout = null;
+
+  function setActiveLink(id) {
+    if (activeSectionId === id) return;
+    activeSectionId = id;
+    navLinks.forEach(link => {
+      const href = link.getAttribute("href");
+      if (href === `#${id}`) {
+        link.classList.add("active");
+      } else {
+        link.classList.remove("active");
+      }
+    });
+  }
+
+  // Smooth click navigation with immediate active state
+  navLinks.forEach(link => {
+    link.addEventListener("click", () => {
+      const targetId = (link.getAttribute("href") || "").replace("#", "");
+      if (targetId) {
+        setActiveLink(targetId);
+        isClickScrolling = true;
+        clearTimeout(clickTimeout);
+        clickTimeout = setTimeout(() => {
+          isClickScrolling = false;
+        }, 800);
+      }
+    });
+  });
+
+  // Scroll spy calculation
+  function onScroll() {
+    if (isClickScrolling) return;
+
+    const scrollY = window.scrollY || window.pageYOffset;
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+
+    // If near bottom of page, highlight the last section (contact)
+    if (scrollY + windowHeight >= documentHeight - 70) {
+      setActiveLink("contact");
+      return;
+    }
+
+    // If near top of page, highlight about
+    if (scrollY < 160) {
+      setActiveLink("about");
+      return;
+    }
+
+    // Find the section currently in view (offset by header + hysteresis)
+    const headerOffset = 110;
+    let currentId = "about";
+
+    for (let i = 0; i < sections.length; i++) {
+      const sec = sections[i];
+      const top = sec.offsetTop - headerOffset;
+      if (scrollY >= top) {
+        currentId = sec.id;
+      } else {
+        break;
+      }
+    }
+
+    setActiveLink(currentId);
+  }
+
+  // Throttled scroll listener
+  let ticking = false;
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        onScroll();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+
+  // Initial check on load
+  onScroll();
 }
 
 /**

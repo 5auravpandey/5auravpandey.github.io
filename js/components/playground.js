@@ -507,33 +507,22 @@ window.PORTFOLIO_PLAYGROUND = {
 
     // User is NOT signed in
     return `
-      <div class="friend-gate-card">
+      <div class="friend-gate-card" style="text-align: center;">
         <div class="friend-gate-badge">🔒 Friends Only</div>
         <h3 class="friend-gate-title">YouTube Focus Stream</h3>
-        <p class="friend-gate-desc">
-          Reserved for whitelisted friends. Connect your Telegram to access.
+        <p class="friend-gate-desc" style="max-width: 380px; margin: 0 auto 16px;">
+          Reserved for whitelisted friends. 1-click verify with Telegram to access.
         </p>
 
-        <form id="friend-gate-unlock-form" class="friend-gate-form">
-          <div class="friend-gate-field">
-            <label for="gate-input-id">Telegram Username:</label>
-            <input type="text" id="gate-input-id" class="focus-input" placeholder="@your_handle" maxlength="32" autocomplete="username" spellcheck="false" style="font-family: var(--mono);" required>
-          </div>
-          <div id="friend-gate-error-msg" class="friend-gate-error" style="display: none;" role="alert"></div>
-
-          <div class="gate-btn-row">
-            <button type="submit" id="btn-unlock-friend" class="btn-primary-action" style="flex: 1; padding: 9px 14px; font-weight: 600;">
-              ✈️ Connect &amp; Unlock
-            </button>
-            <button type="button" id="btn-gate-open-login" class="btn-secondary-action" style="padding: 9px 14px; font-weight: 500;">
-              🔑 Sign In
-            </button>
-          </div>
-
-          <button type="button" id="btn-gate-switch-ambient" class="btn-text-link">
-            ← Switch to Free Melodic Audio (No Login)
+        <div style="margin: 0 auto 18px; display: flex; justify-content: center;">
+          <button type="button" id="btn-gate-open-login" class="btn-primary-action" style="padding: 10px 24px; font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; border-radius: 999px;">
+            ✈️ 1-Click Telegram Login
           </button>
-        </form>
+        </div>
+
+        <button type="button" id="btn-gate-switch-ambient" class="btn-text-link">
+          ← Switch to Free Melodic Audio (No Login)
+        </button>
       </div>
     `;
   },
@@ -577,79 +566,15 @@ window.PORTFOLIO_PLAYGROUND = {
       });
     });
 
-    // Friend Gate Actions (Unlock Stream / Telegram Sign In)
-    const unlockForm = document.getElementById("friend-gate-unlock-form");
+    // Friend Gate Actions (1-Click Telegram Login & Re-check)
     const openLoginBtn = document.getElementById("btn-gate-open-login");
     const quickCheckBtn = document.getElementById("btn-quick-check-whitelist");
-    const gateIdInput = document.getElementById("gate-input-id");
-    const errorEl = document.getElementById("friend-gate-error-msg");
 
     if (openLoginBtn) {
       openLoginBtn.addEventListener("click", () => {
         if (window.PORTFOLIO_AUTH) {
           window.PORTFOLIO_AUTH.openLoginDialog();
         }
-      });
-    }
-
-    const doUnlockStream = async () => {
-      const rawId = gateIdInput ? gateIdInput.value.trim() : "";
-      if (!rawId) {
-        if (errorEl) {
-          errorEl.textContent = "Please enter your Telegram handle.";
-          errorEl.style.display = "block";
-        }
-        if (gateIdInput) gateIdInput.focus();
-        return;
-      }
-
-      const cleanHandle = rawId.startsWith("@") ? rawId : "@" + rawId;
-
-      const submitBtn = document.getElementById("btn-unlock-friend");
-      if (submitBtn) {
-        submitBtn.textContent = "Connecting...";
-        submitBtn.disabled = true;
-      }
-
-      // 1. Authenticate with Telegram (scores retained for 7 days)
-      if (window.PORTFOLIO_AUTH) {
-        await window.PORTFOLIO_AUTH.loginWithTelegram(cleanHandle, cleanHandle);
-      }
-
-      // 2. Check Admin Whitelist
-      if (window.PORTFOLIO_DB) {
-        const check = await window.PORTFOLIO_DB.isWhitelistedForYouTube(cleanHandle);
-        if (check && check.whitelisted) {
-          const session = window.PORTFOLIO_AUTH ? window.PORTFOLIO_AUTH.getSession() : null;
-          if (session) {
-            session.isWhitelistedYouTube = true;
-            session.role = check.entry.role || "Whitelisted Friend";
-            if (window.PORTFOLIO_AUTH) window.PORTFOLIO_AUTH.saveSession(session);
-          }
-          this.isFriend = true;
-          this.friendName = check.entry.name || cleanHandle;
-          this.friendUsername = cleanHandle;
-          this.friendRole = check.entry.role || "Whitelisted Friend";
-          this.render();
-          if (typeof showToast === "function") {
-            showToast(`🎉 Welcome ${this.friendName}! YouTube stream unlocked.`);
-          }
-          return;
-        } else {
-          // Connected with Telegram but pending whitelist approval
-          this.render();
-          if (typeof showToast === "function") {
-            showToast(`Signed in as ${cleanHandle}. Whitelist pending approval from Saurav.`);
-          }
-          return;
-        }
-      }
-    };
-
-    if (unlockForm) {
-      unlockForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        doUnlockStream();
       });
     }
 

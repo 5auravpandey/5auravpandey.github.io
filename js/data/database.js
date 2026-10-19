@@ -1591,35 +1591,28 @@ window.PORTFOLIO_AUTH = {
         </div>
       `;
     } else {
-      // User is LOGGED OUT -> Clean, concise Telegram Login only
+      // User is LOGGED OUT -> ONLY 1-Click Telegram Bot Widget Login
       body.innerHTML = `
-        <div class="auth-login-view">
-          <div style="text-align: center; margin-bottom: 16px;">
-            <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); color: var(--accent); background: var(--accent-soft); padding: 3px 10px; border-radius: 999px; margin-bottom: 8px;">
+        <div class="auth-login-view" style="text-align: center; padding: 12px 4px 6px;">
+          <div style="margin-bottom: 22px;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); color: var(--accent); background: var(--accent-soft); padding: 4px 12px; border-radius: 999px; margin-bottom: 10px;">
               ✈️ @SauravPandeyBot
             </div>
-            <h4 style="margin: 4px 0 4px; font-size: 16px; font-weight: 600;">Sign In with Telegram</h4>
-            <p class="auth-tab-desc" style="margin: 0; font-size: 12.5px;">Retain arcade scores for 7 days &amp; access whitelisted YouTube stream.</p>
+            <h4 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 700;">Sign In with Telegram</h4>
+            <p class="auth-tab-desc" style="margin: 0 auto; max-width: 330px; font-size: 13px; line-height: 1.5; color: var(--muted);">
+              1-click authorization to retain your arcade scores for 7 days &amp; access whitelisted YouTube stream.
+            </p>
           </div>
 
-          <form id="form-tg-connect" class="auth-form-clean">
-            <div class="auth-field">
-              <label for="input-tg-handle">Telegram Username / Handle:</label>
-              <input type="text" id="input-tg-handle" class="focus-input" placeholder="@your_handle" required style="font-family: var(--mono);" maxlength="32">
+          <!-- Official 1-Click Telegram Login Widget Mount -->
+          <div class="auth-widget-container" style="background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 28px 16px; margin: 0 auto 16px; max-width: 380px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 108px; box-shadow: var(--shadow-sm);">
+            <div id="unified-tg-widget-mount" class="unified-tg-mount" style="display: flex; justify-content: center; align-items: center; min-height: 48px; width: 100%;">
+              <span class="tg-loading-spinner" style="font-size: 12.5px; color: var(--muted);">Connecting to @SauravPandeyBot...</span>
             </div>
-            <div id="tg-connect-error" class="auth-error-msg" style="display: none;"></div>
-            <button type="submit" id="btn-tg-connect-submit" class="btn-primary-action" style="width: 100%; padding: 9px; font-weight: 600;">
-              ✈️ Connect Telegram
-            </button>
-          </form>
-
-          <div class="auth-divider"><span>OR 1-CLICK BOT WIDGET</span></div>
-          <div id="unified-tg-widget-mount" class="unified-tg-mount" style="display: flex; justify-content: center; min-height: 44px; align-items: center;">
-            <span class="tg-loading-spinner" style="font-size: 12px; color: var(--muted);">Loading widget...</span>
           </div>
 
-          <div class="auth-footer-clean">
-            <span>Melodic soundscapes and arcade games remain free without login.</span>
+          <div class="auth-footer-clean" style="margin-top: 14px; padding-top: 12px; font-size: 12px; color: var(--muted);">
+            <span>Melodic soundscapes and arcade games remain 100% free without login.</span>
           </div>
         </div>
       `;
@@ -1642,8 +1635,23 @@ window.PORTFOLIO_AUTH = {
       script.setAttribute("data-onauth", "onTelegramAuth(user)");
       script.setAttribute("data-request-access", "write");
       mount.appendChild(script);
+
+      // Graceful fallback if Telegram widget script is blocked by browser shield/extension
+      setTimeout(() => {
+        if (mount && !mount.querySelector("iframe") && mount.querySelector(".tg-loading-spinner")) {
+          mount.innerHTML = `
+            <a href="https://t.me/${this.BOT_USERNAME}?start=login" target="_blank" rel="noopener noreferrer" class="btn-primary-action" style="padding: 10px 22px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+              ✈️ 1-Click Login via @${this.BOT_USERNAME}
+            </a>
+          `;
+        }
+      }, 3500);
     } catch (e) {
-      mount.innerHTML = '<span style="font-size: 12px; color: var(--muted);">Use manual handle input above</span>';
+      mount.innerHTML = `
+        <a href="https://t.me/${this.BOT_USERNAME}?start=login" target="_blank" rel="noopener noreferrer" class="btn-primary-action" style="padding: 10px 22px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+          ✈️ 1-Click Login via @${this.BOT_USERNAME}
+        </a>
+      `;
     }
   },
 
@@ -1674,156 +1682,6 @@ window.PORTFOLIO_AUTH = {
           }
         });
       }
-    }
-
-    // Form: Telegram Handle Connect
-    const tgForm = document.getElementById("form-tg-connect");
-    if (tgForm) {
-      tgForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const input = document.getElementById("input-tg-handle");
-        const errEl = document.getElementById("tg-connect-error");
-        const btn = document.getElementById("btn-tg-connect-submit");
-        const handle = input ? input.value.trim() : "";
-
-        if (!handle || handle.length < 2) {
-          if (errEl) {
-            errEl.textContent = "Please enter your Telegram username.";
-            errEl.style.display = "block";
-          }
-          return;
-        }
-
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = "Connecting...";
-        }
-
-        const res = await this.loginWithTelegram(handle, handle);
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "✈️ Connect Telegram";
-        }
-
-        if (res.success) {
-          if (typeof showToast === "function") {
-            const wlNote = res.session.isWhitelistedYouTube ? " (YouTube Unlocked!)" : "";
-            showToast(`Connected as ${res.session.telegramId}! Scores retained for 7 days${wlNote}.`);
-          }
-          this.renderDialogContent();
-          this.bindDialogEvents();
-        } else {
-          if (errEl) {
-            errEl.textContent = res.reason || "Failed to connect.";
-            errEl.style.display = "block";
-          }
-        }
-      };
-    }
-
-    // Form 2: Friend Log In
-    const loginForm = document.getElementById("form-friend-login");
-    if (loginForm) {
-      loginForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const userInput = document.getElementById("login-username");
-        const passInput = document.getElementById("login-password");
-        const errEl = document.getElementById("login-error-msg");
-        const btn = document.getElementById("btn-login-submit");
-
-        const user = userInput ? userInput.value.trim() : "";
-        const pass = passInput ? passInput.value.trim() : "";
-
-        if (!user || !pass) {
-          if (errEl) {
-            errEl.textContent = "Enter both username and password.";
-            errEl.style.display = "block";
-          }
-          return;
-        }
-
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = "Logging In...";
-        }
-
-        const res = await this.loginWithFriendCredentials(user, pass);
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "🔓 Log In";
-        }
-
-        if (res.success) {
-          if (typeof showToast === "function") {
-            showToast(`Welcome ${res.session.displayName}! YouTube stream unlocked.`);
-          }
-          this.renderDialogContent();
-          this.bindDialogEvents();
-        } else {
-          if (errEl) {
-            errEl.textContent = res.reason || "Invalid username or password.";
-            errEl.style.display = "block";
-          }
-        }
-      };
-    }
-
-    // Form 3: Friend Sign Up
-    const signupForm = document.getElementById("form-friend-signup");
-    if (signupForm) {
-      signupForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const userInput = document.getElementById("signup-username");
-        const passInput = document.getElementById("signup-password");
-        const nameInput = document.getElementById("signup-name");
-        const tgInput = document.getElementById("signup-telegram");
-        const errEl = document.getElementById("signup-error-msg");
-        const btn = document.getElementById("btn-signup-submit");
-
-        const user = userInput ? userInput.value.trim() : "";
-        const pass = passInput ? passInput.value.trim() : "";
-        const name = nameInput ? nameInput.value.trim() : "";
-        const tg = tgInput ? tgInput.value.trim() : "";
-
-        if (user.length < 3) {
-          if (errEl) {
-            errEl.textContent = "Username must be at least 3 characters.";
-            errEl.style.display = "block";
-          }
-          return;
-        }
-        if (pass.length < 3) {
-          if (errEl) {
-            errEl.textContent = "Password must be at least 3 characters.";
-            errEl.style.display = "block";
-          }
-          return;
-        }
-
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = "Creating Account...";
-        }
-
-        const res = await this.signupWithFriendCredentials(user, pass, name, tg);
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "✨ Create Account & Unlock";
-        }
-
-        if (res.success) {
-          if (typeof showToast === "function") {
-            showToast(`Account created! Welcome ${res.session.displayName}. YouTube stream unlocked.`);
-          }
-          this.renderDialogContent();
-          this.bindDialogEvents();
-        } else {
-          if (errEl) {
-            errEl.textContent = res.reason || "Failed to create account.";
-            errEl.style.display = "block";
-          }
-        }
-      };
     }
 
     // Logged-in profile actions
