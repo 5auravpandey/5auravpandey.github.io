@@ -72,7 +72,7 @@ html {
   font-size: 19px;
   line-height: 1.65;
   scroll-behavior: smooth;
-  scroll-padding-top: 80px;
+  scroll-padding-top: 96px;
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
 }
@@ -80,7 +80,7 @@ html {
 body {
   margin: 0;
   padding: 0;
-  padding-top: 60px;
+  padding-top: 86px;
   background-color: var(--paper);
   color: var(--ink);
   transition: background-color var(--transition-fast), color var(--transition-fast);
@@ -107,8 +107,8 @@ input:focus-visible {
 }
 
 /* ==========================================================================
-   Modern Fixed Stationary Header & Navigation Bar
-   (Permanently fixed at top so users can switch sections anytime without scrolling back)
+   Modern Fixed Stationary Header & 2-Layer Desktop Navigation Bar
+   (Layer 1: Identity & Controls, Layer 2: Dedicated Section Links)
    ========================================================================== */
 .nav-bar {
   position: fixed;
@@ -116,7 +116,7 @@ input:focus-visible {
   left: 0;
   right: 0;
   width: 100%;
-  height: 60px;
+  height: 86px;
   z-index: 100000;
   background-color: rgba(254, 253, 250, 0.94);
   backdrop-filter: blur(16px) saturate(180%);
@@ -132,6 +132,34 @@ input:focus-visible {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
+/* Layer 1: Top Bar (Identity & Brand on Left, Utility Controls on Right) */
+.nav-layer-top {
+  height: 48px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--rule-light);
+  box-sizing: border-box;
+}
+
+:root[data-theme="dark"] .nav-layer-top {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Layer 2: Bottom Bar (Dedicated Desktop Section Links) */
+.nav-layer-bottom {
+  height: 38px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.012);
+  box-sizing: border-box;
+}
+
+:root[data-theme="dark"] .nav-layer-bottom {
+  background-color: rgba(255, 255, 255, 0.015);
+}
+
 .nav-container {
   max-width: 1400px;
   height: 100%;
@@ -140,7 +168,12 @@ input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nav-container-bottom {
+  justify-content: flex-start;
 }
 
 /* Brand Identity */
@@ -218,21 +251,17 @@ input:focus-visible {
   display: none;
 }
 
-/* Desktop Navigation Menu (Pills) */
+/* Desktop Navigation Menu (Layer 2 Dedicated Bar) */
 .desktop-nav {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex: 1 1 auto;
-  margin: 0 4px;
-  min-width: 0;
+  width: 100%;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 3px;
+  gap: 6px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -245,13 +274,13 @@ input:focus-visible {
   text-decoration: none;
   color: var(--muted);
   font-family: var(--sans);
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 500;
-  padding: 5px 9px;
-  border-radius: 999px;
+  padding: 5px 12px;
+  border-radius: 6px;
   transition: all 0.15s ease;
   white-space: nowrap;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .nav-link-item:hover {
@@ -3010,6 +3039,16 @@ dialog#invite-dialog {
 
 /* Desktop view guard (> 1040px) */
 @media (min-width: 1041px) {
+  .nav-bar {
+    height: 86px;
+  }
+  .nav-layer-top {
+    height: 48px;
+  }
+  .nav-layer-bottom {
+    height: 38px;
+    display: flex !important;
+  }
   .desktop-nav,
   .desktop-controls {
     display: flex !important;
@@ -3021,84 +3060,16 @@ dialog#invite-dialog {
 }
 
 /* Compact desktop scaling (1041px - 1280px) */
-@media (max-width: 1280px) and (min-width: 1141px) {
+@media (max-width: 1280px) and (min-width: 1041px) {
   .nav-container {
     padding: 0 16px;
-    gap: 12px;
-  }
-  .status-text-full {
-    display: none !important;
-  }
-  .status-text-compact {
-    display: inline-block !important;
-  }
-  .status-text-short {
-    display: none !important;
   }
   .nav-links {
-    gap: 2px;
-  }
-  .nav-link-item {
-    padding: 5px 7px;
-    font-size: 12.5px;
-  }
-}
-
-@media (max-width: 1140px) and (min-width: 1041px) {
-  .nav-container {
-    padding: 0 12px;
-    gap: 8px;
-  }
-  .brand-name {
-    font-size: 14px;
-  }
-  .status-indicator {
-    font-size: 9.5px;
-    padding: 2px 5px;
-  }
-  .status-text-full,
-  .status-text-compact {
-    display: none !important;
-  }
-  .status-text-short {
-    display: inline-block !important;
-  }
-  .nav-links {
-    gap: 1px;
-  }
-  .nav-link-item {
-    padding: 4px 6px;
-    font-size: 11.5px;
-  }
-  .desktop-controls {
     gap: 4px;
   }
-  .perspective-container {
-    height: 30px;
-    padding: 2px;
-  }
-  .perspective-btn {
-    height: 24px;
-    padding: 0 6px;
-    font-size: 10.5px;
-  }
-  .btn-admin-nav-pill {
-    height: 30px;
-    padding: 0 8px;
-    font-size: 11px;
-  }
-  .btn-auth-pill {
-    height: 30px;
-    padding: 0 8px;
-    font-size: 11.5px;
-  }
-  .btn-theme-toggle {
-    height: 30px;
-    padding: 0 8px;
-    font-size: 11.5px;
-  }
-  .btn-theme-toggle .theme-text {
-    display: none !important;
+  .nav-link-item {
+    padding: 4px 10px;
+    font-size: 13px;
   }
 }
 
@@ -3127,6 +3098,15 @@ dialog#invite-dialog {
     height: calc(54px + max(0px, env(safe-area-inset-top)));
     padding-top: max(0px, env(safe-area-inset-top));
     background-color: rgba(254, 253, 250, 0.96);
+  }
+
+  .nav-layer-top {
+    height: 54px;
+    border-bottom: none !important;
+  }
+
+  .nav-layer-bottom {
+    display: none !important;
   }
 
   :root[data-theme="dark"] .nav-bar {

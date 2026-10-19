@@ -13,11 +13,10 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
 
-  <!-- Canonical, Favicon & Web Manifest -->
+  <!-- Canonical & Favicon -->
   <link rel="canonical" href="https://sauravpandey.me/">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="apple-touch-icon" href="assets/og-image.png">
-  <link rel="manifest" href="manifest.webmanifest">
   <link rel="alternate" type="application/rss+xml" title="Saurav Pandey - Engineering Notes &amp; Research" href="https://sauravpandey.me/rss.xml">
   <meta name="theme-color" content="#121214" id="meta-theme-color">
 
@@ -51,89 +50,96 @@
   </noscript>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/style.css?v=20261020_v5">
-  <link rel="stylesheet" href="css/transitions.css?v=20261020_v5">
+  <link rel="stylesheet" href="css/style.css?v=20261020_v6">
+  <link rel="stylesheet" href="css/transitions.css?v=20261020_v6">
 </head>
 <body>
 
-  <!-- Fixed Header & Modern Navigation (Pinned at Top for Desktop & Mobile) -->
+  <!-- Fixed Header & Modern Navigation (2-Layer on Desktop, 1-Layer on Mobile) -->
   <header class="nav-bar" id="main-nav-bar">
-    <div class="nav-container">
-      <div class="nav-brand-group">
-        <a href="#top" class="nav-brand" aria-label="Saurav Pandey Home">
-          <svg class="brand-logo-s" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" style="flex-shrink: 0; vertical-align: middle;">
-            <rect width="32" height="32" rx="7" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-opacity="0.15" stroke-width="1.2" />
-            <path d="M21 11C21 8.5 18.8 7 16 7C13 7 11 8.5 11 11C11 14 14 15 16.2 15.8C18.8 16.8 21 17.8 21 21C21 23.8 18.8 25 16 25C12.8 25 10.8 23.2 10.8 20.5" 
-                  fill="none" 
-                  stroke="var(--accent)" 
-                  stroke-width="3.2" 
-                  stroke-linecap="round" 
-                  stroke-linejoin="round" />
-            <circle cx="23" cy="9" r="2.2" fill="#22c55e" />
-          </svg>
-          <span class="brand-name">Saurav Pandey</span>
-          <span class="status-indicator" title="Programming Assistant in Avionics at HAL • Open to Work">
-            <span class="pulse-dot" aria-hidden="true"></span>
-            <span class="status-text-full">Programming Assistant at HAL • Open to Work</span>
-            <span class="status-text-compact">HAL Avionics • Open to Work</span>
-            <span class="status-text-short">HAL • Open to Work</span>
-          </span>
-        </a>
-      </div>
+    <!-- Layer 1: Top Bar (Identity & Status on Left, Controls on Right) -->
+    <div class="nav-layer-top">
+      <div class="nav-container nav-container-top">
+        <div class="nav-brand-group">
+          <a href="#top" class="nav-brand" aria-label="Saurav Pandey Home">
+            <svg class="brand-logo-s" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" style="flex-shrink: 0; vertical-align: middle;">
+              <rect width="32" height="32" rx="7" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-opacity="0.15" stroke-width="1.2" />
+              <path d="M21 11C21 8.5 18.8 7 16 7C13 7 11 8.5 11 11C11 14 14 15 16.2 15.8C18.8 16.8 21 17.8 21 21C21 23.8 18.8 25 16 25C12.8 25 10.8 23.2 10.8 20.5" 
+                    fill="none" 
+                    stroke="var(--accent)" 
+                    stroke-width="3.2" 
+                    stroke-linecap="round" 
+                    stroke-linejoin="round" />
+              <circle cx="23" cy="9" r="2.2" fill="#22c55e" />
+            </svg>
+            <span class="brand-name">Saurav Pandey</span>
+            <span class="status-indicator" title="Programming Assistant in Avionics at HAL • Open to Work">
+              <span class="pulse-dot" aria-hidden="true"></span>
+              <span class="status-text-full">Programming Assistant at HAL • Open to Work</span>
+              <span class="status-text-compact">HAL Avionics • Open to Work</span>
+              <span class="status-text-short">HAL • Open to Work</span>
+            </span>
+          </a>
+        </div>
 
-      <!-- Desktop Navigation Menu (hidden on mobile) -->
-      <nav id="desktop-nav" class="desktop-nav" aria-label="Main Navigation">
-        <ul class="nav-links">
-          <li><a href="#about" class="nav-link-item">About</a></li>
-          <li><a href="#experience" class="nav-link-item">Experiences</a></li>
-          <li><a href="#projects" class="nav-link-item">Projects</a></li>
-          <li><a href="#playground" class="nav-link-item">Dev Lab</a></li>
-          <li><a href="#curations" class="nav-link-item">Archive</a></li>
-          <li><a href="#skills" class="nav-link-item">Stack</a></li>
-          <li><a href="#education" class="nav-link-item">Education</a></li>
-          <li><a href="#contact" class="nav-link-item">Contact</a></li>
-        </ul>
-      </nav>
+        <!-- Desktop Perspective & Theme Controls -->
+        <div class="desktop-controls">
+          <div class="perspective-container" role="group" aria-label="Perspective Switcher">
+            <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
+              ⚡ Systems
+            </button>
+            <button id="btn-perspective-exec" class="perspective-btn" type="button" aria-pressed="false" title="Switch to Quick Story">
+              💡 Story
+            </button>
+          </div>
 
-      <!-- Desktop Perspective & Theme Controls (hidden on mobile) -->
-      <div class="desktop-controls">
-        <div class="perspective-container" role="group" aria-label="Perspective Switcher">
-          <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
-            ⚡ Systems
+          <button id="btn-desktop-admin" class="btn-admin-nav-pill" type="button" aria-label="Open Admin Studio" title="Admin Studio" style="display: none;">
+            <span>👑 Admin Studio</span>
           </button>
-          <button id="btn-perspective-exec" class="perspective-btn" type="button" aria-pressed="false" title="Switch to Quick Story">
-            💡 Story
+
+          <button id="btn-global-auth" class="btn-auth-pill" type="button" aria-label="Account Login" title="Unified Account Center & Telegram Login">
+            <span class="auth-icon">✈️</span>
+            <span class="auth-label" id="global-auth-label">Login</span>
+          </button>
+
+          <button id="theme-toggle-btn" class="btn-theme-toggle" type="button" aria-pressed="false" title="Toggle color theme">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-text">Dark</span>
           </button>
         </div>
 
-        <button id="btn-desktop-admin" class="btn-admin-nav-pill" type="button" aria-label="Open Admin Studio" title="Admin Studio" style="display: none;">
-          <span>👑 Admin Studio</span>
-        </button>
+        <!-- Mobile Controls (Visible on mobile/tablet) -->
+        <div class="mobile-controls">
+          <button id="mobile-theme-btn" class="btn-theme-toggle mobile-theme-icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+            <span class="mobile-theme-icon">🌙</span>
+          </button>
 
-        <button id="btn-global-auth" class="btn-auth-pill" type="button" aria-label="Account Login" title="Unified Account Center & Telegram Login">
-          <span class="auth-icon">✈️</span>
-          <span class="auth-label" id="global-auth-label">Login</span>
-        </button>
-
-        <button id="theme-toggle-btn" class="btn-theme-toggle" type="button" aria-pressed="false" title="Toggle color theme">
-          <span class="theme-icon">🌙</span>
-          <span class="theme-text">Dark</span>
-        </button>
+          <button id="nav-dropdown-trigger" class="nav-dropdown-btn" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-dropdown">
+            <span class="dropdown-hamburger" aria-hidden="true">
+              <span></span>
+              <span></span>
+            </span>
+            <span class="dropdown-btn-text">Menu</span>
+          </button>
+        </div>
       </div>
+    </div>
 
-      <!-- Mobile Controls (Visible on mobile/tablet) -->
-      <div class="mobile-controls">
-        <button id="mobile-theme-btn" class="btn-theme-toggle mobile-theme-icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
-          <span class="mobile-theme-icon">🌙</span>
-        </button>
-
-        <button id="nav-dropdown-trigger" class="nav-dropdown-btn" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-dropdown">
-          <span class="dropdown-hamburger" aria-hidden="true">
-            <span></span>
-            <span></span>
-          </span>
-          <span class="dropdown-btn-text">Menu</span>
-        </button>
+    <!-- Layer 2: Dedicated Desktop Section Navigation Links -->
+    <div class="nav-layer-bottom">
+      <div class="nav-container nav-container-bottom">
+        <nav id="desktop-nav" class="desktop-nav" aria-label="Main Navigation">
+          <ul class="nav-links">
+            <li><a href="#about" class="nav-link-item">About</a></li>
+            <li><a href="#experience" class="nav-link-item">Experiences</a></li>
+            <li><a href="#projects" class="nav-link-item">Projects</a></li>
+            <li><a href="#playground" class="nav-link-item">Dev Lab</a></li>
+            <li><a href="#curations" class="nav-link-item">Archive</a></li>
+            <li><a href="#skills" class="nav-link-item">Stack</a></li>
+            <li><a href="#education" class="nav-link-item">Education</a></li>
+            <li><a href="#contact" class="nav-link-item">Contact</a></li>
+          </ul>
+        </nav>
       </div>
     </div>
   </header>
@@ -524,17 +530,17 @@
   <div id="toast" class="toast-msg" role="status" aria-live="polite"></div>
 
   <!-- Modular Scripts (Zero Bundler Required, 100% Native & Portable, Deferred for Rapid First Paint) -->
-  <script src="js/data/profile.js?v=20261020_v5" defer></script>
-  <script src="js/data/experience.js?v=20261020_v5" defer></script>
-  <script src="js/data/projects.js?v=20261020_v5" defer></script>
-  <script src="js/data/skills.js?v=20261020_v5" defer></script>
-  <script src="js/data/shelf.js?v=20261020_v5" defer></script>
-  <script src="js/transitions.js?v=20261020_v5" defer></script>
-  <script src="js/components/perspective.js?v=20261020_v5" defer></script>
-  <script src="js/components/case-study.js?v=20261020_v5" defer></script>
-  <script src="js/components/stack-explorer.js?v=20261020_v5" defer></script>
-  <script src="js/data/database.js?v=20261020_v5" defer></script>
-  <script src="js/components/playground.js?v=20261020_v5" defer></script>
-  <script src="js/app.js?v=20261020_v5" defer></script>
+  <script src="js/data/profile.js?v=20261020_v6" defer></script>
+  <script src="js/data/experience.js?v=20261020_v6" defer></script>
+  <script src="js/data/projects.js?v=20261020_v6" defer></script>
+  <script src="js/data/skills.js?v=20261020_v6" defer></script>
+  <script src="js/data/shelf.js?v=20261020_v6" defer></script>
+  <script src="js/transitions.js?v=20261020_v6" defer></script>
+  <script src="js/components/perspective.js?v=20261020_v6" defer></script>
+  <script src="js/components/case-study.js?v=20261020_v6" defer></script>
+  <script src="js/components/stack-explorer.js?v=20261020_v6" defer></script>
+  <script src="js/data/database.js?v=20261020_v6" defer></script>
+  <script src="js/components/playground.js?v=20261020_v6" defer></script>
+  <script src="js/app.js?v=20261020_v6" defer></script>
 </body>
 </html>

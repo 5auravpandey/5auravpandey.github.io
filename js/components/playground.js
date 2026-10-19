@@ -66,7 +66,7 @@ window.PORTFOLIO_PLAYGROUND = {
     if (this._gamesPromise) return this._gamesPromise;
     this._gamesPromise = new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = "js/components/games.js?v=20261020_v5";
+      script.src = "js/components/games.js?v=20261020_v6";
       script.defer = true;
       script.onload = () => resolve(window.PORTFOLIO_GAMES);
       script.onerror = (err) => {

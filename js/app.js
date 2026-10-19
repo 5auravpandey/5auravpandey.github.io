@@ -986,6 +986,12 @@ function initPlaygroundDeferred() {
  * Enables instant repeat page loads from cache and offline resilience
  */
 function initServiceWorker() {
+  // Permanently block browser ambient PWA app install banners / omnibox prompts
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    return false;
+  });
+
   if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("sw.js").catch((err) => {
