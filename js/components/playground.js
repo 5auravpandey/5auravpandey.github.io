@@ -15,9 +15,10 @@ window.PORTFOLIO_PLAYGROUND = {
   isRunning: false,
   sprintsCompleted: 0,
 
-  // Synchronized Study Room State
+  // Synchronized Study Room State & Cross-Tab BroadcastChannel
   activeRoomId: null,
   roomStartTime: null,
+  _syncChannel: null,
   
   // Friends VIP Access State
   isFriend: false,
@@ -57,6 +58,107 @@ window.PORTFOLIO_PLAYGROUND = {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  },
+
+  // Cross-Tab Study Room Synchronization via BroadcastChannel API
+  setupRoomSync(roomId) {
+    if (!roomId) return;
+    if (this._syncChannel) {
+      try { this._syncChannel.close(); } catch (e) {}
+      this._syncChannel = null;
+    }
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        this._syncChannel = new BroadcastChannel(`portfolio_study_room_${roomId}`);
+        this._syncChannel.onmessage = (event) => {
+          this.handleSyncMessage(event.data);
+        };
+      } catch (e) {
+        console.warn("BroadcastChannel initialization skipped:", e);
+      }
+    }
+  },
+
+  broadcastSync(action, payload = {}) {
+    if (!this._syncChannel || !this.activeRoomId) return;
+    try {
+      this._syncChannel.postMessage({
+        action,
+        sender: this.friendName || this.friendUsername || "Peer",
+        roomId: this.activeRoomId,
+        timestamp: Date.now(),
+        ...payload
+      });
+    } catch (e) {}
+  },
+
+  handleSyncMessage(data) {
+    if (!data || data.roomId !== this.activeRoomId) return;
+    switch (data.action) {
+      case "TIMER_START":
+        if (typeof data.timeLeft === "number") {
+          this.timeLeft = data.timeLeft;
+        }
+        if (typeof data.duration === "number") {
+          this.timerDuration = data.duration;
+        }
+        if (!this.isRunning) {
+          this.startSyncedTimer(false);
+        }
+        this.updateClockDisplay();
+        break;
+
+      case "TIMER_PAUSE":
+        if (this.isRunning) {
+          clearInterval(this.timerInterval);
+          this.isRunning = false;
+        }
+        if (typeof data.timeLeft === "number") {
+          this.timeLeft = data.timeLeft;
+        }
+        this.updateClockDisplay();
+        this.render();
+        break;
+
+      case "TIMER_RESET":
+        if (this.isRunning) {
+          clearInterval(this.timerInterval);
+          this.isRunning = false;
+        }
+        if (typeof data.duration === "number") {
+          this.timerDuration = data.duration;
+        }
+        this.timeLeft = this.timerDuration;
+        this.updateClockDisplay();
+        this.render();
+        break;
+
+      case "TIMER_SET_DURATION":
+        if (typeof data.duration === "number") {
+          this.timerDuration = data.duration;
+          this.timeLeft = data.duration;
+          if (this.isRunning) {
+            clearInterval(this.timerInterval);
+            this.isRunning = false;
+          }
+          this.updateClockDisplay();
+          this.render();
+        }
+        break;
+
+      case "AUDIO_CHANGE":
+        if (data.mode && ["ambient", "youtube"].includes(data.mode)) {
+          this.audioMode = data.mode;
+        }
+        if (data.soundscape && ["genshin", "sky", "krishna"].includes(data.soundscape)) {
+          this.soundscape = data.soundscape;
+        }
+        if (data.youtubePreset) {
+          this.youtubePreset = data.youtubePreset;
+        }
+        this.render();
+        break;
+    }
   },
 
   // On-demand lazy loader for 64KB Dev Arcade engine (saves ~64KB on initial mobile load)
@@ -150,17 +252,27 @@ window.PORTFOLIO_PLAYGROUND = {
     try {
       const params = new URLSearchParams(window.location.search);
       
-      const fromName = params.get("from") || params.get("name") || "";
-      if (fromName && !this.friendName) {
-        this.friendName = decodeURIComponent(fromName);
+      const rawFrom = params.get("from") || params.get("name") || "";
+      if (rawFrom && !this.friendName) {
+        try {
+          const decoded = decodeURIComponent(rawFrom);
+          const cleanFrom = decoded.replace(/[^\p{L}\p{N}\s._-]/gu, "").slice(0, 32).trim();
+          if (cleanFrom) {
+            this.friendName = cleanFrom;
+          }
+        } catch (e) {}
       }
 
       if (params.has("room")) {
-        this.activeRoomId = params.get("room");
-        this.currentTab = "focus";
-        if (window.PORTFOLIO_DB) {
-          const participantName = this.friendName || fromName || "Guest Scholar";
-          window.PORTFOLIO_DB.joinRoomSession(this.activeRoomId, participantName, this.friendUsername || this.activePassKey || "");
+        const rawRoom = params.get("room") || "";
+        if (/^[A-Za-z0-9_-]{1,32}$/.test(rawRoom)) {
+          this.activeRoomId = rawRoom;
+          this.currentTab = "focus";
+          this.setupRoomSync(this.activeRoomId);
+          if (window.PORTFOLIO_DB) {
+            const participantName = this.friendName || "Guest Scholar";
+            window.PORTFOLIO_DB.joinRoomSession(this.activeRoomId, participantName, this.friendUsername || this.activePassKey || "");
+          }
         }
       }
 
@@ -290,7 +402,7 @@ window.PORTFOLIO_PLAYGROUND = {
               <div class="sync-room-left">
                 <span class="sync-live-dot"></span>
                 <div>
-                  <span class="sync-room-title">Room #${this.activeRoomId}</span>
+                  <span class="sync-room-title">Room #${this.escapeHTML(this.activeRoomId)}</span>
                   <span class="sync-room-sub">&bull; Live Synchronized Study Group</span>
                 </div>
               </div>
@@ -399,7 +511,7 @@ window.PORTFOLIO_PLAYGROUND = {
                   </iframe>
                 </div>
                 <div style="margin-top: 8px; display: flex; gap: 8px;">
-                  <input type="text" id="youtube-custom-url" class="focus-input" placeholder="Paste YouTube video or playlist URL..." style="font-size: 13px; text-align: left;" value="${this.customYoutubeUrl}">
+                  <input type="text" id="youtube-custom-url" class="focus-input" placeholder="Paste YouTube video or playlist URL..." style="font-size: 13px; text-align: left;" value="${this.escapeHTML(this.customYoutubeUrl)}">
                   <button type="button" id="btn-youtube-load" class="btn-secondary-action" style="font-size: 12px; padding: 4px 12px;">Load</button>
                 </div>
               </div>
@@ -693,12 +805,18 @@ window.PORTFOLIO_PLAYGROUND = {
       const bannerLeaveBtn = document.getElementById("btn-sync-room-leave");
       if (bannerLeaveBtn) {
         bannerLeaveBtn.addEventListener("click", () => {
+          if (this._syncChannel) {
+            try { this._syncChannel.close(); } catch (e) {}
+            this._syncChannel = null;
+          }
           this.activeRoomId = null;
           this.roomStartTime = null;
           try {
             const url = new URL(window.location.href);
             url.searchParams.delete("room");
             url.searchParams.delete("t");
+            url.searchParams.delete("from");
+            url.searchParams.delete("name");
             window.history.replaceState({}, "", url.toString());
           } catch (e) {}
           this.render();
@@ -712,6 +830,7 @@ window.PORTFOLIO_PLAYGROUND = {
       if (ambientModeBtn) {
         ambientModeBtn.addEventListener("click", () => {
           this.audioMode = "ambient";
+          this.broadcastSync("AUDIO_CHANGE", { mode: "ambient", soundscape: this.soundscape });
           this.render();
         });
       }
@@ -719,6 +838,7 @@ window.PORTFOLIO_PLAYGROUND = {
         ytModeBtn.addEventListener("click", () => {
           this.audioMode = "youtube";
           if (this.isAudioPlaying) this.toggleAmbientAudio(); // pause synth if playing
+          this.broadcastSync("AUDIO_CHANGE", { mode: "youtube", youtubePreset: this.youtubePreset });
           this.render();
         });
       }
@@ -916,9 +1036,12 @@ window.PORTFOLIO_PLAYGROUND = {
   },
 
   // --- Focus Timer Methods ---
-  startSyncedTimer() {
+  startSyncedTimer(broadcast = true) {
     if (this.isRunning) return;
     this.isRunning = true;
+    if (broadcast) {
+      this.broadcastSync("TIMER_START", { timeLeft: this.timeLeft, duration: this.timerDuration });
+    }
     this.timerInterval = setInterval(() => {
       if (this.timeLeft > 0) {
         this.timeLeft--;
@@ -939,9 +1062,11 @@ window.PORTFOLIO_PLAYGROUND = {
     if (this.isRunning) {
       clearInterval(this.timerInterval);
       this.isRunning = false;
+      this.broadcastSync("TIMER_PAUSE", { timeLeft: this.timeLeft });
       this.render();
     } else {
       this.isRunning = true;
+      this.broadcastSync("TIMER_START", { timeLeft: this.timeLeft, duration: this.timerDuration });
       this.timerInterval = setInterval(() => {
         if (this.timeLeft > 0) {
           this.timeLeft--;
@@ -964,6 +1089,7 @@ window.PORTFOLIO_PLAYGROUND = {
     clearInterval(this.timerInterval);
     this.isRunning = false;
     this.timeLeft = this.timerDuration;
+    this.broadcastSync("TIMER_RESET", { duration: this.timerDuration });
     this.updateClockDisplay();
     this.render();
   },
@@ -973,6 +1099,7 @@ window.PORTFOLIO_PLAYGROUND = {
     this.isRunning = false;
     this.timerDuration = sec;
     this.timeLeft = sec;
+    this.broadcastSync("TIMER_SET_DURATION", { duration: sec });
     this.render();
   },
 
@@ -998,6 +1125,7 @@ window.PORTFOLIO_PLAYGROUND = {
     if (!this.activeRoomId) {
       this.activeRoomId = "STUDY-" + Math.floor(1000 + Math.random() * 9000);
       this.roomStartTime = Date.now() - (this.timerDuration - this.timeLeft) * 1000;
+      this.setupRoomSync(this.activeRoomId);
     }
 
     // Gate YouTube room creation to whitelisted friends only; native ambient is 100% open to everyone

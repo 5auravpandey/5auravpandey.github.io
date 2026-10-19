@@ -7,7 +7,6 @@
  */
 window.PORTFOLIO_DB = {
   dbName: "SauravPortfolioDB",
-  dbName: "SauravPortfolioDB",
   dbVersion: 3,
   db: null,
   isReady: false,

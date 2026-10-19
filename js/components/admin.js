@@ -81,9 +81,14 @@ window.PORTFOLIO_ADMIN = {
   },
 
   isSafeUrl(url) {
-    if (!url) return false;
-    const clean = url.trim().toLowerCase();
-    return clean.startsWith("https://") || clean.startsWith("http://") || clean.startsWith("mailto:");
+    if (!url || typeof url !== "string") return false;
+    const clean = url.trim();
+    try {
+      const parsed = new URL(clean);
+      return ["http:", "https:", "mailto:"].includes(parsed.protocol);
+    } catch (e) {
+      return false;
+    }
   },
 
   bindGlobalTriggers() {
@@ -422,6 +427,11 @@ window.PORTFOLIO_ADMIN = {
     const resetBtn = document.getElementById("btn-admin-reset-default");
     if (resetBtn) {
       resetBtn.onclick = () => {
+        if (!this.checkIsAdmin()) {
+          alert("Security Block: Unauthorized operation.");
+          this.close();
+          return;
+        }
         if (confirm("Reset shelf back to initial defaults?")) {
           if (window.PORTFOLIO_SHELF_STORE) {
             window.PORTFOLIO_SHELF_STORE.resetToDefaults();
@@ -452,26 +462,38 @@ window.PORTFOLIO_ADMIN = {
     if (form) {
       form.onsubmit = (e) => {
         e.preventDefault();
+        if (!this.checkIsAdmin()) {
+          alert("Security Block: Unauthorized operation.");
+          this.close();
+          return;
+        }
+
         let mediaUrl = document.getElementById("adm-media").value.trim();
         if (mediaUrl) {
           if (!/^https?:\/\//i.test(mediaUrl) && !/^mailto:/i.test(mediaUrl)) {
             mediaUrl = "https://" + mediaUrl;
           }
           if (!this.isSafeUrl(mediaUrl)) {
-            alert("Please enter a safe URL (starting with https:// or http://).");
+            alert("Please enter a safe URL (starting with https://, http://, or mailto:).");
             return;
           }
         }
 
+        const rawTitle = document.getElementById("adm-title").value.trim();
+        if (!rawTitle) {
+          alert("Entry title is required.");
+          return;
+        }
+
         const item = {
           category: document.getElementById("adm-category").value,
-          badge: document.getElementById("adm-badge").value.trim(),
-          title: document.getElementById("adm-title").value.trim(),
-          meta: document.getElementById("adm-meta").value.trim(),
-          rating: document.getElementById("adm-rating").value.trim() || null,
+          badge: document.getElementById("adm-badge").value.trim().slice(0, 30),
+          title: rawTitle.slice(0, 120),
+          meta: document.getElementById("adm-meta").value.trim().slice(0, 80),
+          rating: document.getElementById("adm-rating").value.trim().slice(0, 30) || null,
           media: mediaUrl,
-          summary: document.getElementById("adm-summary").value.trim(),
-          content: document.getElementById("adm-content").value.trim()
+          summary: document.getElementById("adm-summary").value.trim().slice(0, 280),
+          content: document.getElementById("adm-content").value.trim().slice(0, 10000)
         };
 
         if (this.editingItemId) {
@@ -508,6 +530,11 @@ window.PORTFOLIO_ADMIN = {
     const deleteBtns = document.querySelectorAll(".btn-item-delete");
     deleteBtns.forEach(btn => {
       btn.onclick = () => {
+        if (!this.checkIsAdmin()) {
+          alert("Security Block: Unauthorized operation.");
+          this.close();
+          return;
+        }
         const id = btn.dataset.id;
         if (confirm("Are you sure you want to delete this entry?")) {
           if (window.PORTFOLIO_SHELF_STORE) {
@@ -586,6 +613,11 @@ window.PORTFOLIO_ADMIN = {
           const tgActionBtns = tgTbody.querySelectorAll(".btn-adm-tg-action");
           tgActionBtns.forEach(btn => {
             btn.addEventListener("click", async () => {
+              if (!this.checkIsAdmin()) {
+                alert("Security Block: Unauthorized operation.");
+                this.close();
+                return;
+              }
               const handle = btn.dataset.handle;
               const userId = btn.dataset.userId;
               const name = btn.dataset.name;
@@ -662,6 +694,11 @@ window.PORTFOLIO_ADMIN = {
           const toggleBtns = tbody.querySelectorAll(".btn-wl-toggle");
           toggleBtns.forEach(btn => {
             btn.addEventListener("click", async () => {
+              if (!this.checkIsAdmin()) {
+                alert("Security Block: Unauthorized operation.");
+                this.close();
+                return;
+              }
               const handle = btn.dataset.handle;
               const userId = btn.dataset.userId;
               btn.disabled = true;
@@ -675,6 +712,11 @@ window.PORTFOLIO_ADMIN = {
           const delBtns = tbody.querySelectorAll(".btn-wl-delete");
           delBtns.forEach(btn => {
             btn.addEventListener("click", async () => {
+              if (!this.checkIsAdmin()) {
+                alert("Security Block: Unauthorized operation.");
+                this.close();
+                return;
+              }
               const handle = btn.dataset.handle;
               const userId = btn.dataset.userId;
               if (confirm(`Remove '${handle || userId}' from the YouTube Whitelist?`)) {
@@ -693,14 +735,25 @@ window.PORTFOLIO_ADMIN = {
         wlForm.dataset.bound = "true";
         wlForm.addEventListener("submit", async (e) => {
           e.preventDefault();
+          if (!this.checkIsAdmin()) {
+            alert("Security Block: Unauthorized operation.");
+            this.close();
+            return;
+          }
           const submitBtn = document.getElementById("btn-adm-wl-submit");
           const handleInput = document.getElementById("adm-wl-handle");
           const nameInput = document.getElementById("adm-wl-name");
           const roleInput = document.getElementById("adm-wl-role");
-          const handle = handleInput ? handleInput.value.trim() : "";
-          const name = nameInput ? nameInput.value.trim() : "";
-          const role = roleInput ? roleInput.value.trim() : "";
-          if (!handle) return;
+          const rawHandle = handleInput ? handleInput.value.trim() : "";
+          const name = nameInput ? nameInput.value.trim().slice(0, 40) : "";
+          const role = roleInput ? roleInput.value.trim().slice(0, 40) : "";
+          if (!rawHandle) return;
+
+          const cleanHandle = rawHandle.replace(/[^A-Za-z0-9_@:\s-]/g, "").slice(0, 40);
+          if (!cleanHandle) {
+            alert("Invalid Telegram handle or User ID format.");
+            return;
+          }
 
           if (submitBtn) {
             submitBtn.disabled = true;
@@ -708,13 +761,13 @@ window.PORTFOLIO_ADMIN = {
           }
 
           try {
-            await window.PORTFOLIO_DB.addToYoutubeWhitelist(handle, name, role || "Whitelisted Friend");
+            await window.PORTFOLIO_DB.addToYoutubeWhitelist(cleanHandle, name, role || "Whitelisted Friend");
             if (handleInput) handleInput.value = "";
             if (nameInput) nameInput.value = "";
             if (roleInput) roleInput.value = "";
 
             if (typeof showToast === "function") {
-              showToast(`Whitelisted '${handle}' with permanent YouTube access!`);
+              showToast(`Whitelisted '${cleanHandle}' with permanent YouTube access!`);
             }
             await this.loadAndRenderWhitelist();
           } finally {

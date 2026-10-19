@@ -100,7 +100,7 @@ function loadAdminStudio(autoOpen = true) {
   if (!adminLoadPromise) {
     adminLoadPromise = new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = "js/components/admin.js?v=20261020_v3";
+      script.src = "js/components/admin.js?v=20261020_v7";
       script.defer = true;
       script.onload = () => {
         if (window.PORTFOLIO_ADMIN) {
