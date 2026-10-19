@@ -315,13 +315,7 @@ window.PORTFOLIO_ADMIN = {
   },
 
   checkSecretUrlTriggers() {
-    try {
-      const hash = window.location.hash.toLowerCase();
-      const params = new URLSearchParams(window.location.search);
-      if (hash === "#admin" || params.get("admin") === "true" || params.get("admin") === "1") {
-        setTimeout(() => this.open(), 300);
-      }
-    } catch (e) {}
+    // Only 'myspace' command in Power Terminal Shell triggers admin login
   },
 
   bindGlobalTriggers() {
@@ -342,24 +336,6 @@ window.PORTFOLIO_ADMIN = {
         );
         if (!isDialogContent) {
           this.close();
-        }
-      });
-    }
-
-    // Secret Hotkey: Ctrl+Shift+A or Cmd+Shift+A
-    window.addEventListener("keydown", (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "a") {
-        e.preventDefault();
-        this.open();
-      }
-    });
-
-    // Secret Footer Trigger: Triple-click on footer
-    const footer = document.querySelector("footer");
-    if (footer) {
-      footer.addEventListener("click", (e) => {
-        if (e.detail === 3) {
-          this.open();
         }
       });
     }

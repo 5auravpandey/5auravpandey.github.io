@@ -46,7 +46,7 @@ window.PORTFOLIO_PLAYGROUND = {
   matrixInterval: null,
   terminalCommands: [
     "help", "about", "hal", "projects", "books", "games", "arcade", "snake", "chess", "tictactoe", 
-    "skills", "contact", "admin", "matrix", "theme", "timer", "crypto", "sound", "youtube", "sync", "invite", "friend", "weather", "quote", "clear", "sudo hire"
+    "skills", "contact", "myspace", "matrix", "theme", "timer", "crypto", "sound", "youtube", "sync", "invite", "friend", "weather", "quote", "clear", "sudo hire"
   ],
 
   init() {
@@ -192,20 +192,7 @@ window.PORTFOLIO_PLAYGROUND = {
 
   renderActiveTab() {
     if (this.currentTab === "games") {
-      if (!this.isFriend) {
-        return this.renderFriendGate("games");
-      }
       return `
-        <div class="friend-active-banner">
-          <div class="friend-banner-info">
-            <span>🌟 Verified Access Pass Active${this.friendName ? `: <strong>${this.friendName}</strong>` : ''}</span>
-            ${this.activePassKey ? `<span class="friend-pass-code-pill">${this.activePassKey}</span>` : ''}
-          </div>
-          <div class="friend-banner-actions">
-            <button type="button" class="btn-invite-pill" id="btn-share-friend-pass">🔗 Invite Friends</button>
-            <button type="button" class="btn-revoke-pill" id="btn-revoke-pass" title="Switch or log out of this access pass">Switch Pass</button>
-          </div>
-        </div>
         <div id="dev-games-container"></div>
       `;
     }
@@ -434,16 +421,13 @@ window.PORTFOLIO_PLAYGROUND = {
     return "";
   },
 
-  renderFriendGate(context = "general") {
-    const isGames = context === "games";
+  renderFriendGate(context = "youtube") {
     return `
       <div class="friend-gate-card">
-        <div class="friend-gate-badge">🔒 Private Dev Lab &bull; Access Pass Required</div>
-        <h3 class="friend-gate-title">${isGames ? "🎮 Dev Arcade Access Gate" : "🎧 YouTube Focus Stream Gate"}</h3>
+        <div class="friend-gate-badge">🔒 Private Focus Stream &bull; Access Pass Required</div>
+        <h3 class="friend-gate-title">🎧 Friends YouTube Focus Stream Gate</h3>
         <p class="friend-gate-desc">
-          ${isGames 
-            ? "The Dev Arcade (Matrix Snake, Tic-Tac-Toe, Chess) is a private feature. Only visitors with an authorized Access Pass issued by Saurav Pandey can play and save their high scores to the persistent database." 
-            : "The YouTube synced focus stream is a private feature. You must enter an authorized Access Pass from Saurav Pandey to unlock synced playback."}
+          The YouTube synced focus stream and study rooms are private features reserved for Saurav's study circle and friends. You must enter an authorized Access Pass from Saurav Pandey to unlock synced playback.
         </p>
 
         <!-- Direct Contact to Get Access Pass -->
@@ -454,7 +438,7 @@ window.PORTFOLIO_PLAYGROUND = {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/></svg>
               Request on Telegram
             </a>
-            <a href="mailto:thesauravpandey@outlook.com?subject=Dev%20Lab%20Access%20Pass%20Request&body=Hi%20Saurav,%0D%0A%0D%0AI%20would%20like%20to%20request%20an%20Access%20Pass%20for%20your%20Dev%20Lab%20and%20Arcade.%0D%0A%0D%0AMy%20Name:%20" class="btn-gate-contact email">
+            <a href="mailto:thesauravpandey@outlook.com?subject=YouTube%20Focus%20Stream%20Access%20Pass%20Request&body=Hi%20Saurav,%0D%0A%0D%0AI%20would%20like%20to%20request%20an%20Access%20Pass%20for%20your%20YouTube%20Focus%20Stream%20and%20Study%20Room.%0D%0A%0D%0AMy%20Name:%20" class="btn-gate-contact email">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
               Request via Email
             </a>
@@ -468,15 +452,15 @@ window.PORTFOLIO_PLAYGROUND = {
           </div>
           <div class="friend-gate-field">
             <label for="input-friend-code">Access Pass Key:</label>
-            <input type="text" id="input-friend-code" class="focus-input" placeholder="Enter pass (e.g. SP-HAL-2026, SP-VIP-FRIENDS)..." maxlength="32" autocomplete="off" spellcheck="false" style="font-family: var(--mono); text-transform: uppercase;">
+            <input type="text" id="input-friend-code" class="focus-input" placeholder="Enter pass (e.g. SP-HAL-2026, HAL2026)..." maxlength="32" autocomplete="off" spellcheck="false" style="font-family: var(--mono); text-transform: uppercase;">
           </div>
           <div id="friend-gate-error-msg" class="friend-gate-error" style="display: none;" role="alert"></div>
           <button type="button" id="btn-unlock-friend" class="btn-primary-action" style="padding: 10px 20px; font-weight: 600; width: 100%;">
-            ✨ Verify &amp; Unlock Access
+            ✨ Verify &amp; Unlock YouTube Stream
           </button>
         </div>
         <div class="friend-gate-footer-note">
-          <span>🔒 Passes are verified against the transactional database and stored locally.</span>
+          <span>🔒 Passes are verified against the database and stored locally.</span>
         </div>
       </div>
     `;
@@ -591,8 +575,8 @@ window.PORTFOLIO_PLAYGROUND = {
     if (sharePassBtn) sharePassBtn.addEventListener("click", () => this.openInviteModal());
     if (sharePassYtBtn) sharePassYtBtn.addEventListener("click", () => this.openInviteModal());
 
-    // Initialize Games if on games tab and unlocked
-    if (this.currentTab === "games" && this.isFriend && window.PORTFOLIO_GAMES) {
+    // Initialize Games if on games tab
+    if (this.currentTab === "games" && window.PORTFOLIO_GAMES) {
       window.PORTFOLIO_GAMES.init();
     }
 
@@ -1548,13 +1532,20 @@ window.PORTFOLIO_PLAYGROUND = {
         reply = "1. Lightweight Symmetric Bitwise Ciphers for Resource-Constrained Embedded Controllers (C++)\n2. Orthogonal Persistence vs EVM Gas on the Internet Computer (Motoko)";
         break;
 
-      case "admin":
-        if (window.PORTFOLIO_ADMIN) {
+      case "myspace":
+        if (typeof window.loadAdminStudio === "function") {
+          window.loadAdminStudio(true);
+          reply = "🔐 Launching Secure Admin Studio (myspace protocol authenticated)...";
+        } else if (window.PORTFOLIO_ADMIN) {
           window.PORTFOLIO_ADMIN.open();
-          reply = "Opening Google Authenticator prompt...";
+          reply = "🔐 Launching Secure Admin Studio...";
         } else {
-          reply = "Admin Studio is loading.";
+          reply = "⚠️ Admin Studio is loading...";
         }
+        break;
+
+      case "admin":
+        reply = "Permission denied: 'admin' command is disabled. System access is restricted.";
         break;
 
       case "matrix":
@@ -1736,6 +1727,14 @@ window.PORTFOLIO_PLAYGROUND = {
 
       case "contact":
         reply = "Email: thesauravpandey@outlook.com | Telegram: t.me/sauravpandey | GitHub: github.com/5auravpandey | LinkedIn: linkedin.com/in/5auravpandey";
+        break;
+
+      case "sudo":
+        if (arg1 === "hire") {
+          reply = "Access Granted! 🚀 Thank you for considering me. Drop an email at thesauravpandey@outlook.com and let's talk!";
+        } else {
+          reply = "sudo: Access denied. This incident will be reported.";
+        }
         break;
 
       case "sudo hire":

@@ -100,46 +100,18 @@ function loadAdminStudio(autoOpen = true) {
   }
   return adminLoadPromise;
 }
+window.loadAdminStudio = loadAdminStudio;
 
 function initAdminLazyLoader() {
-  const hash = window.location.hash.toLowerCase();
-  const params = new URLSearchParams(window.location.search);
+  // Silent background pre-load only if an active admin session is already present
   const hasActiveSession = !!sessionStorage.getItem("portfolio_admin_session_v2");
-
-  if (hash === "#admin" || params.get("admin") === "true" || params.get("admin") === "1") {
-    loadAdminStudio(true);
-  } else if (hasActiveSession) {
+  if (hasActiveSession) {
     if ("requestIdleCallback" in window) {
       window.requestIdleCallback(() => loadAdminStudio(false), { timeout: 3000 });
     } else {
       setTimeout(() => loadAdminStudio(false), 2000);
     }
   }
-
-  // Hotkey listener: Ctrl+Shift+A / Cmd+Shift+A
-  window.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "a") {
-      e.preventDefault();
-      loadAdminStudio(true);
-    }
-  });
-
-  // Footer triple-click trigger
-  const footer = document.querySelector("footer");
-  if (footer) {
-    footer.addEventListener("click", (e) => {
-      if (e.detail === 3) {
-        loadAdminStudio(true);
-      }
-    });
-  }
-
-  // Hashchange listener for direct navigation to #admin
-  window.addEventListener("hashchange", () => {
-    if (window.location.hash.toLowerCase() === "#admin") {
-      loadAdminStudio(true);
-    }
-  });
 }
 
 /**
