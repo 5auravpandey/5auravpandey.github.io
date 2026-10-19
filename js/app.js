@@ -627,6 +627,7 @@ function initMobileNav() {
     if (navBar) navBar.classList.remove("dropdown-open");
     document.body.classList.remove("dropdown-locked");
   };
+  window.closeMobileNav = closeDropdown;
 
   const openDropdown = () => {
     dropdown.removeAttribute("hidden");
@@ -720,6 +721,9 @@ function initGlobalAuthUI() {
   }
 
   const openAuth = () => {
+    if (typeof window.closeMobileNav === "function") {
+      window.closeMobileNav();
+    }
     if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.openLoginDialog === "function") {
       window.PORTFOLIO_AUTH.openLoginDialog();
     }

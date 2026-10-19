@@ -6,40 +6,25 @@
  * Fully responsive for mobile touch and desktop keyboards.
  */
 // Global callback for Telegram Login Widget (@SauravPandeyBot)
-window.onTelegramAuth = async function(user) {
-  if (!user) return;
-  const rawUsername = user.username ? user.username.replace(/^@/, "") : "";
-  const handle = rawUsername ? `@${rawUsername}` : `@id_${user.id}`;
-  const displayName = [user.first_name, user.last_name].filter(Boolean).join(" ") || handle;
+if (!window.onTelegramAuth) {
+  window.onTelegramAuth = async function(user) {
+    if (!user) return;
+    const rawUsername = user.username ? user.username.replace(/^@/, "") : "";
+    const handle = rawUsername ? `@${rawUsername}` : `@id_${user.id}`;
+    const displayName = [user.first_name, user.last_name].filter(Boolean).join(" ") || handle;
 
-  if (window.PORTFOLIO_DB) {
-    const res = window.PORTFOLIO_DB.loginTelegramUser(handle, displayName);
-    if (res && res.success) {
-      // Auto-unlock whitelisted YouTube stream if handle is whitelisted
-      const wlCheck = await window.PORTFOLIO_DB.isWhitelistedForYouTube(handle);
-      if (wlCheck && wlCheck.whitelisted) {
-        window.PORTFOLIO_DB.activateFriendSession(wlCheck.entry.name || displayName, wlCheck.entry.handle, wlCheck.entry.role);
-        if (window.PORTFOLIO_PLAYGROUND) {
-          window.PORTFOLIO_PLAYGROUND.isFriend = true;
-          window.PORTFOLIO_PLAYGROUND.friendName = wlCheck.entry.name || displayName;
-          window.PORTFOLIO_PLAYGROUND.friendUsername = wlCheck.entry.handle;
-          window.PORTFOLIO_PLAYGROUND.friendRole = wlCheck.entry.role;
+    if (window.PORTFOLIO_AUTH) {
+      const res = await window.PORTFOLIO_AUTH.loginWithTelegram(handle, displayName, user);
+      if (res && res.success) {
+        window.PORTFOLIO_AUTH.closeLoginDialog();
+        if (typeof showToast === "function") {
+          const wl = res.session.isWhitelistedYouTube ? " • YouTube Unlocked!" : "";
+          showToast(`Connected via Telegram: ${handle} (7-day retention active${wl})`);
         }
       }
-
-      const tgModal = document.getElementById("tg-login-modal");
-      if (tgModal) tgModal.style.display = "none";
-
-      if (typeof showToast === "function") {
-        showToast(`Connected via Telegram: ${handle} • 7-day retention active!`);
-      }
-
-      if (window.PORTFOLIO_GAMES) {
-        window.PORTFOLIO_GAMES.render();
-      }
     }
-  }
-};
+  };
+}
 
 window.PORTFOLIO_GAMES = {
   activeGame: "snake", // 'snake' | 'tictactoe' | 'chess'

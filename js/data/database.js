@@ -1779,6 +1779,26 @@ window.PORTFOLIO_AUTH = {
     if (closeBtn) closeBtn.onclick = doClose;
     if (doneBtn) doneBtn.onclick = doClose;
 
+    // Light-dismiss fallback for browsers without native closedby support
+    if (dialog && !dialog._backdropFallbackBound) {
+      dialog._backdropFallbackBound = true;
+      if (!('closedBy' in HTMLDialogElement.prototype)) {
+        dialog.addEventListener("click", (event) => {
+          if (event.target !== dialog) return;
+          const rect = dialog.getBoundingClientRect();
+          const isDialogContent = (
+            rect.top <= event.clientY &&
+            event.clientY <= rect.top + rect.height &&
+            rect.left <= event.clientX &&
+            event.clientX <= rect.left + rect.width
+          );
+          if (!isDialogContent) {
+            this.closeLoginDialog();
+          }
+        });
+      }
+    }
+
     // Tabs switching
     const tabTg = document.getElementById("tab-btn-telegram");
     const tabCred = document.getElementById("tab-btn-credentials");
