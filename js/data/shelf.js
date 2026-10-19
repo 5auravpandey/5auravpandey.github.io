@@ -59,7 +59,18 @@ window.PORTFOLIO_SHELF_STORE = {
     }
   },
 
+  isAuthorized() {
+    const session = (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function")
+      ? window.PORTFOLIO_AUTH.getSession()
+      : null;
+    return Boolean(session && session.isOwner);
+  },
+
   addItem(item) {
+    if (!this.isAuthorized()) {
+      console.warn("[SECURITY ALERT] Unauthorized attempt to add shelf entry blocked.");
+      return null;
+    }
     const items = this.getAll();
     const validated = this.validateItem({
       ...item,
@@ -74,6 +85,10 @@ window.PORTFOLIO_SHELF_STORE = {
   },
 
   updateItem(idOrItem, updatedFields) {
+    if (!this.isAuthorized()) {
+      console.warn("[SECURITY ALERT] Unauthorized attempt to update shelf entry blocked.");
+      return false;
+    }
     const items = this.getAll();
     let targetId, fields;
     if (typeof idOrItem === "object" && idOrItem !== null) {
@@ -97,12 +112,20 @@ window.PORTFOLIO_SHELF_STORE = {
   },
 
   deleteItem(id) {
+    if (!this.isAuthorized()) {
+      console.warn("[SECURITY ALERT] Unauthorized attempt to delete shelf entry blocked.");
+      return;
+    }
     let items = this.getAll();
     items = items.filter(i => String(i.id) !== String(id));
     this.saveAll(items);
   },
 
   resetToDefaults() {
+    if (!this.isAuthorized()) {
+      console.warn("[SECURITY ALERT] Unauthorized attempt to reset shelf blocked.");
+      return;
+    }
     try {
       localStorage.removeItem(this.STORAGE_KEY);
     } catch (e) {}

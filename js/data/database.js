@@ -529,9 +529,32 @@ window.PORTFOLIO_DB = {
       } catch (e) {}
     }
 
-    const cleanName = (typeof playerName === "string" && playerName.trim()) 
+    let cleanName = (typeof playerName === "string" && playerName.trim()) 
       ? playerName.trim().slice(0, 24) 
       : (activeTg?.displayName || "Friend");
+
+    // Strict Anti-Impersonation: Only verified owner can submit scores under Saurav's identity
+    const sessionAuth = (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function")
+      ? window.PORTFOLIO_AUTH.getSession()
+      : null;
+    const isVerifiedOwner = Boolean(sessionAuth && sessionAuth.isOwner);
+
+    const lowerTg = (cleanTelegram || "").toLowerCase().replace(/^@/, "").replace(/^id:\s*/i, "");
+    const lowerName = (cleanName || "").toLowerCase();
+    const isClaimingOwner = (
+      lowerTg === "sauravpandey" ||
+      lowerTg === "5auravpandey" ||
+      lowerTg === "6639686782" ||
+      lowerName === "saurav" ||
+      lowerName.includes("saurav pandey") ||
+      lowerName === "saurav (hal)"
+    );
+
+    if (isClaimingOwner && !isVerifiedOwner) {
+      console.warn("[SECURITY ALERT] Unauthorized attempt to record score under Saurav's identity blocked.");
+      cleanTelegram = sessionAuth ? (sessionAuth.telegramId || "@guest_player") : "@guest_player";
+      cleanName = sessionAuth ? (sessionAuth.displayName || "Friend") : "Friend";
+    }
 
     const now = Date.now();
     const expiresAt = now + this.RETENTION_MS;
@@ -815,16 +838,26 @@ window.PORTFOLIO_DB = {
     await this.init();
     if (!roomData || !roomData.roomId) return;
 
+    const sessionAuth = (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function")
+      ? window.PORTFOLIO_AUTH.getSession()
+      : null;
+    const isOwner = Boolean(sessionAuth && sessionAuth.isOwner);
+
+    let safeHostName = roomData.hostName || "Host";
+    if (safeHostName.toLowerCase().includes("saurav") && !isOwner) {
+      safeHostName = sessionAuth ? (sessionAuth.displayName || "Study Host") : "Study Host";
+    }
+
     const session = {
       roomId: roomData.roomId,
-      hostName: roomData.hostName || "Host",
+      hostName: safeHostName,
       hostPass: roomData.hostPass || "",
       audioMode: roomData.audioMode || "ambient",
       soundscape: roomData.soundscape || "genshin",
       youtubePreset: roomData.youtubePreset || "genshin-ost",
       sprintMins: roomData.sprintMins || 25,
       timerStart: roomData.timerStart || Date.now(),
-      participants: roomData.participants || [roomData.hostName || "Host"],
+      participants: roomData.participants || [safeHostName],
       updatedAt: Date.now()
     };
 
@@ -1160,11 +1193,17 @@ window.PORTFOLIO_DB = {
     const withoutAt = rawClean.startsWith("@") ? rawClean.slice(1) : rawClean;
     const cleanUserId = userId ? String(userId).trim() : "";
 
-    // Immediate master owner bypass
+    // Verified owner bypass (strictly requires active authenticated owner session)
+    const currentSession = (this.auth && typeof this.auth.getSession === "function")
+      ? this.auth.getSession()
+      : (window.PORTFOLIO_AUTH ? window.PORTFOLIO_AUTH.getSession() : null);
+    const isVerifiedOwner = Boolean(currentSession && currentSession.isOwner);
+
     if (
-      cleanUserId === "6639686782" ||
-      withoutAt === "sauravpandey" ||
-      withoutAt === "5auravpandey"
+      isVerifiedOwner &&
+      (cleanUserId === "6639686782" ||
+       withoutAt === "sauravpandey" ||
+       withoutAt === "5auravpandey")
     ) {
       return {
         whitelisted: true,
@@ -1201,6 +1240,13 @@ window.PORTFOLIO_DB = {
 
   async addToYoutubeWhitelist(handle, name, role = "Friend", userId = null) {
     if (!handle && !userId) return null;
+    const activeSession = (this.auth && typeof this.auth.getSession === "function")
+      ? this.auth.getSession()
+      : (window.PORTFOLIO_AUTH ? window.PORTFOLIO_AUTH.getSession() : null);
+    if (!activeSession || !activeSession.isOwner) {
+      console.warn("[SECURITY ALERT] Whitelist addition rejected: caller is not verified owner.");
+      return null;
+    }
     await this.init();
     const raw = (handle || "").trim();
     const isDigits = /^\d+$/.test(raw);
@@ -1289,6 +1335,13 @@ window.PORTFOLIO_DB = {
 
   async removeFromYoutubeWhitelist(handle, userId = null) {
     if (!handle && !userId) return false;
+    const activeSession = (this.auth && typeof this.auth.getSession === "function")
+      ? this.auth.getSession()
+      : (window.PORTFOLIO_AUTH ? window.PORTFOLIO_AUTH.getSession() : null);
+    if (!activeSession || !activeSession.isOwner) {
+      console.warn("[SECURITY ALERT] Whitelist removal rejected: caller is not verified owner.");
+      return false;
+    }
     await this.init();
     const raw = (handle || "").trim().toLowerCase();
     const withAt = raw ? (raw.startsWith("@") ? raw : "@" + raw) : "";
@@ -1383,6 +1436,13 @@ window.PORTFOLIO_DB = {
 
   async toggleWhitelistStatus(handle, userId = null) {
     if (!handle && !userId) return null;
+    const activeSession = (this.auth && typeof this.auth.getSession === "function")
+      ? this.auth.getSession()
+      : (window.PORTFOLIO_AUTH ? window.PORTFOLIO_AUTH.getSession() : null);
+    if (!activeSession || !activeSession.isOwner) {
+      console.warn("[SECURITY ALERT] Whitelist toggle rejected: caller is not verified owner.");
+      return null;
+    }
     await this.init();
     const raw = (handle || "").trim().toLowerCase();
     const withAt = raw ? (raw.startsWith("@") ? raw : "@" + raw) : "";
@@ -1544,7 +1604,20 @@ window.PORTFOLIO_AUTH = {
     if (!authData || !authData.hash || !this.BOT_SECRET_KEY_HEX) return false;
     try {
       const { hash, ...fields } = authData;
+
+      // Timestamp freshness check: signature must be within 24 hours
+      if (!fields.auth_date) return false;
+      const nowSec = Math.floor(Date.now() / 1000);
+      const authDate = Number(fields.auth_date);
+      if (isNaN(authDate) || (nowSec - authDate) > 86400 || (authDate - nowSec) > 300) {
+        console.warn("[SECURITY] Telegram auth_date expired or invalid timestamp:", fields.auth_date);
+        return false;
+      }
+
+      // Filter fields to strictly standard Telegram Login Widget attributes
+      const allowedKeys = new Set(["id", "first_name", "last_name", "username", "photo_url", "auth_date"]);
       const checkString = Object.keys(fields)
+        .filter(key => allowedKeys.has(key) && fields[key] !== undefined && fields[key] !== null)
         .sort()
         .map(key => `${key}=${fields[key]}`)
         .join("\n");
@@ -1577,11 +1650,36 @@ window.PORTFOLIO_AUTH = {
     }
   },
 
+  // Generates tamper-detection integrity seal for active sessions
+  generateSessionSeal(session) {
+    if (!session || typeof session !== "object") return "";
+    const authHash = session.authData?.hash || "";
+    const authDate = session.authData?.auth_date || "";
+    const uid = session.telegramUserId ? String(session.telegramUserId).trim() : "";
+    const uname = (session.username || "").toLowerCase().trim();
+    const isOwner = session.isOwner ? "1" : "0";
+    const isCrypto = session.isCryptographicallyVerified ? "1" : "0";
+    const expires = session.expiresAt ? String(session.expiresAt) : "";
+
+    const payload = `${uid}#${uname}#${isOwner}#${isCrypto}#${authHash}#${authDate}#${expires}#SP_INTEGRITY_SEAL_V2`;
+
+    let h1 = 0xdeadbeef ^ payload.length;
+    let h2 = 0x41c6ce57 ^ payload.length;
+    for (let i = 0; i < payload.length; i++) {
+      const ch = payload.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+  },
+
   getSession() {
     try {
       const raw = localStorage.getItem(this.STORAGE_SESSION_KEY);
       if (!raw) {
-        // Backward-compatibility fallback
+        // Backward-compatibility fallback (strictly unprivileged guest session only)
         const tgRaw = localStorage.getItem("portfolio_telegram_user");
         if (tgRaw) {
           const parsed = JSON.parse(tgRaw);
@@ -1598,7 +1696,9 @@ window.PORTFOLIO_AUTH = {
               username: parsed.telegramId.replace(/^@/, ""),
               displayName: parsed.displayName || parsed.telegramId,
               isVerifiedTelegram: true,
+              isCryptographicallyVerified: false,
               isWhitelistedYouTube: false,
+              isOwner: false,
               role: "Community Member",
               lastLogin: parsed.lastLogin || now,
               expiresAt: parsed.expiresAt || (now + this.RETENTION_MS),
@@ -1621,15 +1721,49 @@ window.PORTFOLIO_AUTH = {
         return null;
       }
 
+      // Verify session integrity seal against client-side tampering
+      const expectedSeal = this.generateSessionSeal(session);
+      if (!session._seal || session._seal !== expectedSeal) {
+        console.warn("[SECURITY ALERT] Session seal mismatch: tampering detected in localStorage. Purging session.");
+        this.logout();
+        return null;
+      }
+
       const daysRemaining = Math.max(0, Math.ceil(((session.expiresAt || (now + this.RETENTION_MS)) - now) / (24 * 60 * 60 * 1000)));
       const uid = session.telegramUserId ? String(session.telegramUserId).trim() : "";
       const uname = (session.username || session.telegramId || "").toLowerCase().replace(/^@/, "").replace(/^id:\s*/i, "");
-      const isOwner = Boolean(
-        session.isOwner === true &&
-        (uid === "6639686782" ||
-         uname === "sauravpandey" ||
-         uname === "5auravpandey")
+
+      // Strict Owner Security Enforcement:
+      // Owner status requires BOTH identity match AND authentic cryptographic Telegram signature
+      const claimedOwner = Boolean(
+        session.isOwner === true ||
+        uid === "6639686782" ||
+        uname === "sauravpandey" ||
+        uname === "5auravpandey"
       );
+
+      let isOwner = false;
+      if (claimedOwner) {
+        const authData = session.authData;
+        const isVerifiedOwner = Boolean(
+          session.isCryptographicallyVerified === true &&
+          authData &&
+          typeof authData === "object" &&
+          authData.hash &&
+          authData.auth_date &&
+          String(authData.id).trim() === "6639686782" &&
+          (uname === "sauravpandey" || uname === "5auravpandey" || uid === "6639686782")
+        );
+
+        if (!isVerifiedOwner) {
+          console.warn("[SECURITY ALERT] Owner session invalid or missing Telegram cryptographic seal. Reverting privileges.");
+          this.logout();
+          return null;
+        }
+
+        isOwner = true;
+      }
+
       return {
         ...session,
         isOwner,
@@ -1682,6 +1816,54 @@ window.PORTFOLIO_AUTH = {
       isCryptographicallyVerified = await this.verifyTelegramWidgetAuth(authData);
     }
 
+    // Strict Anti-Impersonation Gate for Owner Identity:
+    const hasOwnerIdentity = (
+      userId === "6639686782" ||
+      (username && (
+        username.toLowerCase() === "sauravpandey" ||
+        username.toLowerCase() === "5auravpandey"
+      ))
+    );
+
+    if (hasOwnerIdentity) {
+      // Impersonation Prevention Rule 1:
+      // An owner identity can NEVER be claimed via raw string or without a full Telegram authData object
+      if (typeof userOrHandle !== "object" || userOrHandle === null || !authData) {
+        console.warn("[SECURITY ALERT] Rejected unauthenticated attempt to claim owner identity via handle or string.");
+        return {
+          success: false,
+          reason: "Security rejection: Official Telegram OAuth signature is strictly required for Saurav Pandey's account."
+        };
+      }
+
+      // Impersonation Prevention Rule 2:
+      // An owner identity MUST be cryptographically verified via Telegram HMAC-SHA256
+      if (!isCryptographicallyVerified || !authData.hash) {
+        console.warn("[SECURITY ALERT] Blocked owner impersonation attempt: Missing or invalid cryptographic Telegram HMAC signature.");
+        return {
+          success: false,
+          reason: "Security violation: Cryptographic signature verification failed. Impersonation of Saurav Pandey is strictly blocked."
+        };
+      }
+
+      // Impersonation Prevention Rule 3:
+      // The verified user ID in authData must strictly match 6639686782
+      if (String(authData.id).trim() !== "6639686782") {
+        console.warn("[SECURITY ALERT] Blocked owner impersonation attempt: Telegram ID mismatch.");
+        return {
+          success: false,
+          reason: "Security violation: Telegram ID does not match owner credentials."
+        };
+      }
+    }
+
+    const isOwner = Boolean(
+      hasOwnerIdentity &&
+      isCryptographicallyVerified &&
+      authData &&
+      String(authData.id).trim() === "6639686782"
+    );
+
     const now = Date.now();
     const expiresAt = now + this.RETENTION_MS;
 
@@ -1696,20 +1878,6 @@ window.PORTFOLIO_AUTH = {
       }
     }
 
-    // Owner check (Saurav Pandey)
-    // ONLY true if verified via genuine Telegram Auth data object AND matches Saurav's ID or username
-    const hasOwnerIdentity = (
-      userId === "6639686782" ||
-      (username && (
-        username.toLowerCase() === "sauravpandey" ||
-        username.toLowerCase() === "5auravpandey"
-      ))
-    );
-    const isOwner = Boolean(
-      hasOwnerIdentity &&
-      typeof userOrHandle === "object" &&
-      userOrHandle !== null
-    );
     if (isOwner) {
       isWhitelisted = true;
       whitelistRole = "Owner / Administrator";
@@ -1784,6 +1952,9 @@ window.PORTFOLIO_AUTH = {
 
   saveSession(session) {
     try {
+      if (session && typeof session === "object") {
+        session._seal = this.generateSessionSeal(session);
+      }
       localStorage.setItem(this.STORAGE_SESSION_KEY, JSON.stringify(session));
       if (session.telegramId || session.telegramUserId) {
         localStorage.setItem("portfolio_telegram_user", JSON.stringify({

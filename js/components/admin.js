@@ -49,13 +49,19 @@ window.PORTFOLIO_ADMIN = {
     const uname = (session.username || "").trim().toLowerCase().replace(/^@/, "");
     const tgId = (session.telegramId || "").trim().toLowerCase().replace(/^@/, "").replace(/^id:\s*/i, "");
 
-    return (
-      uid === this.ADMIN_USER_ID ||
-      uname === this.ADMIN_USERNAME ||
-      uname === "5auravpandey" ||
-      tgId === this.ADMIN_USERNAME ||
-      tgId === "5auravpandey"
+    const isMatch = (
+      uid === this.ADMIN_USER_ID &&
+      (uname === this.ADMIN_USERNAME || uname === "5auravpandey" || tgId === this.ADMIN_USERNAME || tgId === "5auravpandey")
     );
+
+    const isCrypto = Boolean(
+      session.isCryptographicallyVerified === true &&
+      session.authData &&
+      session.authData.hash &&
+      String(session.authData.id).trim() === this.ADMIN_USER_ID
+    );
+
+    return isMatch && isCrypto;
   },
 
   escapeHTML(str) {
