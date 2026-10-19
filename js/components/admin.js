@@ -1033,8 +1033,36 @@ window.PORTFOLIO_ADMIN = {
               </button>
             </form>
 
-            <!-- Table of Whitelisted Friends -->
-            <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--card);">
+            <!-- Section 1: Registered Telegram Users (1-Click Whitelist) -->
+            <div style="margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h5 style="margin: 0; font-size: 13.5px; font-weight: 600;">⚡ Registered Telegram Users &amp; Access Requests</h5>
+                <span style="font-size: 11px; color: var(--muted);">Click the button to instantly whitelist or revoke access.</span>
+              </div>
+              <div style="max-height: 220px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--card);">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid var(--rule); background: var(--paper); color: var(--muted); font-family: var(--mono); font-size: 11px; text-transform: uppercase;">
+                      <th style="padding: 8px 12px;">Telegram Handle</th>
+                      <th style="padding: 8px 12px;">Display Name</th>
+                      <th style="padding: 8px 12px;">Status</th>
+                      <th style="padding: 8px 12px; text-align: right;">1-Click Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adm-tg-users-table-body">
+                    <tr>
+                      <td colspan="4" style="text-align: center; padding: 14px; color: var(--muted);">Loading Telegram users...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Section 2: Permanent Whitelist Directory -->
+            <div style="margin-bottom: 8px;">
+              <h5 style="margin: 0 0 8px 0; font-size: 13.5px; font-weight: 600;">📋 Permanent YouTube Whitelist Directory</h5>
+            </div>
+            <div style="max-height: 240px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--card);">
               <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
                 <thead>
                   <tr style="border-bottom: 1px solid var(--rule); background: var(--paper); color: var(--muted); font-family: var(--mono); font-size: 11px; text-transform: uppercase;">
@@ -1362,62 +1390,132 @@ window.PORTFOLIO_ADMIN = {
   },
 
   async loadAndRenderWhitelist() {
-    const tbody = document.getElementById("adm-wl-table-body");
-    if (!tbody || !window.PORTFOLIO_DB) return;
+    if (!window.PORTFOLIO_DB) return;
 
     try {
-      const list = await window.PORTFOLIO_DB.getYoutubeWhitelist();
-      if (!list || list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 14px; color: var(--muted);">No whitelisted friends yet. Use the form above to add friends.</td></tr>`;
-      } else {
-        tbody.innerHTML = list.map(item => {
-          const isActive = item.status === "active";
-          return `
-            <tr style="border-bottom: 1px solid var(--rule-light);">
-              <td style="padding: 8px 12px; font-family: var(--mono); font-weight: bold; color: var(--accent);">${this.escapeHTML(item.handle)}</td>
-              <td style="padding: 8px 12px;"><strong>${this.escapeHTML(item.name || item.handle)}</strong></td>
-              <td style="padding: 8px 12px; color: var(--muted);">${this.escapeHTML(item.role || "Friend")}</td>
-              <td style="padding: 8px 12px;">
-                <span style="font-size: 11px; padding: 2px 7px; border-radius: 999px; font-weight: 600; background: ${isActive ? 'var(--ok-bg)' : 'rgba(239, 68, 68, 0.12)'}; color: ${isActive ? 'var(--ok)' : '#ef4444'}; border: 1px solid currentColor;">
-                  ${isActive ? '● Active (Permanent)' : '○ Revoked'}
-                </span>
-              </td>
-              <td style="padding: 8px 12px; text-align: right; white-space: nowrap;">
-                <button type="button" class="btn-wl-toggle btn-secondary-action" data-handle="${this.escapeHTML(item.handle)}" style="font-size: 11px; padding: 3px 8px; margin-right: 4px;">
-                  ${isActive ? 'Revoke' : 'Activate'}
-                </button>
-                <button type="button" class="btn-wl-delete btn-ambient-action" data-handle="${this.escapeHTML(item.handle)}" style="font-size: 11px; padding: 3px 8px; color: #ef4444;">
-                  ✕ Remove
-                </button>
-              </td>
-            </tr>
-          `;
-        }).join("");
+      // 1. Render Registered Telegram Users (1-Click Whitelist)
+      const tgTbody = document.getElementById("adm-tg-users-table-body");
+      if (tgTbody) {
+        const tgUsers = await window.PORTFOLIO_DB.getAllTelegramUsers();
+        if (!tgUsers || tgUsers.length === 0) {
+          tgTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 14px; color: var(--muted);">No Telegram visitors yet. Anyone who connects will appear here for 1-click approval.</td></tr>`;
+        } else {
+          tgTbody.innerHTML = tgUsers.map(u => {
+            const handle = u.telegramId || u.username || "";
+            const name = u.displayName || handle;
+            const isWl = Boolean(u.isWhitelisted);
+            return `
+              <tr style="border-bottom: 1px solid var(--rule-light);">
+                <td style="padding: 8px 12px; font-family: var(--mono); font-weight: 600; color: var(--accent);">
+                  ${this.escapeHTML(handle)}
+                </td>
+                <td style="padding: 8px 12px;">
+                  ${this.escapeHTML(name)}
+                </td>
+                <td style="padding: 8px 12px;">
+                  <span style="font-size: 11px; padding: 2px 7px; border-radius: 999px; font-weight: 600; background: ${isWl ? 'var(--ok-bg)' : 'rgba(245, 158, 11, 0.12)'}; color: ${isWl ? 'var(--ok)' : '#f59e0b'}; border: 1px solid currentColor;">
+                    ${isWl ? '● Whitelisted (Active)' : '○ Pending Approval'}
+                  </span>
+                </td>
+                <td style="padding: 8px 12px; text-align: right; white-space: nowrap;">
+                  ${isWl ? `
+                    <button type="button" class="btn-adm-tg-action btn-ambient-action" data-handle="${this.escapeHTML(handle)}" data-name="${this.escapeHTML(name)}" data-action="revoke" style="font-size: 11.5px; padding: 4px 10px; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35);">
+                      ✕ Revoke
+                    </button>
+                  ` : `
+                    <button type="button" class="btn-adm-tg-action btn-primary-action" data-handle="${this.escapeHTML(handle)}" data-name="${this.escapeHTML(name)}" data-action="whitelist" style="font-size: 11.5px; padding: 4px 12px; font-weight: 600;">
+                      🔓 Whitelist for YouTube
+                    </button>
+                  `}
+                </td>
+              </tr>
+            `;
+          }).join("");
 
-        // Bind toggle buttons
-        const toggleBtns = tbody.querySelectorAll(".btn-wl-toggle");
-        toggleBtns.forEach(btn => {
-          btn.addEventListener("click", async () => {
-            const handle = btn.dataset.handle;
-            await window.PORTFOLIO_DB.toggleWhitelistStatus(handle);
-            this.loadAndRenderWhitelist();
-          });
-        });
+          // Bind 1-click whitelist/revoke action buttons
+          const tgActionBtns = tgTbody.querySelectorAll(".btn-adm-tg-action");
+          tgActionBtns.forEach(btn => {
+            btn.addEventListener("click", async () => {
+              const handle = btn.dataset.handle;
+              const name = btn.dataset.name;
+              const action = btn.dataset.action;
 
-        // Bind delete buttons
-        const delBtns = tbody.querySelectorAll(".btn-wl-delete");
-        delBtns.forEach(btn => {
-          btn.addEventListener("click", async () => {
-            const handle = btn.dataset.handle;
-            if (confirm(`Remove '${handle}' from the YouTube Whitelist?`)) {
-              await window.PORTFOLIO_DB.removeFromYoutubeWhitelist(handle);
+              btn.disabled = true;
+              btn.textContent = action === "whitelist" ? "Whitelisting..." : "Revoking...";
+
+              if (action === "whitelist") {
+                await window.PORTFOLIO_DB.addToYoutubeWhitelist(handle, name, "Whitelisted Friend");
+                if (typeof showToast === "function") {
+                  showToast(`Whitelisted '${handle}' for YouTube stream!`);
+                }
+              } else {
+                await window.PORTFOLIO_DB.removeFromYoutubeWhitelist(handle);
+                if (typeof showToast === "function") {
+                  showToast(`Revoked YouTube access for '${handle}'.`);
+                }
+              }
               this.loadAndRenderWhitelist();
-            }
+            });
           });
-        });
+        }
       }
 
-      // Bind whitelist form
+      // 2. Render Permanent Whitelist Directory
+      const tbody = document.getElementById("adm-wl-table-body");
+      if (tbody) {
+        const list = await window.PORTFOLIO_DB.getYoutubeWhitelist();
+        if (!list || list.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 14px; color: var(--muted);">No whitelisted friends yet. Use 1-click whitelist above or add below.</td></tr>`;
+        } else {
+          tbody.innerHTML = list.map(item => {
+            const isActive = item.status === "active";
+            return `
+              <tr style="border-bottom: 1px solid var(--rule-light);">
+                <td style="padding: 8px 12px; font-family: var(--mono); font-weight: bold; color: var(--accent);">${this.escapeHTML(item.handle)}</td>
+                <td style="padding: 8px 12px;"><strong>${this.escapeHTML(item.name || item.handle)}</strong></td>
+                <td style="padding: 8px 12px; color: var(--muted);">${this.escapeHTML(item.role || "Friend")}</td>
+                <td style="padding: 8px 12px;">
+                  <span style="font-size: 11px; padding: 2px 7px; border-radius: 999px; font-weight: 600; background: ${isActive ? 'var(--ok-bg)' : 'rgba(239, 68, 68, 0.12)'}; color: ${isActive ? 'var(--ok)' : '#ef4444'}; border: 1px solid currentColor;">
+                    ${isActive ? '● Active (Permanent)' : '○ Revoked'}
+                  </span>
+                </td>
+                <td style="padding: 8px 12px; text-align: right; white-space: nowrap;">
+                  <button type="button" class="btn-wl-toggle btn-secondary-action" data-handle="${this.escapeHTML(item.handle)}" style="font-size: 11px; padding: 3px 8px; margin-right: 4px;">
+                    ${isActive ? 'Revoke' : 'Activate'}
+                  </button>
+                  <button type="button" class="btn-wl-delete btn-ambient-action" data-handle="${this.escapeHTML(item.handle)}" style="font-size: 11px; padding: 3px 8px; color: #ef4444;">
+                    ✕ Remove
+                  </button>
+                </td>
+              </tr>
+            `;
+          }).join("");
+
+          // Bind toggle buttons
+          const toggleBtns = tbody.querySelectorAll(".btn-wl-toggle");
+          toggleBtns.forEach(btn => {
+            btn.addEventListener("click", async () => {
+              const handle = btn.dataset.handle;
+              await window.PORTFOLIO_DB.toggleWhitelistStatus(handle);
+              this.loadAndRenderWhitelist();
+            });
+          });
+
+          // Bind delete buttons
+          const delBtns = tbody.querySelectorAll(".btn-wl-delete");
+          delBtns.forEach(btn => {
+            btn.addEventListener("click", async () => {
+              const handle = btn.dataset.handle;
+              if (confirm(`Remove '${handle}' from the YouTube Whitelist?`)) {
+                await window.PORTFOLIO_DB.removeFromYoutubeWhitelist(handle);
+                this.loadAndRenderWhitelist();
+              }
+            });
+          });
+        }
+      }
+
+      // 3. Bind manual whitelist form
       const wlForm = document.getElementById("adm-whitelist-form");
       if (wlForm && !wlForm.dataset.bound) {
         wlForm.dataset.bound = "true";
@@ -1431,7 +1529,7 @@ window.PORTFOLIO_ADMIN = {
           const role = roleInput ? roleInput.value.trim() : "";
           if (!handle) return;
 
-          await window.PORTFOLIO_DB.addToYoutubeWhitelist(handle, name, role);
+          await window.PORTFOLIO_DB.addToYoutubeWhitelist(handle, name, role || "Whitelisted Friend");
           if (handleInput) handleInput.value = "";
           if (nameInput) nameInput.value = "";
           if (roleInput) roleInput.value = "";

@@ -29,22 +29,6 @@ window.PORTFOLIO_DB = {
     { handle: "iitp-mate", name: "IIT Patna Classmate", role: "MCA Classmate", addedAt: "2026-10-15", status: "active" }
   ],
 
-  // Authorized Friends Catalog (ID + Password credentials issued by Saurav)
-  AUTHORIZED_FRIENDS: [
-    { username: "saurav", password: "HAL2026", name: "Saurav Pandey", role: "Host / Admin" },
-    { username: "hal-friend", password: "HAL2026", name: "HAL Avionics Colleague", role: "HAL Colleague" },
-    { username: "hal-colleague", password: "AVIONICS2026", name: "HAL Avionics Colleague", role: "HAL Colleague" },
-    { username: "iitp-mate", password: "IITP2026", name: "IIT Patna Classmate", role: "MCA Classmate" },
-    { username: "iiit-mate", password: "IIIT2026", name: "IIIT Ranchi Classmate", role: "MCA Classmate" },
-    { username: "aman", password: "IITP2026", name: "Aman K. (IITP)", role: "Study Partner" },
-    { username: "rohan", password: "FRIENDS2026", name: "Rohan V.", role: "VIP Friend" },
-    { username: "priya", password: "GOPALGANJ2026", name: "Priya S.", role: "Hometown Peer" },
-    { username: "vip-friend", password: "VIP2026", name: "VIP Friend", role: "Close Friends" },
-    { username: "study-group", password: "STUDY2026", name: "Study Group Member", role: "Study Circle" },
-    { username: "bihar-peer", password: "BIHAR2026", name: "Gopalganj Peer", role: "Bihar Circle" },
-    { username: "dev-peer", password: "DEV2026", name: "Dev Collaborator", role: "Collaborator" }
-  ],
-
   // Authorized Master Pass Catalog (Pre-seeded passes issued by Saurav)
   AUTHORIZED_PASSES: [
     { key: "SP-HAL-2026", label: "HAL Avionics Department Pass", issuedTo: "HAL Colleagues" },
@@ -162,27 +146,11 @@ window.PORTFOLIO_DB = {
     return this.readyPromise;
   },
 
-  // Seed default master passes, friend credentials, YouTube whitelist, and initial scores
+  // Seed default master passes, YouTube whitelist, and clean initial scores
   async seedDefaultData() {
     if (!this.db) return;
 
     try {
-      // Seed friend accounts
-      if (this.db.objectStoreNames.contains("friend_accounts")) {
-        const accTx = this.db.transaction("friend_accounts", "readwrite");
-        const accStore = accTx.objectStore("friend_accounts");
-        for (const f of this.AUTHORIZED_FRIENDS) {
-          accStore.put({
-            username: f.username.toLowerCase(),
-            password: f.password.toUpperCase(),
-            name: f.name,
-            role: f.role,
-            status: "active",
-            createdAt: "2026-10-01"
-          });
-        }
-      }
-
       // Seed YouTube Whitelist (Permanent, No Expiry)
       if (this.db.objectStoreNames.contains("youtube_whitelist")) {
         const wlTx = this.db.transaction("youtube_whitelist", "readwrite");
@@ -242,15 +210,6 @@ window.PORTFOLIO_DB = {
 
   seedLocalStorage() {
     try {
-      if (!localStorage.getItem("portfolio_db_friend_accounts")) {
-        localStorage.setItem("portfolio_db_friend_accounts", JSON.stringify(this.AUTHORIZED_FRIENDS.map(f => ({
-          username: f.username.toLowerCase(),
-          password: f.password.toUpperCase(),
-          name: f.name,
-          role: f.role,
-          status: "active"
-        }))));
-      }
       if (!localStorage.getItem("portfolio_youtube_whitelist")) {
         localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(this.INITIAL_YOUTUBE_WHITELIST.map(w => ({
           handle: w.handle.toLowerCase(),
@@ -388,213 +347,109 @@ window.PORTFOLIO_DB = {
   },
 
   // =========================================================================
-  // FRIEND CREDENTIALS (ID + PASSWORD) & SESSION MANAGEMENT
+  // TELEGRAM USERS DIRECTORY & WHITELIST REGISTRY
   // =========================================================================
-  async verifyFriendCredentials(username, password) {
-    if (!username || !password) {
-      return { valid: false, reason: "Friend ID and Password are both required." };
-    }
+  async getAllTelegramUsers() {
     await this.init();
+    const usersMap = new Map();
 
-    const cleanUser = String(username).trim().toLowerCase();
-    const cleanPass = String(password).trim().toUpperCase();
-
-    // 1. Check pre-seeded AUTHORIZED_FRIENDS catalog
-    const matched = this.AUTHORIZED_FRIENDS.find(f => 
-      f.username.toLowerCase() === cleanUser && 
-      (f.password.toUpperCase() === cleanPass || f.password.toUpperCase().replace(/-/g, "") === cleanPass.replace(/-/g, ""))
-    );
-    if (matched) {
-      return { valid: true, friend: matched };
+    // 1. Known friends & initial whitelist contacts
+    for (const w of this.INITIAL_YOUTUBE_WHITELIST) {
+      if (w.handle) {
+        const cleanHandle = w.handle.toLowerCase();
+        usersMap.set(cleanHandle, {
+          telegramId: cleanHandle.startsWith("@") ? cleanHandle : "@" + cleanHandle,
+          displayName: w.name,
+          role: w.role || "Friend",
+          isWhitelisted: w.status === "active",
+          lastLogin: null,
+          source: "whitelist"
+        });
+      }
     }
 
-    // 2. Check IndexedDB friend_accounts
-    if (this.db && this.db.objectStoreNames.contains("friend_accounts")) {
-      const dbMatch = await new Promise((resolve) => {
-        try {
-          const tx = this.db.transaction("friend_accounts", "readonly");
-          const store = tx.objectStore("friend_accounts");
-          const req = store.get(cleanUser);
-          req.onsuccess = () => {
-            const acc = req.result;
-            if (acc && acc.status === "active" && acc.password.toUpperCase() === cleanPass) {
-              resolve(acc);
-            } else {
-              resolve(null);
-            }
-          };
-          req.onerror = () => resolve(null);
-        } catch (e) {
-          resolve(null);
+    // 2. From IndexedDB telegram_sessions
+    if (this.db && this.db.objectStoreNames.contains("telegram_sessions")) {
+      try {
+        const fromDb = await new Promise((resolve) => {
+          const tx = this.db.transaction("telegram_sessions", "readonly");
+          const req = tx.objectStore("telegram_sessions").getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve([]);
+        });
+        for (const u of fromDb) {
+          if (u.telegramId) {
+            const clean = u.telegramId.toLowerCase();
+            const existing = usersMap.get(clean) || {};
+            usersMap.set(clean, { ...existing, ...u, source: "session" });
+          }
         }
-      });
-      if (dbMatch) return { valid: true, friend: dbMatch };
-    }
-
-    // 3. Check LocalStorage fallback
-    try {
-      const stored = JSON.parse(localStorage.getItem("portfolio_db_friend_accounts") || "[]");
-      const found = stored.find(f => f.username.toLowerCase() === cleanUser && f.password.toUpperCase() === cleanPass && f.status === "active");
-      if (found) return { valid: true, friend: found };
-    } catch (e) {}
-
-  },
-
-  async getFriendAccount(username) {
-    if (!username) return null;
-    const clean = String(username).trim().toLowerCase();
-    const pre = this.AUTHORIZED_FRIENDS.find(f => f.username.toLowerCase() === clean);
-    if (pre) return pre;
-    await this.init();
-    if (this.db && this.db.objectStoreNames.contains("friend_accounts")) {
-      const fromDb = await new Promise(resolve => {
-        try {
-          const tx = this.db.transaction("friend_accounts", "readonly");
-          const req = tx.objectStore("friend_accounts").get(clean);
-          req.onsuccess = () => resolve(req.result || null);
-          req.onerror = () => resolve(null);
-        } catch (e) { resolve(null); }
-      });
-      if (fromDb) return fromDb;
-    }
-    try {
-      const stored = JSON.parse(localStorage.getItem("portfolio_db_friend_accounts") || "[]");
-      return stored.find(f => f.username.toLowerCase() === clean) || null;
-    } catch (e) { return null; }
-  },
-
-  async registerFriendAccount(username, password, name = "", telegramHandle = "") {
-    if (!username || !password) {
-      return { success: false, reason: "Username and password are required." };
-    }
-    const cleanUser = String(username).trim().toLowerCase();
-    const cleanPass = String(password).trim().toUpperCase();
-    const cleanName = (name && String(name).trim()) ? String(name).trim().slice(0, 32) : cleanUser;
-    const cleanTg = telegramHandle ? String(telegramHandle).trim() : "";
-
-    if (cleanUser.length < 3) {
-      return { success: false, reason: "Username must be at least 3 characters." };
-    }
-    if (cleanPass.length < 3) {
-      return { success: false, reason: "Password must be at least 3 characters." };
-    }
-
-    await this.init();
-
-    // Check if username already exists
-    const existing = await this.getFriendAccount(cleanUser);
-    if (existing) {
-      return { success: false, reason: "Username is already taken. Please pick another." };
-    }
-
-    const account = {
-      username: cleanUser,
-      password: cleanPass,
-      name: cleanName,
-      telegramHandle: cleanTg,
-      role: "Friend",
-      status: "active",
-      createdAt: new Date().toISOString()
-    };
-
-    // 1. Save in IndexedDB
-    if (this.db && this.db.objectStoreNames.contains("friend_accounts")) {
-      try {
-        const tx = this.db.transaction("friend_accounts", "readwrite");
-        tx.objectStore("friend_accounts").put(account);
       } catch (e) {}
     }
 
-    // 2. Save in LocalStorage fallback
+    // 3. From localStorage portfolio_all_telegram_users
     try {
-      const stored = JSON.parse(localStorage.getItem("portfolio_db_friend_accounts") || "[]");
-      const idx = stored.findIndex(a => a.username.toLowerCase() === cleanUser);
-      if (idx >= 0) stored[idx] = account;
-      else stored.push(account);
-      localStorage.setItem("portfolio_db_friend_accounts", JSON.stringify(stored));
-    } catch (e) {}
-
-    // Auto-whitelist newly registered friends for YouTube
-    await this.addToYoutubeWhitelist(cleanUser, cleanName, "Friend");
-    if (cleanTg) {
-      await this.addToYoutubeWhitelist(cleanTg, cleanName, "Friend");
-    }
-
-    return { success: true, account };
-  },
-
-  async activateFriendSession(username, password, displayName) {
-    const check = await this.verifyFriendCredentials(username, password);
-    if (!check.valid) return check;
-
-    const friend = check.friend;
-    const finalName = (displayName && displayName.trim()) 
-      ? displayName.trim().slice(0, 24) 
-      : (friend.name || friend.username);
-
-    try {
-      localStorage.setItem("portfolio_friend_authenticated", "true");
-      localStorage.setItem("portfolio_friend_username", friend.username);
-      localStorage.setItem("portfolio_friend_name", finalName);
-      localStorage.setItem("portfolio_friend_role", friend.role || "Friend");
-      localStorage.setItem("portfolio_friend_pass", "true"); // legacy compatibility
-      localStorage.setItem("portfolio_access_pass", friend.password); // legacy compatibility
-    } catch (e) {}
-
-    // Record login time in IndexedDB
-    if (this.db && this.db.objectStoreNames.contains("friend_accounts")) {
-      try {
-        const tx = this.db.transaction("friend_accounts", "readwrite");
-        const store = tx.objectStore("friend_accounts");
-        const getReq = store.get(friend.username);
-        getReq.onsuccess = () => {
-          const record = getReq.result || { username: friend.username };
-          record.lastLoginAt = new Date().toISOString();
-          record.lastDisplayName = finalName;
-          try { store.put(record); } catch (err) {}
-        };
-      } catch (e) {}
-    }
-
-    return { valid: true, friend, name: finalName };
-  },
-
-  getActiveFriendSession() {
-    try {
-      const isAuth = localStorage.getItem("portfolio_friend_authenticated") === "true";
-      const username = localStorage.getItem("portfolio_friend_username");
-      const name = localStorage.getItem("portfolio_friend_name");
-      const role = localStorage.getItem("portfolio_friend_role");
-      if (isAuth && username) {
-        return {
-          username,
-          name: name || username,
-          role: role || "Friend",
-          isAuthenticated: true
-        };
+      const raw = localStorage.getItem("portfolio_all_telegram_users");
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list)) {
+          for (const u of list) {
+            if (u.telegramId) {
+              const clean = u.telegramId.toLowerCase();
+              const existing = usersMap.get(clean) || {};
+              usersMap.set(clean, { ...existing, ...u });
+            }
+          }
+        }
       }
     } catch (e) {}
-    return null;
-  },
 
-  revokeFriendSession() {
+    // 4. Current session user
     try {
-      localStorage.removeItem("portfolio_friend_authenticated");
-      localStorage.removeItem("portfolio_friend_username");
-      localStorage.removeItem("portfolio_friend_name");
-      localStorage.removeItem("portfolio_friend_role");
-      localStorage.removeItem("portfolio_friend_pass");
-      localStorage.removeItem("portfolio_access_pass");
+      const single = localStorage.getItem("portfolio_telegram_user");
+      if (single) {
+        const u = JSON.parse(single);
+        if (u.telegramId) {
+          const clean = u.telegramId.toLowerCase();
+          const existing = usersMap.get(clean) || {};
+          usersMap.set(clean, { ...existing, ...u });
+        }
+      }
     } catch (e) {}
+
+    // Check whitelist status for all aggregated users
+    const whitelist = await this.getYoutubeWhitelist();
+    const wlMap = new Map();
+    for (const w of whitelist) {
+      if (w.handle) {
+        wlMap.set(w.handle.toLowerCase(), w.status === "active");
+        const noAt = w.handle.replace(/^@/, "").toLowerCase();
+        wlMap.set(noAt, w.status === "active");
+      }
+    }
+
+    const result = Array.from(usersMap.values()).map(u => {
+      const clean = (u.telegramId || "").toLowerCase();
+      const noAt = clean.replace(/^@/, "");
+      const isWl = wlMap.has(clean) ? wlMap.get(clean) : (wlMap.has(noAt) ? wlMap.get(noAt) : false);
+      return {
+        ...u,
+        isWhitelisted: isWl || u.isWhitelisted || (clean === "@5auravpandey" || clean === "saurav")
+      };
+    });
+
+    return result;
   },
 
   getActivePass() {
-    const friendSession = this.getActiveFriendSession();
-    if (friendSession) {
+    const session = (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function") 
+      ? window.PORTFOLIO_AUTH.getSession() 
+      : null;
+    if (session) {
       return {
-        key: friendSession.username,
-        name: friendSession.name,
-        role: friendSession.role
+        key: session.telegramId || session.username,
+        name: session.displayName,
+        role: session.role
       };
     }
     try {
@@ -609,7 +464,9 @@ window.PORTFOLIO_DB = {
   },
 
   revokeCurrentSession() {
-    this.revokeFriendSession();
+    if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.logout === "function") {
+      window.PORTFOLIO_AUTH.logout();
+    }
   },
 
   // =========================================================================
@@ -1532,61 +1389,6 @@ window.PORTFOLIO_AUTH = {
     };
   },
 
-  async loginWithFriendCredentials(username, password, displayName = "") {
-    if (!window.PORTFOLIO_DB) {
-      return { success: false, reason: "Database initializing..." };
-    }
-    const check = await window.PORTFOLIO_DB.verifyFriendCredentials(username, password);
-    if (!check.valid) {
-      return { success: false, reason: check.reason || "Invalid Friend ID or Password." };
-    }
-
-    const friend = check.friend;
-    const finalName = (displayName && displayName.trim())
-      ? displayName.trim().slice(0, 32)
-      : (friend.name || friend.username);
-
-    const now = Date.now();
-    const expiresAt = now + this.RETENTION_MS;
-
-    // Check YouTube Whitelist
-    const wlCheck = await window.PORTFOLIO_DB.isWhitelistedForYouTube(friend.username);
-    const isWhitelisted = wlCheck.whitelisted || true;
-
-    const session = {
-      type: "friend",
-      telegramId: friend.username.startsWith("@") ? friend.username : `@${friend.username}`,
-      username: friend.username,
-      displayName: finalName,
-      isVerifiedTelegram: false,
-      isWhitelistedYouTube: isWhitelisted,
-      isOwner: friend.username.toLowerCase() === "saurav",
-      role: friend.role || "Friend",
-      lastLogin: now,
-      expiresAt: expiresAt,
-      daysRemaining: 7
-    };
-
-    this.saveSession(session);
-    this.emitAuthChanged(session);
-
-    return {
-      success: true,
-      session
-    };
-  },
-
-  async signupWithFriendCredentials(username, password, name = "", telegramHandle = "") {
-    if (!window.PORTFOLIO_DB) {
-      return { success: false, reason: "Database initializing..." };
-    }
-    const res = await window.PORTFOLIO_DB.registerFriendAccount(username, password, name, telegramHandle);
-    if (!res.success) {
-      return res;
-    }
-    return this.loginWithFriendCredentials(username, password, name);
-  },
-
   async renewSession() {
     const session = this.getSession();
     if (!session) return { success: false, reason: "No active session to renew." };
@@ -1632,6 +1434,42 @@ window.PORTFOLIO_AUTH = {
           expiresAt: session.expiresAt
         }));
         localStorage.setItem("portfolio_user_telegram", session.telegramId);
+
+        // Record in portfolio_all_telegram_users for Admin Panel 1-click whitelist
+        try {
+          const rawAll = localStorage.getItem("portfolio_all_telegram_users");
+          let allUsers = rawAll ? JSON.parse(rawAll) : [];
+          if (!Array.isArray(allUsers)) allUsers = [];
+          const idx = allUsers.findIndex(u => (u.telegramId || "").toLowerCase() === session.telegramId.toLowerCase());
+          const userRecord = {
+            telegramId: session.telegramId,
+            displayName: session.displayName,
+            lastLogin: session.lastLogin,
+            expiresAt: session.expiresAt,
+            role: session.role || "Friend",
+            isWhitelisted: session.isWhitelistedYouTube || false
+          };
+          if (idx >= 0) {
+            allUsers[idx] = { ...allUsers[idx], ...userRecord };
+          } else {
+            allUsers.unshift(userRecord);
+          }
+          localStorage.setItem("portfolio_all_telegram_users", JSON.stringify(allUsers));
+        } catch (e) {}
+
+        // Record in IndexedDB telegram_sessions
+        if (window.PORTFOLIO_DB && window.PORTFOLIO_DB.db && window.PORTFOLIO_DB.db.objectStoreNames.contains("telegram_sessions")) {
+          try {
+            const tx = window.PORTFOLIO_DB.db.transaction("telegram_sessions", "readwrite");
+            tx.objectStore("telegram_sessions").put({
+              telegramId: session.telegramId,
+              displayName: session.displayName,
+              lastLogin: session.lastLogin,
+              expiresAt: session.expiresAt,
+              role: session.role || "Friend"
+            });
+          } catch (e) {}
+        }
       }
       if (session.displayName) {
         localStorage.setItem("portfolio_friend_name", session.displayName);
@@ -1648,17 +1486,9 @@ window.PORTFOLIO_AUTH = {
     window.dispatchEvent(new CustomEvent("portfolio:auth-changed", { detail: session }));
   },
 
-  _activeDialogTab: "telegram",
-
-  openLoginDialog(tab = "telegram") {
+  openLoginDialog() {
     const dialog = document.getElementById("unified-login-dialog");
     if (!dialog) return;
-
-    if (tab === "signup" || tab === "login" || tab === "telegram") {
-      this._activeDialogTab = tab;
-    } else {
-      this._activeDialogTab = "telegram";
-    }
 
     this.renderDialogContent();
     try {
@@ -1735,7 +1565,7 @@ window.PORTFOLIO_AUTH = {
               <span class="status-icon">${session.isWhitelistedYouTube ? '🎧' : '🔒'}</span>
               <div>
                 <strong>YouTube Focus Stream</strong>
-                <div class="auth-status-sub">${session.isWhitelistedYouTube ? 'Permanent Unlocked Access' : 'Whitelist Required'}</div>
+                <div class="auth-status-sub">${session.isWhitelistedYouTube ? 'Permanent Unlocked Access' : 'Whitelist Approval Required'}</div>
               </div>
             </div>
             ${!session.isWhitelistedYouTube ? `
@@ -1761,93 +1591,35 @@ window.PORTFOLIO_AUTH = {
         </div>
       `;
     } else {
-      // User is LOGGED OUT -> Concise 3 Tabs (Telegram, Log In, Sign Up)
-      const tab = this._activeDialogTab || "telegram";
+      // User is LOGGED OUT -> Clean, concise Telegram Login only
       body.innerHTML = `
         <div class="auth-login-view">
-          <div class="auth-tabs-row" role="tablist">
-            <button type="button" id="tab-btn-tg" class="auth-tab-btn ${tab === 'telegram' ? 'active' : ''}" role="tab">
-              ✈️ Telegram
-            </button>
-            <button type="button" id="tab-btn-login" class="auth-tab-btn ${tab === 'login' ? 'active' : ''}" role="tab">
-              🔑 Log In
-            </button>
-            <button type="button" id="tab-btn-signup" class="auth-tab-btn ${tab === 'signup' ? 'active' : ''}" role="tab">
-              ✨ Sign Up
-            </button>
-          </div>
-
-          <!-- Tab 1: Telegram -->
-          <div id="tab-panel-tg" class="auth-tab-panel" style="display: ${tab === 'telegram' ? 'block' : 'none'};">
-            <p class="auth-tab-desc">Connect Telegram to retain arcade scores for 7 days.</p>
-            
-            <form id="form-tg-connect" class="auth-form-clean">
-              <div class="auth-field">
-                <label for="input-tg-handle">Telegram Username / Handle:</label>
-                <input type="text" id="input-tg-handle" class="focus-input" placeholder="@your_handle" required style="font-family: var(--mono);" maxlength="32">
-              </div>
-              <div id="tg-connect-error" class="auth-error-msg" style="display: none;"></div>
-              <button type="submit" id="btn-tg-connect-submit" class="btn-primary-action" style="width: 100%; padding: 9px; font-weight: 600;">
-                ✈️ Connect Telegram
-              </button>
-            </form>
-
-            <div class="auth-divider"><span>OR 1-CLICK BOT WIDGET</span></div>
-            <div id="unified-tg-widget-mount" class="unified-tg-mount">
-              <span class="tg-loading-spinner">Connecting to @SauravPandeyBot...</span>
+          <div style="text-align: center; margin-bottom: 16px;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); color: var(--accent); background: var(--accent-soft); padding: 3px 10px; border-radius: 999px; margin-bottom: 8px;">
+              ✈️ @SauravPandeyBot
             </div>
+            <h4 style="margin: 4px 0 4px; font-size: 16px; font-weight: 600;">Sign In with Telegram</h4>
+            <p class="auth-tab-desc" style="margin: 0; font-size: 12.5px;">Retain arcade scores for 7 days &amp; access whitelisted YouTube stream.</p>
           </div>
 
-          <!-- Tab 2: Friend Log In -->
-          <div id="tab-panel-login" class="auth-tab-panel" style="display: ${tab === 'login' ? 'block' : 'none'};">
-            <p class="auth-tab-desc">Enter your Friend ID and Password to unlock YouTube stream.</p>
-            
-            <form id="form-friend-login" class="auth-form-clean">
-              <div class="auth-field">
-                <label for="login-username">Friend ID / Username:</label>
-                <input type="text" id="login-username" class="focus-input" placeholder="e.g. saurav, aman..." required autocomplete="username" style="font-family: var(--mono);" maxlength="32">
-              </div>
-              <div class="auth-field">
-                <label for="login-password">Password:</label>
-                <input type="password" id="login-password" class="focus-input" placeholder="Enter password" required autocomplete="current-password" style="font-family: var(--mono);" maxlength="32">
-              </div>
-              <div id="login-error-msg" class="auth-error-msg" style="display: none;"></div>
-              <button type="submit" id="btn-login-submit" class="btn-primary-action" style="width: 100%; padding: 9px; font-weight: 600;">
-                🔓 Log In
-              </button>
-            </form>
-          </div>
+          <form id="form-tg-connect" class="auth-form-clean">
+            <div class="auth-field">
+              <label for="input-tg-handle">Telegram Username / Handle:</label>
+              <input type="text" id="input-tg-handle" class="focus-input" placeholder="@your_handle" required style="font-family: var(--mono);" maxlength="32">
+            </div>
+            <div id="tg-connect-error" class="auth-error-msg" style="display: none;"></div>
+            <button type="submit" id="btn-tg-connect-submit" class="btn-primary-action" style="width: 100%; padding: 9px; font-weight: 600;">
+              ✈️ Connect Telegram
+            </button>
+          </form>
 
-          <!-- Tab 3: Friend Sign Up -->
-          <div id="tab-panel-signup" class="auth-tab-panel" style="display: ${tab === 'signup' ? 'block' : 'none'};">
-            <p class="auth-tab-desc">Register a friend account to unlock YouTube focus stream.</p>
-            
-            <form id="form-friend-signup" class="auth-form-clean">
-              <div class="auth-field">
-                <label for="signup-username">Choose Username:</label>
-                <input type="text" id="signup-username" class="focus-input" placeholder="At least 3 characters" required autocomplete="username" style="font-family: var(--mono);" maxlength="32">
-              </div>
-              <div class="auth-field">
-                <label for="signup-password">Choose Password:</label>
-                <input type="password" id="signup-password" class="focus-input" placeholder="At least 3 characters" required autocomplete="new-password" style="font-family: var(--mono);" maxlength="32">
-              </div>
-              <div class="auth-field">
-                <label for="signup-name">Display Name (Optional):</label>
-                <input type="text" id="signup-name" class="focus-input" placeholder="e.g. Alex" maxlength="32">
-              </div>
-              <div class="auth-field">
-                <label for="signup-telegram">Telegram Handle (Optional):</label>
-                <input type="text" id="signup-telegram" class="focus-input" placeholder="@your_handle" style="font-family: var(--mono);" maxlength="32">
-              </div>
-              <div id="signup-error-msg" class="auth-error-msg" style="display: none;"></div>
-              <button type="submit" id="btn-signup-submit" class="btn-primary-action" style="width: 100%; padding: 9px; font-weight: 600;">
-                ✨ Create Account &amp; Unlock
-              </button>
-            </form>
+          <div class="auth-divider"><span>OR 1-CLICK BOT WIDGET</span></div>
+          <div id="unified-tg-widget-mount" class="unified-tg-mount" style="display: flex; justify-content: center; min-height: 44px; align-items: center;">
+            <span class="tg-loading-spinner" style="font-size: 12px; color: var(--muted);">Loading widget...</span>
           </div>
 
           <div class="auth-footer-clean">
-            <span>Melodic soundscapes and games remain free without login.</span>
+            <span>Melodic soundscapes and arcade games remain free without login.</span>
           </div>
         </div>
       `;
@@ -1871,7 +1643,7 @@ window.PORTFOLIO_AUTH = {
       script.setAttribute("data-request-access", "write");
       mount.appendChild(script);
     } catch (e) {
-      mount.innerHTML = '<span style="font-size: 12px; color: var(--muted);">Use manual input above</span>';
+      mount.innerHTML = '<span style="font-size: 12px; color: var(--muted);">Use manual handle input above</span>';
     }
   },
 
@@ -1904,29 +1676,7 @@ window.PORTFOLIO_AUTH = {
       }
     }
 
-    // Tab Switching
-    const tabTg = document.getElementById("tab-btn-tg");
-    const tabLogin = document.getElementById("tab-btn-login");
-    const tabSignup = document.getElementById("tab-btn-signup");
-    const panelTg = document.getElementById("tab-panel-tg");
-    const panelLogin = document.getElementById("tab-panel-login");
-    const panelSignup = document.getElementById("tab-panel-signup");
-
-    const switchTab = (tab) => {
-      this._activeDialogTab = tab;
-      if (tabTg) tabTg.classList.toggle("active", tab === "telegram");
-      if (tabLogin) tabLogin.classList.toggle("active", tab === "login");
-      if (tabSignup) tabSignup.classList.toggle("active", tab === "signup");
-      if (panelTg) panelTg.style.display = tab === "telegram" ? "block" : "none";
-      if (panelLogin) panelLogin.style.display = tab === "login" ? "block" : "none";
-      if (panelSignup) panelSignup.style.display = tab === "signup" ? "block" : "none";
-    };
-
-    if (tabTg) tabTg.onclick = () => switchTab("telegram");
-    if (tabLogin) tabLogin.onclick = () => switchTab("login");
-    if (tabSignup) tabSignup.onclick = () => switchTab("signup");
-
-    // Form 1: Telegram Handle Connect
+    // Form: Telegram Handle Connect
     const tgForm = document.getElementById("form-tg-connect");
     if (tgForm) {
       tgForm.onsubmit = async (e) => {
@@ -1957,7 +1707,8 @@ window.PORTFOLIO_AUTH = {
 
         if (res.success) {
           if (typeof showToast === "function") {
-            showToast(`Connected as ${res.session.telegramId}! Scores retained for 7 days.`);
+            const wlNote = res.session.isWhitelistedYouTube ? " (YouTube Unlocked!)" : "";
+            showToast(`Connected as ${res.session.telegramId}! Scores retained for 7 days${wlNote}.`);
           }
           this.renderDialogContent();
           this.bindDialogEvents();
