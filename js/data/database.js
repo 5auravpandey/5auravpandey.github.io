@@ -39,9 +39,7 @@ window.PORTFOLIO_DB = {
     { key: "GOPALGANJ", label: "Gopalganj Bihar Study Pass", issuedTo: "Hometown Peers" },
     { key: "SP-AVIONICS-DEV", label: "Avionics Dev Lab Pass", issuedTo: "Dev Collaborators" },
     { key: "DEV", label: "Avionics Dev Lab Pass", issuedTo: "Dev Collaborators" },
-    { key: "STUDY", label: "Synchronized Study Group Pass", issuedTo: "Study Group" },
-    { key: "SAURAV", label: "Master Administrator Pass", issuedTo: "Saurav Pandey" },
-    { key: "SP-MASTER-ACCESS", label: "Master Administrator Pass", issuedTo: "Saurav Pandey" }
+    { key: "STUDY", label: "Synchronized Study Group Pass", issuedTo: "Study Group" }
   ],
 
   init() {
@@ -444,8 +442,8 @@ window.PORTFOLIO_DB = {
       const uid = u.telegramUserId ? String(u.telegramUserId).trim() : "";
       const isOwner = (
         clean === "@sauravpandey" || clean === "sauravpandey" || 
-        clean === "@5auravpandey" || clean === "saurav" || 
-        uid === "6639686782" || uid === "7044498519"
+        clean === "@5auravpandey" || clean === "5auravpandey" || 
+        uid === "6639686782"
       );
 
       let isWl = false;
@@ -1165,10 +1163,8 @@ window.PORTFOLIO_DB = {
     // Immediate master owner bypass
     if (
       cleanUserId === "6639686782" ||
-      cleanUserId === "7044498519" ||
       withoutAt === "sauravpandey" ||
-      withoutAt === "5auravpandey" ||
-      withoutAt === "saurav"
+      withoutAt === "5auravpandey"
     ) {
       return {
         whitelisted: true,
@@ -1516,8 +1512,7 @@ window.PORTFOLIO_DB = {
 window.PORTFOLIO_AUTH = {
   BOT_USERNAME: "SauravPandeyBot",
   BOT_ID: "7044498519",
-  // Precomputed SHA-256 digest of bot token: SHA256("7044498519:AAFC_b4HTDBmRMCfg-DBjzeyLbiWLAFSn00")
-  // Using one-way secret key digest prevents bot token leakage in client-side code
+  // One-way SHA-256 digest for client-side Telegram widget verification
   BOT_SECRET_KEY_HEX: "5daa4e066fe5b985c4b981667b4ec09a95dc6d94ba62817ef35d3ca3026b627f",
   STORAGE_SESSION_KEY: "portfolio_unified_session",
   RETENTION_MS: 7 * 24 * 60 * 60 * 1000,
@@ -1629,14 +1624,11 @@ window.PORTFOLIO_AUTH = {
       const daysRemaining = Math.max(0, Math.ceil(((session.expiresAt || (now + this.RETENTION_MS)) - now) / (24 * 60 * 60 * 1000)));
       const uid = session.telegramUserId ? String(session.telegramUserId).trim() : "";
       const uname = (session.username || session.telegramId || "").toLowerCase().replace(/^@/, "").replace(/^id:\s*/i, "");
-      const isOwner = (
-        session.isOwner === true ||
-        uid === "6639686782" ||
-        uid === "7044498519" ||
-        uname === "sauravpandey" ||
-        uname === "5auravpandey" ||
-        uname === "saurav" ||
-        uname === "6639686782"
+      const isOwner = Boolean(
+        session.isOwner === true &&
+        (uid === "6639686782" ||
+         uname === "sauravpandey" ||
+         uname === "5auravpandey")
       );
       return {
         ...session,
@@ -1705,15 +1697,18 @@ window.PORTFOLIO_AUTH = {
     }
 
     // Owner check (Saurav Pandey)
-    const isOwner = (
+    // ONLY true if verified via genuine Telegram Auth data object AND matches Saurav's ID or username
+    const hasOwnerIdentity = (
       userId === "6639686782" ||
-      userId === "7044498519" ||
       (username && (
         username.toLowerCase() === "sauravpandey" ||
-        username.toLowerCase() === "5auravpandey" ||
-        username.toLowerCase() === "saurav" ||
-        username === "6639686782"
+        username.toLowerCase() === "5auravpandey"
       ))
+    );
+    const isOwner = Boolean(
+      hasOwnerIdentity &&
+      typeof userOrHandle === "object" &&
+      userOrHandle !== null
     );
     if (isOwner) {
       isWhitelisted = true;
@@ -2003,12 +1998,6 @@ window.PORTFOLIO_AUTH = {
             <div id="unified-tg-widget-mount" class="unified-tg-mount" style="min-height: 0;"></div>
           </div>
 
-          <!-- Quick Owner Admin Sign-In Link -->
-          <div style="margin: 4px auto 12px; max-width: 380px; text-align: center;">
-            <button type="button" id="btn-dialog-quick-owner" class="btn-ambient-action" style="font-size: 11.5px; padding: 6px 14px; border-radius: 999px; border: 1px dashed var(--rule); color: var(--muted); cursor: pointer;" title="1-Click Owner Verification">
-              👑 Saurav Pandey? 1-Click Admin Sign-In
-            </button>
-          </div>
 
           <div class="auth-footer-clean" style="margin-top: 14px; padding-top: 12px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--rule-light);">
             <span>Melodic soundscapes and arcade games remain 100% free without login.</span>
@@ -2058,30 +2047,6 @@ window.PORTFOLIO_AUTH = {
       };
     }
 
-    // 1-Click Saurav Pandey Owner Sign-In
-    const quickOwnerBtn = document.getElementById("btn-dialog-quick-owner");
-    if (quickOwnerBtn) {
-      quickOwnerBtn.onclick = async (e) => {
-        e.preventDefault();
-        quickOwnerBtn.disabled = true;
-        quickOwnerBtn.textContent = "Verifying...";
-        await this.loginWithTelegram({
-          id: "6639686782",
-          username: "sauravpandey",
-          first_name: "Saurav",
-          last_name: "Pandey"
-        });
-        this.closeLoginDialog();
-        if (typeof showToast === "function") {
-          showToast("👑 Welcome back Saurav! Administrator Studio unlocked.");
-        }
-        if (typeof window.loadAdminStudio === "function") {
-          window.loadAdminStudio(true);
-        } else if (window.PORTFOLIO_ADMIN) {
-          window.PORTFOLIO_ADMIN.open();
-        }
-      };
-    }
 
     // Light-dismiss fallback
     if (dialog && !dialog._backdropFallbackBound) {

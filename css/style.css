@@ -3856,7 +3856,7 @@ dialog#invite-dialog {
    Admin Studio Navigation Pill
    ========================================================================== */
 .btn-admin-nav-pill {
-  display: inline-flex;
+  display: none; /* Strictly hidden from public visitors; shown only when verified owner logs in */
   align-items: center;
   justify-content: center;
   height: 32px;

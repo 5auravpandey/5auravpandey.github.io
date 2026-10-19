@@ -1657,45 +1657,13 @@ window.PORTFOLIO_PLAYGROUND = {
         break;
 
       case "friend":
-      case "invite":
-        if (!arg1 || !parts[2]) {
-          reply = "🔒 Friend ID and Password required for private YouTube Stream & Study Rooms.\nUsage: friend <username> <password> [display-name]\nExample: friend hal-friend HAL2026 Saurav\nTo request credentials, contact Saurav directly on Telegram (@sauravpandey) or Email (thesauravpandey@outlook.com).";
+      case "login":
+      case "auth":
+        if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.openLoginDialog === "function") {
+          window.PORTFOLIO_AUTH.openLoginDialog();
+          reply = "🔐 Opening Telegram Authentication dialog...\nConnect your Telegram account (@SauravPandeyBot) for verified access.";
         } else {
-          const userInput = arg1.toLowerCase();
-          const passInput = parts[2].toUpperCase();
-          const customName = parts.slice(3).join(" ") || this.friendName || "";
-          if (window.PORTFOLIO_DB) {
-            window.PORTFOLIO_DB.activateFriendSession(userInput, passInput, customName).then(res => {
-              const hist = document.getElementById("terminal-history");
-              const win = document.getElementById("terminal-window");
-              const entry = document.createElement("div");
-              entry.className = "term-entry";
-
-              if (res.valid) {
-                this.isFriend = true;
-                this.friendName = res.name;
-                this.friendUsername = res.friend.username;
-                this.friendRole = res.friend.role;
-                this.activePassKey = res.friend.username.toUpperCase();
-                this.render();
-                const safeName = (typeof window.escapeHTML === "function") ? window.escapeHTML(res.name) : res.name;
-                entry.innerHTML = `
-                  <div class="term-cmd-echo"><span class="terminal-prompt">saurav@gopalganj:~$</span> friend ${userInput} ******</div>
-                  <div class="term-reply">🌟 Verified Friend Authenticated! Welcome, ${safeName} (${res.friend.role})! Private YouTube stream &amp; study rooms unlocked.</div>
-                `;
-              } else {
-                entry.innerHTML = `
-                  <div class="term-cmd-echo"><span class="terminal-prompt">saurav@gopalganj:~$</span> friend ${userInput} ******</div>
-                  <div class="term-reply">❌ Authentication Failed: ${res.reason || "Invalid credentials."}<br>Please request your Friend ID &amp; Password from Saurav on Telegram (@sauravpandey) or Email.</div>
-                `;
-              }
-              if (hist) hist.appendChild(entry);
-              if (win) win.scrollTop = win.scrollHeight;
-            });
-            reply = `Verifying credentials for '${userInput}' against database...`;
-          } else {
-            reply = "⚠️ Database engine initializing...";
-          }
+          reply = "Authentication engine is currently initializing.";
         }
         break;
 

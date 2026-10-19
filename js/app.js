@@ -20,7 +20,7 @@ function sanitizeURL(url) {
   if (!url) return "#";
   const trimmed = String(url).trim();
   if (/^(https?:\/\/|mailto:)/i.test(trimmed)) {
-    return trimmed;
+    return trimmed.replace(/"/g, "%22").replace(/'/g, "%27").replace(/</g, "%3C").replace(/>/g, "%3E");
   }
   return "#";
 }
@@ -74,6 +74,13 @@ document.addEventListener("DOMContentLoaded", () => {
  */
 let adminLoadPromise = null;
 function loadAdminStudio(autoOpen = true) {
+  const session = window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function"
+    ? window.PORTFOLIO_AUTH.getSession()
+    : null;
+  if (!session || !session.isOwner) {
+    return Promise.resolve(null);
+  }
+
   if (window.PORTFOLIO_ADMIN) {
     if (!window.PORTFOLIO_ADMIN.dialog) window.PORTFOLIO_ADMIN.init();
     if (autoOpen) window.PORTFOLIO_ADMIN.open();
@@ -602,12 +609,6 @@ function initUtilities() {
     });
   }
 
-  const footerAdminBtn = document.getElementById("btn-footer-admin");
-  if (footerAdminBtn) {
-    footerAdminBtn.addEventListener("click", () => {
-      loadAdminStudio(true);
-    });
-  }
 }
 
 /**
@@ -820,24 +821,23 @@ function initGlobalAuthUI() {
     const isOwner = Boolean(session && session.isOwner);
 
     if (desktopAdminBtn) {
-      desktopAdminBtn.style.display = "inline-flex";
       if (isOwner) {
-        desktopAdminBtn.innerHTML = `<span>● Admin Studio</span>`;
+        desktopAdminBtn.style.display = "inline-flex";
+        desktopAdminBtn.innerHTML = `<span>👑 Admin Studio</span>`;
         desktopAdminBtn.classList.add("is-owner");
         desktopAdminBtn.title = "👑 Logged in as Saurav Pandey • Open Admin Studio";
       } else {
-        desktopAdminBtn.innerHTML = `<span>⚙️ Admin</span>`;
+        desktopAdminBtn.style.display = "none";
         desktopAdminBtn.classList.remove("is-owner");
-        desktopAdminBtn.title = "Admin Studio & Content Manager";
       }
     }
     if (mobileAdminBtn) {
-      mobileAdminBtn.style.display = "block";
       if (isOwner) {
-        mobileAdminBtn.innerHTML = `<span>● Open Admin Studio (Owner)</span>`;
+        mobileAdminBtn.style.display = "block";
+        mobileAdminBtn.innerHTML = `<span>👑 Open Admin Studio</span>`;
         mobileAdminBtn.classList.add("is-owner");
       } else {
-        mobileAdminBtn.innerHTML = `<span>⚙️ Open Admin Studio</span>`;
+        mobileAdminBtn.style.display = "none";
         mobileAdminBtn.classList.remove("is-owner");
       }
     }
@@ -845,7 +845,7 @@ function initGlobalAuthUI() {
     if (session) {
       const handle = session.telegramId || session.username || "Account";
       const displayShort = handle.length > 14 ? handle.slice(0, 12) + "…" : handle;
-      if (globalLabel) globalLabel.textContent = displayShort;
+      if (globalLabel) globalLabel.textContent = isOwner ? `👑 ${handle}` : displayShort;
       if (mobileLabel) mobileLabel.textContent = `✈️ ${handle} (${session.daysRemaining !== undefined ? session.daysRemaining : 7}d left)`;
       if (desktopAuthBtn) {
         desktopAuthBtn.title = `Connected: ${handle} (${session.displayName}) • Click for Account Center`;
@@ -877,6 +877,12 @@ function initGlobalAuthUI() {
   };
 
   const openAdmin = () => {
+    const session = window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function"
+      ? window.PORTFOLIO_AUTH.getSession()
+      : null;
+    if (!session || !session.isOwner) {
+      return;
+    }
     if (typeof window.closeMobileNav === "function") {
       window.closeMobileNav();
     }
