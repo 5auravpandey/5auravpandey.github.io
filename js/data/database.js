@@ -1223,11 +1223,34 @@ window.PORTFOLIO_DB = {
 // =========================================================================
 window.PORTFOLIO_AUTH = {
   BOT_USERNAME: "SauravPandeyBot",
+  BOT_ID: "7044498519",
   // Precomputed SHA-256 digest of bot token: SHA256("7044498519:AAFC_b4HTDBmRMCfg-DBjzeyLbiWLAFSn00")
   // Using one-way secret key digest prevents bot token leakage in client-side code
   BOT_SECRET_KEY_HEX: "5daa4e066fe5b985c4b981667b4ec09a95dc6d94ba62817ef35d3ca3026b627f",
   STORAGE_SESSION_KEY: "portfolio_unified_session",
   RETENTION_MS: 7 * 24 * 60 * 60 * 1000,
+
+  /**
+   * 1-Click Telegram OAuth popup launcher
+   * Invokes Telegram.Login.auth directly on user click gesture
+   */
+  triggerTelegramLogin() {
+    if (window.Telegram && window.Telegram.Login && typeof window.Telegram.Login.auth === "function") {
+      try {
+        window.Telegram.Login.auth({ bot_id: this.BOT_ID, request_access: "write" }, async (user) => {
+          if (user) {
+            await window.onTelegramAuth(user);
+          }
+        });
+        return true;
+      } catch (err) {
+        console.warn("Telegram auth popup error:", err);
+      }
+    }
+    // Fallback: direct bot link in new tab
+    window.open(`https://t.me/${this.BOT_USERNAME}?start=login`, "_blank", "noopener,noreferrer");
+    return false;
+  },
 
   // Cryptographically verify Telegram Widget HMAC-SHA256 signature using Web Crypto API
   async verifyTelegramWidgetAuth(authData) {
@@ -1591,10 +1614,10 @@ window.PORTFOLIO_AUTH = {
         </div>
       `;
     } else {
-      // User is LOGGED OUT -> ONLY 1-Click Telegram Bot Widget Login
+      // User is LOGGED OUT -> 1-Click Telegram Login + Quick Handle Connect Fallback
       body.innerHTML = `
         <div class="auth-login-view" style="text-align: center; padding: 12px 4px 6px;">
-          <div style="margin-bottom: 22px;">
+          <div style="margin-bottom: 20px;">
             <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); color: var(--accent); background: var(--accent-soft); padding: 4px 12px; border-radius: 999px; margin-bottom: 10px;">
               ✈️ @SauravPandeyBot
             </div>
@@ -1604,14 +1627,35 @@ window.PORTFOLIO_AUTH = {
             </p>
           </div>
 
-          <!-- Official 1-Click Telegram Login Widget Mount -->
-          <div class="auth-widget-container" style="background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 28px 16px; margin: 0 auto 16px; max-width: 380px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 108px; box-shadow: var(--shadow-sm);">
-            <div id="unified-tg-widget-mount" class="unified-tg-mount" style="display: flex; justify-content: center; align-items: center; min-height: 48px; width: 100%;">
-              <span class="tg-loading-spinner" style="font-size: 12.5px; color: var(--muted);">Connecting to @SauravPandeyBot...</span>
-            </div>
+          <!-- Official 1-Click Telegram Login Button Container -->
+          <div class="auth-widget-container" style="background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 22px 16px; margin: 0 auto 16px; max-width: 380px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; box-shadow: var(--shadow-sm);">
+            <button type="button" id="btn-tg-oneclick-auth" class="btn-telegram-auth" title="1-Click Login with Telegram">
+              <svg class="tg-svg-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+              </svg>
+              <span>Log in with Telegram</span>
+            </button>
+
+            <!-- Embedded widget mount -->
+            <div id="unified-tg-widget-mount" class="unified-tg-mount" style="min-height: 0;"></div>
           </div>
 
-          <div class="auth-footer-clean" style="margin-top: 14px; padding-top: 12px; font-size: 12px; color: var(--muted);">
+          <!-- Quick Handle Connect Fallback -->
+          <div class="auth-divider" style="display: flex; align-items: center; margin: 16px auto 12px; max-width: 360px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">
+            <span style="flex: 1; height: 1px; background: var(--rule);"></span>
+            <span style="padding: 0 10px;">or quick handle connect</span>
+            <span style="flex: 1; height: 1px; background: var(--rule);"></span>
+          </div>
+
+          <form id="form-tg-handle-quick" style="display: flex; gap: 8px; max-width: 360px; margin: 0 auto;">
+            <input type="text" id="input-tg-quick-handle" class="focus-input" placeholder="@your_username" maxlength="32" style="flex: 1; padding: 7px 14px; font-size: 13px; font-family: var(--mono); border: 1px solid var(--rule); border-radius: 999px; background: var(--card); color: var(--ink);">
+            <button type="submit" id="btn-tg-quick-submit" class="btn-primary-action" style="padding: 7px 16px; font-size: 12.5px; font-weight: 600; border-radius: 999px; white-space: nowrap;">
+              Connect
+            </button>
+          </form>
+          <div id="tg-quick-error" style="color: var(--err); font-size: 11.5px; margin-top: 6px; display: none;"></div>
+
+          <div class="auth-footer-clean" style="margin-top: 16px; padding-top: 12px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--rule-light);">
             <span>Melodic soundscapes and arcade games remain 100% free without login.</span>
           </div>
         </div>
@@ -1624,34 +1668,18 @@ window.PORTFOLIO_AUTH = {
   injectTelegramWidget() {
     const mount = document.getElementById("unified-tg-widget-mount");
     if (!mount) return;
-    mount.innerHTML = "";
     try {
-      const script = document.createElement("script");
-      script.async = true;
-      script.src = "https://telegram.org/js/telegram-widget.js?22";
-      script.setAttribute("data-telegram-login", this.BOT_USERNAME);
-      script.setAttribute("data-size", "large");
-      script.setAttribute("data-radius", "8");
-      script.setAttribute("data-onauth", "onTelegramAuth(user)");
-      script.setAttribute("data-request-access", "write");
-      mount.appendChild(script);
-
-      // Graceful fallback if Telegram widget script is blocked by browser shield/extension
-      setTimeout(() => {
-        if (mount && !mount.querySelector("iframe") && mount.querySelector(".tg-loading-spinner")) {
-          mount.innerHTML = `
-            <a href="https://t.me/${this.BOT_USERNAME}?start=login" target="_blank" rel="noopener noreferrer" class="btn-primary-action" style="padding: 10px 22px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-              ✈️ 1-Click Login via @${this.BOT_USERNAME}
-            </a>
-          `;
+      if (!window.Telegram) {
+        const existingScript = document.querySelector('script[src*="telegram-widget.js"]');
+        if (!existingScript) {
+          const script = document.createElement("script");
+          script.async = true;
+          script.src = "https://telegram.org/js/telegram-widget.js?22";
+          document.head.appendChild(script);
         }
-      }, 3500);
+      }
     } catch (e) {
-      mount.innerHTML = `
-        <a href="https://t.me/${this.BOT_USERNAME}?start=login" target="_blank" rel="noopener noreferrer" class="btn-primary-action" style="padding: 10px 22px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-          ✈️ 1-Click Login via @${this.BOT_USERNAME}
-        </a>
-      `;
+      console.warn("Telegram widget setup:", e);
     }
   },
 
@@ -1663,6 +1691,59 @@ window.PORTFOLIO_AUTH = {
     const doClose = () => this.closeLoginDialog();
     if (closeBtn) closeBtn.onclick = doClose;
     if (doneBtn) doneBtn.onclick = doClose;
+
+    // 1-Click Telegram OAuth button handler
+    const oneClickBtn = document.getElementById("btn-tg-oneclick-auth");
+    if (oneClickBtn) {
+      oneClickBtn.onclick = (e) => {
+        e.preventDefault();
+        this.triggerTelegramLogin();
+      };
+    }
+
+    // Quick Handle Connect form submit handler
+    const quickForm = document.getElementById("form-tg-handle-quick");
+    if (quickForm) {
+      quickForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const input = document.getElementById("input-tg-quick-handle");
+        const errEl = document.getElementById("tg-quick-error");
+        const btn = document.getElementById("btn-tg-quick-submit");
+        const handle = input ? input.value.trim() : "";
+
+        if (!handle || handle.length < 2) {
+          if (errEl) {
+            errEl.textContent = "Please enter your Telegram handle (e.g. @your_name).";
+            errEl.style.display = "block";
+          }
+          return;
+        }
+
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Connecting...";
+        }
+
+        const res = await this.loginWithTelegram(handle, handle);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Connect";
+        }
+
+        if (res.success) {
+          if (typeof showToast === "function") {
+            const wlNote = res.session.isWhitelistedYouTube ? " (YouTube Unlocked!)" : "";
+            showToast(`Connected as ${res.session.telegramId}! Scores retained for 7 days${wlNote}.`);
+          }
+          this.closeLoginDialog();
+        } else {
+          if (errEl) {
+            errEl.textContent = res.reason || "Failed to connect.";
+            errEl.style.display = "block";
+          }
+        }
+      };
+    }
 
     // Light-dismiss fallback
     if (dialog && !dialog._backdropFallbackBound) {

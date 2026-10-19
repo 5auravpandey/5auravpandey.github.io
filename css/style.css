@@ -4887,6 +4887,43 @@ dialog#invite-dialog {
   color: #4ade80;
 }
 
+/* Official 1-Click Telegram Login Button */
+.btn-telegram-auth {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+  padding: 11px 22px;
+  background-color: #2aabee;
+  color: #ffffff !important;
+  border: none;
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(42, 171, 238, 0.35);
+  transition: all 0.15s ease;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.btn-telegram-auth:hover {
+  background-color: #229ed9;
+  box-shadow: 0 6px 18px rgba(42, 171, 238, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-telegram-auth:active {
+  transform: translateY(0);
+}
+
+.btn-telegram-auth svg {
+  flex-shrink: 0;
+}
+
 dialog.unified-auth-dialog {
   border: 1px solid var(--rule);
   border-radius: var(--radius-md);
