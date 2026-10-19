@@ -45,7 +45,7 @@ window.PORTFOLIO_GAMES = {
 
   openTelegramLoginModal() {
     if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.openLoginDialog === "function") {
-      window.PORTFOLIO_AUTH.openLoginDialog("arcade");
+      window.PORTFOLIO_AUTH.openLoginDialog("telegram");
     }
   },
 

@@ -438,7 +438,89 @@ window.PORTFOLIO_DB = {
       if (found) return { valid: true, friend: found };
     } catch (e) {}
 
-    return { valid: false, reason: "Invalid Friend ID or Password. Please request authorized credentials from Saurav." };
+  },
+
+  async getFriendAccount(username) {
+    if (!username) return null;
+    const clean = String(username).trim().toLowerCase();
+    const pre = this.AUTHORIZED_FRIENDS.find(f => f.username.toLowerCase() === clean);
+    if (pre) return pre;
+    await this.init();
+    if (this.db && this.db.objectStoreNames.contains("friend_accounts")) {
+      const fromDb = await new Promise(resolve => {
+        try {
+          const tx = this.db.transaction("friend_accounts", "readonly");
+          const req = tx.objectStore("friend_accounts").get(clean);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        } catch (e) { resolve(null); }
+      });
+      if (fromDb) return fromDb;
+    }
+    try {
+      const stored = JSON.parse(localStorage.getItem("portfolio_db_friend_accounts") || "[]");
+      return stored.find(f => f.username.toLowerCase() === clean) || null;
+    } catch (e) { return null; }
+  },
+
+  async registerFriendAccount(username, password, name = "", telegramHandle = "") {
+    if (!username || !password) {
+      return { success: false, reason: "Username and password are required." };
+    }
+    const cleanUser = String(username).trim().toLowerCase();
+    const cleanPass = String(password).trim().toUpperCase();
+    const cleanName = (name && String(name).trim()) ? String(name).trim().slice(0, 32) : cleanUser;
+    const cleanTg = telegramHandle ? String(telegramHandle).trim() : "";
+
+    if (cleanUser.length < 3) {
+      return { success: false, reason: "Username must be at least 3 characters." };
+    }
+    if (cleanPass.length < 3) {
+      return { success: false, reason: "Password must be at least 3 characters." };
+    }
+
+    await this.init();
+
+    // Check if username already exists
+    const existing = await this.getFriendAccount(cleanUser);
+    if (existing) {
+      return { success: false, reason: "Username is already taken. Please pick another." };
+    }
+
+    const account = {
+      username: cleanUser,
+      password: cleanPass,
+      name: cleanName,
+      telegramHandle: cleanTg,
+      role: "Friend",
+      status: "active",
+      createdAt: new Date().toISOString()
+    };
+
+    // 1. Save in IndexedDB
+    if (this.db && this.db.objectStoreNames.contains("friend_accounts")) {
+      try {
+        const tx = this.db.transaction("friend_accounts", "readwrite");
+        tx.objectStore("friend_accounts").put(account);
+      } catch (e) {}
+    }
+
+    // 2. Save in LocalStorage fallback
+    try {
+      const stored = JSON.parse(localStorage.getItem("portfolio_db_friend_accounts") || "[]");
+      const idx = stored.findIndex(a => a.username.toLowerCase() === cleanUser);
+      if (idx >= 0) stored[idx] = account;
+      else stored.push(account);
+      localStorage.setItem("portfolio_db_friend_accounts", JSON.stringify(stored));
+    } catch (e) {}
+
+    // Auto-whitelist newly registered friends for YouTube
+    await this.addToYoutubeWhitelist(cleanUser, cleanName, "Friend");
+    if (cleanTg) {
+      await this.addToYoutubeWhitelist(cleanTg, cleanName, "Friend");
+    }
+
+    return { success: true, account };
   },
 
   async activateFriendSession(username, password, displayName) {
@@ -1494,6 +1576,17 @@ window.PORTFOLIO_AUTH = {
     };
   },
 
+  async signupWithFriendCredentials(username, password, name = "", telegramHandle = "") {
+    if (!window.PORTFOLIO_DB) {
+      return { success: false, reason: "Database initializing..." };
+    }
+    const res = await window.PORTFOLIO_DB.registerFriendAccount(username, password, name, telegramHandle);
+    if (!res.success) {
+      return res;
+    }
+    return this.loginWithFriendCredentials(username, password, name);
+  },
+
   async renewSession() {
     const session = this.getSession();
     if (!session) return { success: false, reason: "No active session to renew." };
@@ -1555,11 +1648,19 @@ window.PORTFOLIO_AUTH = {
     window.dispatchEvent(new CustomEvent("portfolio:auth-changed", { detail: session }));
   },
 
-  openLoginDialog(context = "general") {
+  _activeDialogTab: "telegram",
+
+  openLoginDialog(tab = "telegram") {
     const dialog = document.getElementById("unified-login-dialog");
     if (!dialog) return;
 
-    this.renderDialogContent(context);
+    if (tab === "signup" || tab === "login" || tab === "telegram") {
+      this._activeDialogTab = tab;
+    } else {
+      this._activeDialogTab = "telegram";
+    }
+
+    this.renderDialogContent();
     try {
       if (typeof dialog.showModal === "function") {
         dialog.showModal();
@@ -1587,7 +1688,7 @@ window.PORTFOLIO_AUTH = {
     }
   },
 
-  renderDialogContent(context = "general") {
+  renderDialogContent() {
     const body = document.getElementById("unified-auth-body");
     if (!body) return;
 
@@ -1598,144 +1699,155 @@ window.PORTFOLIO_AUTH = {
     };
 
     if (session) {
-      // User is LOGGED IN -> Show Profile, Sustainability Timer, and Whitelist Status
+      // User is LOGGED IN -> Sleek Profile, Score Retention & YouTube Status
       body.innerHTML = `
         <div class="auth-session-view">
           <div class="auth-profile-card">
             <div class="auth-profile-avatar">
               ${(session.photoUrl && /^https:\/\/[a-z0-9_.-]*telegram\.org\//i.test(session.photoUrl))
                 ? `<img src="${escape(session.photoUrl)}" alt="${escape(session.displayName)}" class="auth-avatar-img">`
-                : `<span class="auth-avatar-fallback">✈️</span>`}
+                : `<span class="auth-avatar-fallback">👤</span>`}
             </div>
             <div class="auth-profile-meta">
               <h4 class="auth-profile-name">${escape(session.displayName)}</h4>
               <span class="auth-profile-handle">${escape(session.telegramId || session.username)}</span>
-              <span class="auth-role-tag">${escape(session.role || "Community Member")}</span>
+              <span class="auth-role-tag">${escape(session.role || "Friend")}</span>
             </div>
           </div>
 
-          <!-- 7-Day Sustainability Gauge -->
-          <div class="auth-status-card sustainability">
-            <div class="auth-status-head">
+          <!-- 7-Day Score Retention Row -->
+          <div class="auth-status-row">
+            <div class="auth-status-info">
               <span class="status-icon">⏳</span>
-              <strong>7-Day Data Sustainability</strong>
-              <span class="status-badge ${session.daysRemaining <= 2 ? 'warning' : 'ok'}">${session.daysRemaining} Days Left</span>
-            </div>
-            <p class="auth-status-desc">
-              Your Dev Arcade high scores are sustained for 7 days. Re-verify before the timer hits 0 to prevent unnotified automatic purging.
-            </p>
-            <div class="auth-status-actions">
-              <button type="button" id="btn-dialog-renew-session" class="btn-primary-action" style="font-size: 13px; padding: 7px 14px;">
-                🔄 Renew 7-Day Window
-              </button>
-            </div>
-          </div>
-
-          <!-- YouTube Whitelist Status -->
-          <div class="auth-status-card ${session.isWhitelistedYouTube ? 'unlocked' : 'locked'}">
-            <div class="auth-status-head">
-              <span class="status-icon">${session.isWhitelistedYouTube ? '🎧' : '🔒'}</span>
-              <strong>YouTube Focus Audio &amp; Study Rooms</strong>
-              <span class="status-badge ${session.isWhitelistedYouTube ? 'ok' : 'muted'}">
-                ${session.isWhitelistedYouTube ? 'Whitelisted (Permanent)' : 'Whitelist Required'}
-              </span>
-            </div>
-            <p class="auth-status-desc">
-              ${session.isWhitelistedYouTube 
-                ? 'Your handle is whitelisted by Saurav! You have permanent unlocked access to synchronized YouTube audio streams and private study rooms with zero expiration time.' 
-                : 'Synchronized YouTube streams and collaborative rooms are reserved for whitelisted handles. Request Saurav to whitelist your handle from his Admin Studio (<code>myspace</code>).'}
-            </p>
-            ${!session.isWhitelistedYouTube ? `
-              <div class="auth-status-actions" style="gap: 8px;">
-                <a href="https://t.me/sauravpandey" target="_blank" rel="noopener noreferrer" class="btn-secondary-action" style="font-size: 12.5px; padding: 6px 12px; text-decoration: none;">
-                  ✈️ Request on Telegram (@sauravpandey)
-                </a>
-                <button type="button" id="btn-dialog-recheck-whitelist" class="btn-primary-action" style="font-size: 12.5px; padding: 6px 12px;">
-                  ⚡ Re-Check Whitelist
-                </button>
+              <div>
+                <strong>Score Retention</strong>
+                <div class="auth-status-sub">${session.daysRemaining} days active</div>
               </div>
-            ` : ''}
+            </div>
+            <button type="button" id="btn-dialog-renew-session" class="btn-secondary-action" style="font-size: 12px; padding: 5px 12px;">
+              🔄 Renew
+            </button>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule);">
-            <button type="button" id="btn-dialog-logout" class="btn-danger-outline" style="font-size: 12.5px; padding: 6px 12px;">
-              🚪 Log Out
+          <!-- YouTube Stream Status Row -->
+          <div class="auth-status-row ${session.isWhitelistedYouTube ? 'unlocked' : 'locked'}">
+            <div class="auth-status-info">
+              <span class="status-icon">${session.isWhitelistedYouTube ? '🎧' : '🔒'}</span>
+              <div>
+                <strong>YouTube Focus Stream</strong>
+                <div class="auth-status-sub">${session.isWhitelistedYouTube ? 'Permanent Unlocked Access' : 'Whitelist Required'}</div>
+              </div>
+            </div>
+            ${!session.isWhitelistedYouTube ? `
+              <div style="display: flex; gap: 6px;">
+                <button type="button" id="btn-dialog-recheck-whitelist" class="btn-primary-action" style="font-size: 12px; padding: 5px 10px;">
+                  ⚡ Re-Check
+                </button>
+                <a href="https://t.me/sauravpandey" target="_blank" rel="noopener noreferrer" class="btn-secondary-action" style="font-size: 12px; padding: 5px 10px; text-decoration: none;">
+                  Request
+                </a>
+              </div>
+            ` : `<span class="auth-tag-unlocked">Active ✓</span>`}
+          </div>
+
+          <div class="auth-dialog-footer">
+            <button type="button" id="btn-dialog-logout" class="btn-danger-outline" style="font-size: 12px; padding: 6px 14px;">
+              Log Out
             </button>
-            <button type="button" id="btn-dialog-done" class="btn-secondary-action" style="font-size: 12.5px; padding: 6px 14px;">
+            <button type="button" id="btn-dialog-done" class="btn-secondary-action" style="font-size: 12px; padding: 6px 16px;">
               Close
             </button>
           </div>
         </div>
       `;
     } else {
-      // User is LOGGED OUT -> Show Unified 1-Click Telegram Login Interface
-      const isYoutubeContext = context === "youtube";
+      // User is LOGGED OUT -> Concise 3 Tabs (Telegram, Log In, Sign Up)
+      const tab = this._activeDialogTab || "telegram";
       body.innerHTML = `
         <div class="auth-login-view">
-          <p class="auth-lead-text">
-            ${isYoutubeContext 
-              ? 'Connect your Telegram account in 1 click to verify your YouTube whitelist status. Whitelisted access has NO expiration time.' 
-              : 'Sign in with Telegram in 1 click to record your arcade high scores for 7 days and unlock whitelisted YouTube focus audio.'}
-          </p>
-
-          <!-- Sustainability & Whitelist Notice -->
-          <div class="auth-tos-box">
-            <strong style="color: #d97706; display: block; margin-bottom: 2px;">⚠️ 7-Day Sustainability &amp; Whitelist Notice:</strong>
-            <span>Arcade scores are retained for <strong>7 days</strong> and will be purged without notice if inactive for 7 days. YouTube streams require handle whitelisting by Saurav (permanent, no expiry). Melodic audio is 100% free with zero login!</span>
-          </div>
-
-          <!-- Auth Tabs -->
           <div class="auth-tabs-row" role="tablist">
-            <button type="button" id="tab-btn-telegram" class="auth-tab-btn active" role="tab" aria-selected="true">
-              ✈️ Telegram Login (1-Click)
+            <button type="button" id="tab-btn-tg" class="auth-tab-btn ${tab === 'telegram' ? 'active' : ''}" role="tab">
+              ✈️ Telegram
             </button>
-            <button type="button" id="tab-btn-credentials" class="auth-tab-btn" role="tab" aria-selected="false">
-              🔑 Friend Passcode / ID
+            <button type="button" id="tab-btn-login" class="auth-tab-btn ${tab === 'login' ? 'active' : ''}" role="tab">
+              🔑 Log In
+            </button>
+            <button type="button" id="tab-btn-signup" class="auth-tab-btn ${tab === 'signup' ? 'active' : ''}" role="tab">
+              ✨ Sign Up
             </button>
           </div>
 
-          <!-- Tab Content: Telegram -->
-          <div id="tab-content-telegram" class="auth-tab-panel active">
-            <div class="auth-widget-container">
-              <div class="auth-bot-badge">
-                <span class="auth-bot-dot"></span>
-                <span>@SauravPandeyBot &bull; Official Telegram Login</span>
+          <!-- Tab 1: Telegram -->
+          <div id="tab-panel-tg" class="auth-tab-panel" style="display: ${tab === 'telegram' ? 'block' : 'none'};">
+            <p class="auth-tab-desc">Connect Telegram to retain arcade scores for 7 days.</p>
+            
+            <form id="form-tg-connect" class="auth-form-clean">
+              <div class="auth-field">
+                <label for="input-tg-handle">Telegram Username / Handle:</label>
+                <input type="text" id="input-tg-handle" class="focus-input" placeholder="@your_handle" required style="font-family: var(--mono);" maxlength="32">
               </div>
-              <p class="auth-widget-desc">
-                Click below to sign in directly with Telegram. Your verified handle and display name will automatically sync with zero manual typing required.
-              </p>
-              <div id="unified-tg-widget-mount" class="unified-tg-mount">
-                <span class="tg-loading-spinner">Connecting to @SauravPandeyBot...</span>
-              </div>
-              <div class="auth-widget-meta">
-                <span>🔒 Cryptographic Web Crypto HMAC-SHA256 signature verification enabled</span>
-              </div>
+              <div id="tg-connect-error" class="auth-error-msg" style="display: none;"></div>
+              <button type="submit" id="btn-tg-connect-submit" class="btn-primary-action" style="width: 100%; padding: 9px; font-weight: 600;">
+                ✈️ Connect Telegram
+              </button>
+            </form>
+
+            <div class="auth-divider"><span>OR 1-CLICK BOT WIDGET</span></div>
+            <div id="unified-tg-widget-mount" class="unified-tg-mount">
+              <span class="tg-loading-spinner">Connecting to @SauravPandeyBot...</span>
             </div>
           </div>
 
-          <!-- Tab Content: Friend Passcode -->
-          <div id="tab-content-credentials" class="auth-tab-panel" style="display: none;">
-            <p style="font-size: 13px; color: var(--muted); margin: 0 0 12px;">
-              For friends issued a direct Friend ID + Password or Master Pass from Saurav:
-            </p>
-            <form id="unified-friend-form" class="auth-form">
-              <div>
-                <label for="unified-friend-id">Friend Username / ID:</label>
-                <input type="text" id="unified-friend-id" class="focus-input" placeholder="e.g. aman, hal-friend, rohan..." required style="font-family: var(--mono);" maxlength="32">
+          <!-- Tab 2: Friend Log In -->
+          <div id="tab-panel-login" class="auth-tab-panel" style="display: ${tab === 'login' ? 'block' : 'none'};">
+            <p class="auth-tab-desc">Enter your Friend ID and Password to unlock YouTube stream.</p>
+            
+            <form id="form-friend-login" class="auth-form-clean">
+              <div class="auth-field">
+                <label for="login-username">Friend ID / Username:</label>
+                <input type="text" id="login-username" class="focus-input" placeholder="e.g. saurav, aman..." required autocomplete="username" style="font-family: var(--mono);" maxlength="32">
               </div>
-              <div>
-                <label for="unified-friend-pass">Passcode / Password:</label>
-                <input type="password" id="unified-friend-pass" class="focus-input" placeholder="Enter issued pass" required style="font-family: var(--mono);" maxlength="32">
+              <div class="auth-field">
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" class="focus-input" placeholder="Enter password" required autocomplete="current-password" style="font-family: var(--mono);" maxlength="32">
               </div>
-              <div>
-                <label for="unified-friend-name">Display Name (Optional):</label>
-                <input type="text" id="unified-friend-name" class="focus-input" placeholder="Your name or nickname" maxlength="32">
-              </div>
-              <div id="unified-friend-error" class="auth-error-msg" style="display: none;"></div>
-              <button type="submit" id="btn-submit-unified-friend" class="btn-primary-action" style="padding: 10px; width: 100%; font-weight: 600;">
-                🔓 Authenticate Friend Pass
+              <div id="login-error-msg" class="auth-error-msg" style="display: none;"></div>
+              <button type="submit" id="btn-login-submit" class="btn-primary-action" style="width: 100%; padding: 9px; font-weight: 600;">
+                🔓 Log In
               </button>
             </form>
+          </div>
+
+          <!-- Tab 3: Friend Sign Up -->
+          <div id="tab-panel-signup" class="auth-tab-panel" style="display: ${tab === 'signup' ? 'block' : 'none'};">
+            <p class="auth-tab-desc">Register a friend account to unlock YouTube focus stream.</p>
+            
+            <form id="form-friend-signup" class="auth-form-clean">
+              <div class="auth-field">
+                <label for="signup-username">Choose Username:</label>
+                <input type="text" id="signup-username" class="focus-input" placeholder="At least 3 characters" required autocomplete="username" style="font-family: var(--mono);" maxlength="32">
+              </div>
+              <div class="auth-field">
+                <label for="signup-password">Choose Password:</label>
+                <input type="password" id="signup-password" class="focus-input" placeholder="At least 3 characters" required autocomplete="new-password" style="font-family: var(--mono);" maxlength="32">
+              </div>
+              <div class="auth-field">
+                <label for="signup-name">Display Name (Optional):</label>
+                <input type="text" id="signup-name" class="focus-input" placeholder="e.g. Alex" maxlength="32">
+              </div>
+              <div class="auth-field">
+                <label for="signup-telegram">Telegram Handle (Optional):</label>
+                <input type="text" id="signup-telegram" class="focus-input" placeholder="@your_handle" style="font-family: var(--mono);" maxlength="32">
+              </div>
+              <div id="signup-error-msg" class="auth-error-msg" style="display: none;"></div>
+              <button type="submit" id="btn-signup-submit" class="btn-primary-action" style="width: 100%; padding: 9px; font-weight: 600;">
+                ✨ Create Account &amp; Unlock
+              </button>
+            </form>
+          </div>
+
+          <div class="auth-footer-clean">
+            <span>Melodic soundscapes and games remain free without login.</span>
           </div>
         </div>
       `;
@@ -1759,7 +1871,7 @@ window.PORTFOLIO_AUTH = {
       script.setAttribute("data-request-access", "write");
       mount.appendChild(script);
     } catch (e) {
-      mount.innerHTML = '<span style="font-size: 12px; color: var(--muted);">Use manual handle entry below</span>';
+      mount.innerHTML = '<span style="font-size: 12px; color: var(--muted);">Use manual input above</span>';
     }
   },
 
@@ -1772,7 +1884,7 @@ window.PORTFOLIO_AUTH = {
     if (closeBtn) closeBtn.onclick = doClose;
     if (doneBtn) doneBtn.onclick = doClose;
 
-    // Light-dismiss fallback for browsers without native closedby support
+    // Light-dismiss fallback
     if (dialog && !dialog._backdropFallbackBound) {
       dialog._backdropFallbackBound = true;
       if (!('closedBy' in HTMLDialogElement.prototype)) {
@@ -1792,89 +1904,185 @@ window.PORTFOLIO_AUTH = {
       }
     }
 
-    // Tabs switching
-    const tabTg = document.getElementById("tab-btn-telegram");
-    const tabCred = document.getElementById("tab-btn-credentials");
-    const panelTg = document.getElementById("tab-content-telegram");
-    const panelCred = document.getElementById("tab-content-credentials");
+    // Tab Switching
+    const tabTg = document.getElementById("tab-btn-tg");
+    const tabLogin = document.getElementById("tab-btn-login");
+    const tabSignup = document.getElementById("tab-btn-signup");
+    const panelTg = document.getElementById("tab-panel-tg");
+    const panelLogin = document.getElementById("tab-panel-login");
+    const panelSignup = document.getElementById("tab-panel-signup");
 
-    if (tabTg && tabCred && panelTg && panelCred) {
-      tabTg.onclick = () => {
-        tabTg.classList.add("active");
-        tabTg.setAttribute("aria-selected", "true");
-        tabCred.classList.remove("active");
-        tabCred.setAttribute("aria-selected", "false");
-        panelTg.style.display = "block";
-        panelCred.style.display = "none";
-      };
-      tabCred.onclick = () => {
-        tabCred.classList.add("active");
-        tabCred.setAttribute("aria-selected", "true");
-        tabTg.classList.remove("active");
-        tabTg.setAttribute("aria-selected", "false");
-        panelCred.style.display = "block";
-        panelTg.style.display = "none";
-      };
-    }
+    const switchTab = (tab) => {
+      this._activeDialogTab = tab;
+      if (tabTg) tabTg.classList.toggle("active", tab === "telegram");
+      if (tabLogin) tabLogin.classList.toggle("active", tab === "login");
+      if (tabSignup) tabSignup.classList.toggle("active", tab === "signup");
+      if (panelTg) panelTg.style.display = tab === "telegram" ? "block" : "none";
+      if (panelLogin) panelLogin.style.display = tab === "login" ? "block" : "none";
+      if (panelSignup) panelSignup.style.display = tab === "signup" ? "block" : "none";
+    };
 
+    if (tabTg) tabTg.onclick = () => switchTab("telegram");
+    if (tabLogin) tabLogin.onclick = () => switchTab("login");
+    if (tabSignup) tabSignup.onclick = () => switchTab("signup");
 
-    // Friend Credentials Form Submit
-    const friendForm = document.getElementById("unified-friend-form");
-    if (friendForm) {
-      friendForm.onsubmit = async (e) => {
+    // Form 1: Telegram Handle Connect
+    const tgForm = document.getElementById("form-tg-connect");
+    if (tgForm) {
+      tgForm.onsubmit = async (e) => {
         e.preventDefault();
-        const idInput = document.getElementById("unified-friend-id");
-        const passInput = document.getElementById("unified-friend-pass");
-        const nameInput = document.getElementById("unified-friend-name");
-        const errEl = document.getElementById("unified-friend-error");
-        const submitBtn = document.getElementById("btn-submit-unified-friend");
+        const input = document.getElementById("input-tg-handle");
+        const errEl = document.getElementById("tg-connect-error");
+        const btn = document.getElementById("btn-tg-connect-submit");
+        const handle = input ? input.value.trim() : "";
 
-        const id = idInput ? idInput.value.trim() : "";
-        const pass = passInput ? passInput.value.trim() : "";
-        const name = nameInput ? nameInput.value.trim() : "";
-
-        if (!id || !pass) {
+        if (!handle || handle.length < 2) {
           if (errEl) {
-            errEl.textContent = "Please enter both Friend ID and Passcode.";
+            errEl.textContent = "Please enter your Telegram username.";
             errEl.style.display = "block";
           }
           return;
         }
 
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.textContent = "Authenticating...";
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Connecting...";
         }
 
-        const res = await this.loginWithFriendCredentials(id, pass, name);
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = "🔓 Authenticate Friend Pass";
+        const res = await this.loginWithTelegram(handle, handle);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "✈️ Connect Telegram";
         }
 
         if (res.success) {
           if (typeof showToast === "function") {
-            showToast(`Welcome ${res.session.displayName}! Friend pass verified.`);
+            showToast(`Connected as ${res.session.telegramId}! Scores retained for 7 days.`);
           }
           this.renderDialogContent();
           this.bindDialogEvents();
         } else {
           if (errEl) {
-            errEl.textContent = res.reason || "Invalid credentials.";
+            errEl.textContent = res.reason || "Failed to connect.";
             errEl.style.display = "block";
           }
         }
       };
     }
 
-    // Logged-in actions
+    // Form 2: Friend Log In
+    const loginForm = document.getElementById("form-friend-login");
+    if (loginForm) {
+      loginForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const userInput = document.getElementById("login-username");
+        const passInput = document.getElementById("login-password");
+        const errEl = document.getElementById("login-error-msg");
+        const btn = document.getElementById("btn-login-submit");
+
+        const user = userInput ? userInput.value.trim() : "";
+        const pass = passInput ? passInput.value.trim() : "";
+
+        if (!user || !pass) {
+          if (errEl) {
+            errEl.textContent = "Enter both username and password.";
+            errEl.style.display = "block";
+          }
+          return;
+        }
+
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Logging In...";
+        }
+
+        const res = await this.loginWithFriendCredentials(user, pass);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "🔓 Log In";
+        }
+
+        if (res.success) {
+          if (typeof showToast === "function") {
+            showToast(`Welcome ${res.session.displayName}! YouTube stream unlocked.`);
+          }
+          this.renderDialogContent();
+          this.bindDialogEvents();
+        } else {
+          if (errEl) {
+            errEl.textContent = res.reason || "Invalid username or password.";
+            errEl.style.display = "block";
+          }
+        }
+      };
+    }
+
+    // Form 3: Friend Sign Up
+    const signupForm = document.getElementById("form-friend-signup");
+    if (signupForm) {
+      signupForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const userInput = document.getElementById("signup-username");
+        const passInput = document.getElementById("signup-password");
+        const nameInput = document.getElementById("signup-name");
+        const tgInput = document.getElementById("signup-telegram");
+        const errEl = document.getElementById("signup-error-msg");
+        const btn = document.getElementById("btn-signup-submit");
+
+        const user = userInput ? userInput.value.trim() : "";
+        const pass = passInput ? passInput.value.trim() : "";
+        const name = nameInput ? nameInput.value.trim() : "";
+        const tg = tgInput ? tgInput.value.trim() : "";
+
+        if (user.length < 3) {
+          if (errEl) {
+            errEl.textContent = "Username must be at least 3 characters.";
+            errEl.style.display = "block";
+          }
+          return;
+        }
+        if (pass.length < 3) {
+          if (errEl) {
+            errEl.textContent = "Password must be at least 3 characters.";
+            errEl.style.display = "block";
+          }
+          return;
+        }
+
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Creating Account...";
+        }
+
+        const res = await this.signupWithFriendCredentials(user, pass, name, tg);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "✨ Create Account & Unlock";
+        }
+
+        if (res.success) {
+          if (typeof showToast === "function") {
+            showToast(`Account created! Welcome ${res.session.displayName}. YouTube stream unlocked.`);
+          }
+          this.renderDialogContent();
+          this.bindDialogEvents();
+        } else {
+          if (errEl) {
+            errEl.textContent = res.reason || "Failed to create account.";
+            errEl.style.display = "block";
+          }
+        }
+      };
+    }
+
+    // Logged-in profile actions
     const renewBtn = document.getElementById("btn-dialog-renew-session");
     if (renewBtn) {
       renewBtn.onclick = async () => {
         const res = await this.renewSession();
         if (res.success) {
           if (typeof showToast === "function") {
-            showToast("Sustainability timer renewed! 7 full days restored.");
+            showToast("Session renewed! 7 full days active.");
           }
           this.renderDialogContent();
           this.bindDialogEvents();
@@ -1887,18 +2095,18 @@ window.PORTFOLIO_AUTH = {
       recheckWlBtn.onclick = async () => {
         const session = this.getSession();
         if (session && window.PORTFOLIO_DB) {
-          const wl = await window.PORTFOLIO_DB.isWhitelistedForYouTube(session.telegramId);
+          const wl = await window.PORTFOLIO_DB.isWhitelistedForYouTube(session.telegramId || session.username);
           if (wl.whitelisted) {
             session.isWhitelistedYouTube = true;
             session.role = wl.entry.role || "Whitelisted Friend";
             this.saveSession(session);
             this.emitAuthChanged(session);
             if (typeof showToast === "function") {
-              showToast("🎉 Congratulations! Your handle is whitelisted for YouTube.");
+              showToast("🎉 YouTube stream unlocked!");
             }
           } else {
             if (typeof showToast === "function") {
-              showToast("Not whitelisted yet. Please ask Saurav to whitelist your handle.");
+              showToast("Not on whitelist yet. Please request access from Saurav.");
             }
           }
           this.renderDialogContent();
