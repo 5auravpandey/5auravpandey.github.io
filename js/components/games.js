@@ -10,16 +10,16 @@ if (!window.onTelegramAuth) {
   window.onTelegramAuth = async function(user) {
     if (!user) return;
     const rawUsername = user.username ? user.username.replace(/^@/, "") : "";
-    const handle = rawUsername ? `@${rawUsername}` : `@id_${user.id}`;
-    const displayName = [user.first_name, user.last_name].filter(Boolean).join(" ") || handle;
+    const handle = rawUsername ? `@${rawUsername}` : (user.id ? `ID: ${user.id}` : "");
+    const displayName = [user.first_name, user.last_name].filter(Boolean).join(" ") || handle || (user.id ? `User #${user.id}` : "Visitor");
 
     if (window.PORTFOLIO_AUTH) {
-      const res = await window.PORTFOLIO_AUTH.loginWithTelegram(handle, displayName, user);
+      const res = await window.PORTFOLIO_AUTH.loginWithTelegram(user, displayName, user);
       if (res && res.success) {
         window.PORTFOLIO_AUTH.closeLoginDialog();
         if (typeof showToast === "function") {
           const wl = res.session.isWhitelistedYouTube ? " • YouTube Unlocked!" : "";
-          showToast(`Connected via Telegram: ${handle} (7-day retention active${wl})`);
+          showToast(`Connected via Telegram: ${handle || displayName} (7-day retention active${wl})`);
         }
       }
     }

@@ -1012,9 +1012,9 @@ window.PORTFOLIO_ADMIN = {
             <form id="adm-whitelist-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) 130px; gap: 8px; align-items: end; margin-bottom: 14px; background: var(--card); padding: 12px; border-radius: 6px; border: 1px solid var(--rule);">
               <div>
                 <label for="adm-wl-handle" style="font-size: 11px; font-family: var(--mono); color: var(--muted); display: block; margin-bottom: 4px; text-transform: uppercase;">
-                  Handle / Username:
+                  Handle / User ID:
                 </label>
-                <input type="text" id="adm-wl-handle" class="focus-input" placeholder="@handle or username" required style="font-size: 13px; padding: 6px 10px; width: 100%;">
+                <input type="text" id="adm-wl-handle" class="focus-input" placeholder="@handle or User ID (e.g. 7044498519)" required style="font-size: 13px; padding: 6px 10px; width: 100%;">
               </div>
               <div>
                 <label for="adm-wl-name" style="font-size: 11px; font-family: var(--mono); color: var(--muted); display: block; margin-bottom: 4px; text-transform: uppercase;">
@@ -1043,7 +1043,7 @@ window.PORTFOLIO_ADMIN = {
                 <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
                   <thead>
                     <tr style="border-bottom: 1px solid var(--rule); background: var(--paper); color: var(--muted); font-family: var(--mono); font-size: 11px; text-transform: uppercase;">
-                      <th style="padding: 8px 12px;">Telegram Handle</th>
+                      <th style="padding: 8px 12px;">Telegram Handle / User ID</th>
                       <th style="padding: 8px 12px;">Display Name</th>
                       <th style="padding: 8px 12px;">Status</th>
                       <th style="padding: 8px 12px; text-align: right;">1-Click Action</th>
@@ -1066,7 +1066,7 @@ window.PORTFOLIO_ADMIN = {
               <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
                 <thead>
                   <tr style="border-bottom: 1px solid var(--rule); background: var(--paper); color: var(--muted); font-family: var(--mono); font-size: 11px; text-transform: uppercase;">
-                    <th style="padding: 8px 12px;">Handle</th>
+                    <th style="padding: 8px 12px;">Handle / User ID</th>
                     <th style="padding: 8px 12px;">Friend Name</th>
                     <th style="padding: 8px 12px;">Role / Note</th>
                     <th style="padding: 8px 12px;">Status</th>
@@ -1402,12 +1402,19 @@ window.PORTFOLIO_ADMIN = {
         } else {
           tgTbody.innerHTML = tgUsers.map(u => {
             const handle = u.telegramId || u.username || "";
-            const name = u.displayName || handle;
+            const userId = u.telegramUserId || "";
+            const name = u.displayName || handle || (userId ? `User #${userId}` : "Visitor");
             const isWl = Boolean(u.isWhitelisted);
+            const displayId = handle || (userId ? `ID: ${userId}` : "—");
+            const userIdSub = (userId && handle && !handle.includes(userId))
+              ? `<span style="display:block; font-size:10.5px; color:var(--muted); font-family:var(--mono); font-weight:normal;">ID: ${this.escapeHTML(userId)}</span>`
+              : '';
+
             return `
               <tr style="border-bottom: 1px solid var(--rule-light);">
                 <td style="padding: 8px 12px; font-family: var(--mono); font-weight: 600; color: var(--accent);">
-                  ${this.escapeHTML(handle)}
+                  ${this.escapeHTML(displayId)}
+                  ${userIdSub}
                 </td>
                 <td style="padding: 8px 12px;">
                   ${this.escapeHTML(name)}
@@ -1419,11 +1426,11 @@ window.PORTFOLIO_ADMIN = {
                 </td>
                 <td style="padding: 8px 12px; text-align: right; white-space: nowrap;">
                   ${isWl ? `
-                    <button type="button" class="btn-adm-tg-action btn-ambient-action" data-handle="${this.escapeHTML(handle)}" data-name="${this.escapeHTML(name)}" data-action="revoke" style="font-size: 11.5px; padding: 4px 10px; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35);">
+                    <button type="button" class="btn-adm-tg-action btn-ambient-action" data-handle="${this.escapeHTML(handle)}" data-user-id="${this.escapeHTML(userId)}" data-name="${this.escapeHTML(name)}" data-action="revoke" style="font-size: 11.5px; padding: 4px 10px; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35);">
                       ✕ Revoke
                     </button>
                   ` : `
-                    <button type="button" class="btn-adm-tg-action btn-primary-action" data-handle="${this.escapeHTML(handle)}" data-name="${this.escapeHTML(name)}" data-action="whitelist" style="font-size: 11.5px; padding: 4px 12px; font-weight: 600;">
+                    <button type="button" class="btn-adm-tg-action btn-primary-action" data-handle="${this.escapeHTML(handle)}" data-user-id="${this.escapeHTML(userId)}" data-name="${this.escapeHTML(name)}" data-action="whitelist" style="font-size: 11.5px; padding: 4px 12px; font-weight: 600;">
                       🔓 Whitelist for YouTube
                     </button>
                   `}
@@ -1437,6 +1444,7 @@ window.PORTFOLIO_ADMIN = {
           tgActionBtns.forEach(btn => {
             btn.addEventListener("click", async () => {
               const handle = btn.dataset.handle;
+              const userId = btn.dataset.userId;
               const name = btn.dataset.name;
               const action = btn.dataset.action;
 
@@ -1444,14 +1452,14 @@ window.PORTFOLIO_ADMIN = {
               btn.textContent = action === "whitelist" ? "Whitelisting..." : "Revoking...";
 
               if (action === "whitelist") {
-                await window.PORTFOLIO_DB.addToYoutubeWhitelist(handle, name, "Whitelisted Friend");
+                await window.PORTFOLIO_DB.addToYoutubeWhitelist(handle, name, "Whitelisted Friend", userId);
                 if (typeof showToast === "function") {
-                  showToast(`Whitelisted '${handle}' for YouTube stream!`);
+                  showToast(`Whitelisted '${handle || userId}' for YouTube stream!`);
                 }
               } else {
-                await window.PORTFOLIO_DB.removeFromYoutubeWhitelist(handle);
+                await window.PORTFOLIO_DB.removeFromYoutubeWhitelist(handle, userId);
                 if (typeof showToast === "function") {
-                  showToast(`Revoked YouTube access for '${handle}'.`);
+                  showToast(`Revoked YouTube access for '${handle || userId}'.`);
                 }
               }
               this.loadAndRenderWhitelist();
@@ -1469,10 +1477,18 @@ window.PORTFOLIO_ADMIN = {
         } else {
           tbody.innerHTML = list.map(item => {
             const isActive = item.status === "active";
+            const handleText = item.handle || (item.userId ? `ID: ${item.userId}` : "—");
+            const userIdSub = (item.userId && item.handle && !item.handle.includes(item.userId))
+              ? `<span style="display:block; font-size:10.5px; color:var(--muted); font-family:var(--mono); font-weight:normal;">ID: ${this.escapeHTML(item.userId)}</span>`
+              : '';
+
             return `
               <tr style="border-bottom: 1px solid var(--rule-light);">
-                <td style="padding: 8px 12px; font-family: var(--mono); font-weight: bold; color: var(--accent);">${this.escapeHTML(item.handle)}</td>
-                <td style="padding: 8px 12px;"><strong>${this.escapeHTML(item.name || item.handle)}</strong></td>
+                <td style="padding: 8px 12px; font-family: var(--mono); font-weight: bold; color: var(--accent);">
+                  ${this.escapeHTML(handleText)}
+                  ${userIdSub}
+                </td>
+                <td style="padding: 8px 12px;"><strong>${this.escapeHTML(item.name || handleText)}</strong></td>
                 <td style="padding: 8px 12px; color: var(--muted);">${this.escapeHTML(item.role || "Friend")}</td>
                 <td style="padding: 8px 12px;">
                   <span style="font-size: 11px; padding: 2px 7px; border-radius: 999px; font-weight: 600; background: ${isActive ? 'var(--ok-bg)' : 'rgba(239, 68, 68, 0.12)'}; color: ${isActive ? 'var(--ok)' : '#ef4444'}; border: 1px solid currentColor;">
@@ -1480,10 +1496,10 @@ window.PORTFOLIO_ADMIN = {
                   </span>
                 </td>
                 <td style="padding: 8px 12px; text-align: right; white-space: nowrap;">
-                  <button type="button" class="btn-wl-toggle btn-secondary-action" data-handle="${this.escapeHTML(item.handle)}" style="font-size: 11px; padding: 3px 8px; margin-right: 4px;">
+                  <button type="button" class="btn-wl-toggle btn-secondary-action" data-handle="${this.escapeHTML(item.handle || '')}" data-user-id="${this.escapeHTML(item.userId || '')}" style="font-size: 11px; padding: 3px 8px; margin-right: 4px;">
                     ${isActive ? 'Revoke' : 'Activate'}
                   </button>
-                  <button type="button" class="btn-wl-delete btn-ambient-action" data-handle="${this.escapeHTML(item.handle)}" style="font-size: 11px; padding: 3px 8px; color: #ef4444;">
+                  <button type="button" class="btn-wl-delete btn-ambient-action" data-handle="${this.escapeHTML(item.handle || '')}" data-user-id="${this.escapeHTML(item.userId || '')}" style="font-size: 11px; padding: 3px 8px; color: #ef4444;">
                     ✕ Remove
                   </button>
                 </td>
@@ -1496,7 +1512,8 @@ window.PORTFOLIO_ADMIN = {
           toggleBtns.forEach(btn => {
             btn.addEventListener("click", async () => {
               const handle = btn.dataset.handle;
-              await window.PORTFOLIO_DB.toggleWhitelistStatus(handle);
+              const userId = btn.dataset.userId;
+              await window.PORTFOLIO_DB.toggleWhitelistStatus(handle, userId);
               this.loadAndRenderWhitelist();
             });
           });
@@ -1506,8 +1523,9 @@ window.PORTFOLIO_ADMIN = {
           delBtns.forEach(btn => {
             btn.addEventListener("click", async () => {
               const handle = btn.dataset.handle;
-              if (confirm(`Remove '${handle}' from the YouTube Whitelist?`)) {
-                await window.PORTFOLIO_DB.removeFromYoutubeWhitelist(handle);
+              const userId = btn.dataset.userId;
+              if (confirm(`Remove '${handle || userId}' from the YouTube Whitelist?`)) {
+                await window.PORTFOLIO_DB.removeFromYoutubeWhitelist(handle, userId);
                 this.loadAndRenderWhitelist();
               }
             });

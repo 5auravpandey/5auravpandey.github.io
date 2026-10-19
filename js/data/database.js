@@ -15,8 +15,8 @@ window.PORTFOLIO_DB = {
 
   // Initial YouTube Whitelist (Permanent access granted by Saurav - no expiry time)
   INITIAL_YOUTUBE_WHITELIST: [
-    { handle: "@5auravpandey", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
-    { handle: "saurav", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
+    { handle: "@5auravpandey", userId: "7044498519", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
+    { handle: "saurav", userId: "7044498519", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
     { handle: "@aman_iitp", name: "Aman K. (IITP)", role: "Study Buddy", addedAt: "2026-10-10", status: "active" },
     { handle: "aman", name: "Aman K. (IITP)", role: "Study Buddy", addedAt: "2026-10-10", status: "active" },
     { handle: "@rohan_v", name: "Rohan V.", role: "Friend", addedAt: "2026-10-12", status: "active" },
@@ -353,18 +353,36 @@ window.PORTFOLIO_DB = {
     await this.init();
     const usersMap = new Map();
 
+    const recordUser = (u, source = "session") => {
+      if (!u) return;
+      const rawDigits = u.telegramUserId 
+        ? String(u.telegramUserId).trim() 
+        : (/^\d+$/.test(String(u.telegramId || "").replace(/^ID:\s*/i, "")) ? String(u.telegramId).replace(/^ID:\s*/i, "").trim() : null);
+      const rawHandle = (u.telegramId || u.username || "").toLowerCase();
+      const key = rawDigits ? `uid_${rawDigits}` : rawHandle;
+      if (!key) return;
+
+      const existing = usersMap.get(key) || {};
+      usersMap.set(key, {
+        ...existing,
+        ...u,
+        telegramUserId: rawDigits || existing.telegramUserId || null,
+        telegramId: u.telegramId || (rawDigits ? `ID: ${rawDigits}` : (u.username ? `@${u.username}` : "")),
+        source: existing.source || source
+      });
+    };
+
     // 1. Known friends & initial whitelist contacts
     for (const w of this.INITIAL_YOUTUBE_WHITELIST) {
-      if (w.handle) {
-        const cleanHandle = w.handle.toLowerCase();
-        usersMap.set(cleanHandle, {
-          telegramId: cleanHandle.startsWith("@") ? cleanHandle : "@" + cleanHandle,
+      if (w.handle || w.userId) {
+        recordUser({
+          telegramUserId: w.userId || null,
+          telegramId: w.handle ? (w.handle.startsWith("@") ? w.handle : "@" + w.handle) : (w.userId ? `ID: ${w.userId}` : ""),
           displayName: w.name,
           role: w.role || "Friend",
           isWhitelisted: w.status === "active",
-          lastLogin: null,
-          source: "whitelist"
-        });
+          lastLogin: null
+        }, "whitelist");
       }
     }
 
@@ -378,11 +396,7 @@ window.PORTFOLIO_DB = {
           req.onerror = () => resolve([]);
         });
         for (const u of fromDb) {
-          if (u.telegramId) {
-            const clean = u.telegramId.toLowerCase();
-            const existing = usersMap.get(clean) || {};
-            usersMap.set(clean, { ...existing, ...u, source: "session" });
-          }
+          recordUser(u, "session");
         }
       } catch (e) {}
     }
@@ -394,11 +408,7 @@ window.PORTFOLIO_DB = {
         const list = JSON.parse(raw);
         if (Array.isArray(list)) {
           for (const u of list) {
-            if (u.telegramId) {
-              const clean = u.telegramId.toLowerCase();
-              const existing = usersMap.get(clean) || {};
-              usersMap.set(clean, { ...existing, ...u });
-            }
+            recordUser(u, "storage");
           }
         }
       }
@@ -406,14 +416,10 @@ window.PORTFOLIO_DB = {
 
     // 4. Current session user
     try {
-      const single = localStorage.getItem("portfolio_telegram_user");
+      const single = localStorage.getItem("portfolio_unified_session") || localStorage.getItem("portfolio_telegram_user");
       if (single) {
         const u = JSON.parse(single);
-        if (u.telegramId) {
-          const clean = u.telegramId.toLowerCase();
-          const existing = usersMap.get(clean) || {};
-          usersMap.set(clean, { ...existing, ...u });
-        }
+        recordUser(u, "current");
       }
     } catch (e) {}
 
@@ -426,15 +432,22 @@ window.PORTFOLIO_DB = {
         const noAt = w.handle.replace(/^@/, "").toLowerCase();
         wlMap.set(noAt, w.status === "active");
       }
+      if (w.userId) {
+        wlMap.set(String(w.userId).trim(), w.status === "active");
+        wlMap.set(`id: ${String(w.userId).trim()}`.toLowerCase(), w.status === "active");
+      }
     }
 
     const result = Array.from(usersMap.values()).map(u => {
       const clean = (u.telegramId || "").toLowerCase();
       const noAt = clean.replace(/^@/, "");
-      const isWl = wlMap.has(clean) ? wlMap.get(clean) : (wlMap.has(noAt) ? wlMap.get(noAt) : false);
+      const uid = u.telegramUserId ? String(u.telegramUserId).trim() : "";
+      const isWl = (uid && wlMap.has(uid)) 
+        ? wlMap.get(uid) 
+        : (wlMap.has(clean) ? wlMap.get(clean) : (wlMap.has(noAt) ? wlMap.get(noAt) : false));
       return {
         ...u,
-        isWhitelisted: isWl || u.isWhitelisted || (clean === "@5auravpandey" || clean === "saurav")
+        isWhitelisted: isWl || u.isWhitelisted || (clean === "@5auravpandey" || clean === "saurav" || uid === "7044498519")
       };
     });
 
@@ -474,11 +487,13 @@ window.PORTFOLIO_DB = {
   // =========================================================================
   RETENTION_MS: 7 * 24 * 60 * 60 * 1000, // Strict 7-day sustainability window
 
-  // Clean and format Telegram handle
+  // Clean and format Telegram handle or numeric User ID
   formatTelegramId(input) {
-    if (!input || typeof input !== "string") return "";
-    let clean = input.trim();
+    if (!input) return "";
+    let clean = String(input).trim();
     if (!clean) return "";
+    if (/^\d+$/.test(clean)) return `ID: ${clean}`;
+    if (clean.toLowerCase().startsWith("id:")) return clean;
     if (!clean.startsWith("@")) clean = "@" + clean;
     return clean.slice(0, 32);
   },
@@ -579,7 +594,16 @@ window.PORTFOLIO_DB = {
     await this.init();
 
     const cleanHandle = this.formatTelegramId(telegramId);
+    const rawDigits = String(telegramId).replace(/^ID:\s*/i, "").trim();
     if (!cleanHandle) return { success: false, reason: "Invalid Telegram ID" };
+
+    const matchesRecord = (recTg) => {
+      if (!recTg) return false;
+      const r = recTg.toLowerCase();
+      if (r === cleanHandle.toLowerCase()) return true;
+      if (rawDigits && (r === `id: ${rawDigits}`.toLowerCase() || r === `@${rawDigits}`.toLowerCase() || r === rawDigits)) return true;
+      return false;
+    };
 
     const now = Date.now();
     const newExpiresAt = now + this.RETENTION_MS;
@@ -596,7 +620,7 @@ window.PORTFOLIO_DB = {
             const cursor = e.target.result;
             if (cursor) {
               const record = cursor.value;
-              if (record.telegramId && record.telegramId.toLowerCase() === cleanHandle.toLowerCase()) {
+              if (matchesRecord(record.telegramId)) {
                 record.verifiedAt = now;
                 record.expiresAt = newExpiresAt;
                 record.isVerified = true;
@@ -620,7 +644,7 @@ window.PORTFOLIO_DB = {
         const list = JSON.parse(raw);
         let modified = false;
         list.forEach(item => {
-          if (item.telegramId && item.telegramId.toLowerCase() === cleanHandle.toLowerCase()) {
+          if (matchesRecord(item.telegramId)) {
             item.verifiedAt = now;
             item.expiresAt = newExpiresAt;
             modified = true;
@@ -1095,20 +1119,25 @@ window.PORTFOLIO_DB = {
     return this.getFallbackYoutubeWhitelist();
   },
 
-  // Check if a handle is whitelisted (Whitelisted data has NO expiry time)
-  async isWhitelistedForYouTube(handle) {
-    if (!handle || typeof handle !== "string") {
-      return { whitelisted: false, reason: "Handle required" };
+  // Check if a handle or Telegram ID is whitelisted (Whitelisted data has NO expiry time)
+  async isWhitelistedForYouTube(handle, userId = null) {
+    if (!handle && !userId) {
+      return { whitelisted: false, reason: "Handle or ID required" };
     }
     await this.init();
-    const rawClean = handle.trim().toLowerCase();
+    const rawClean = (handle || "").trim().toLowerCase();
     const withAt = rawClean.startsWith("@") ? rawClean : "@" + rawClean;
     const withoutAt = rawClean.startsWith("@") ? rawClean.slice(1) : rawClean;
+    const cleanUserId = userId ? String(userId).trim() : "";
 
     const list = await this.getYoutubeWhitelist();
     const match = list.find(item => {
       const itemHandle = (item.handle || "").toLowerCase();
-      return itemHandle === withAt || itemHandle === withoutAt;
+      const itemUserId = item.userId ? String(item.userId).trim() : "";
+      if (cleanUserId && itemUserId && cleanUserId === itemUserId) return true;
+      if (itemHandle && (itemHandle === withAt || itemHandle === withoutAt || (cleanUserId && itemHandle === cleanUserId))) return true;
+      if (cleanUserId && (itemHandle === `id: ${cleanUserId}` || itemHandle === `id:${cleanUserId}`)) return true;
+      return false;
     });
 
     if (match) {
@@ -1122,13 +1151,16 @@ window.PORTFOLIO_DB = {
     return { whitelisted: false, reason: "Not on Saurav's whitelist" };
   },
 
-  async addToYoutubeWhitelist(handle, name, role = "Friend") {
-    if (!handle || typeof handle !== "string") return null;
+  async addToYoutubeWhitelist(handle, name, role = "Friend", userId = null) {
+    if (!handle && !userId) return null;
     await this.init();
-    const raw = handle.trim();
-    const cleanHandle = raw.startsWith("@") ? raw : "@" + raw;
+    const raw = (handle || "").trim();
+    const isDigits = /^\d+$/.test(raw);
+    const cleanUserId = userId ? String(userId).trim() : (isDigits ? raw : (raw.toLowerCase().startsWith("id:") ? raw.replace(/^id:\s*/i, "").trim() : null));
+    const cleanHandle = isDigits ? `ID: ${raw}` : (raw ? (raw.startsWith("@") || raw.toLowerCase().startsWith("id:") ? raw : "@" + raw) : (cleanUserId ? `ID: ${cleanUserId}` : ""));
     const entry = {
       handle: cleanHandle.toLowerCase(),
+      userId: cleanUserId,
       name: (name && name.trim()) ? name.trim().slice(0, 32) : cleanHandle,
       role: (role && role.trim()) ? role.trim().slice(0, 32) : "Friend",
       status: "active",
@@ -1143,7 +1175,11 @@ window.PORTFOLIO_DB = {
     }
 
     try {
-      const list = this.getFallbackYoutubeWhitelist().filter(item => item.handle.toLowerCase() !== entry.handle.toLowerCase());
+      const list = this.getFallbackYoutubeWhitelist().filter(item => {
+        const hMatch = item.handle && item.handle.toLowerCase() === entry.handle.toLowerCase();
+        const uMatch = cleanUserId && item.userId && String(item.userId) === cleanUserId;
+        return !hMatch && !uMatch;
+      });
       list.unshift(entry);
       localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(list));
     } catch (e) {}
@@ -1151,26 +1187,36 @@ window.PORTFOLIO_DB = {
     return entry;
   },
 
-  async removeFromYoutubeWhitelist(handle) {
-    if (!handle) return false;
+  async removeFromYoutubeWhitelist(handle, userId = null) {
+    if (!handle && !userId) return false;
     await this.init();
-    const raw = handle.trim().toLowerCase();
-    const withAt = raw.startsWith("@") ? raw : "@" + raw;
-    const withoutAt = raw.startsWith("@") ? raw.slice(1) : raw;
+    const raw = (handle || "").trim().toLowerCase();
+    const withAt = raw ? (raw.startsWith("@") ? raw : "@" + raw) : "";
+    const withoutAt = raw ? (raw.startsWith("@") ? raw.slice(1) : raw) : "";
+    const cleanUserId = userId ? String(userId).trim() : (raw.startsWith("id:") ? raw.replace(/^id:\s*/i, "").trim() : (/^\d+$/.test(raw) ? raw : null));
 
     if (this.db && this.db.objectStoreNames.contains("youtube_whitelist")) {
       try {
         const tx = this.db.transaction("youtube_whitelist", "readwrite");
         const store = tx.objectStore("youtube_whitelist");
-        store.delete(withAt);
-        store.delete(withoutAt);
+        if (withAt) store.delete(withAt);
+        if (withoutAt) store.delete(withoutAt);
+        if (cleanUserId) {
+          store.delete(`id: ${cleanUserId}`.toLowerCase());
+          store.delete(`id:${cleanUserId}`.toLowerCase());
+        }
       } catch (e) {}
     }
 
     try {
       const list = this.getFallbackYoutubeWhitelist().filter(item => {
-        const h = item.handle.toLowerCase();
-        return h !== withAt && h !== withoutAt;
+        const h = (item.handle || "").toLowerCase();
+        const u = item.userId ? String(item.userId).trim() : "";
+        if (cleanUserId && u && u === cleanUserId) return false;
+        if (withAt && h === withAt) return false;
+        if (withoutAt && h === withoutAt) return false;
+        if (cleanUserId && (h === `id: ${cleanUserId}`.toLowerCase() || h === `id:${cleanUserId}`.toLowerCase())) return false;
+        return true;
       });
       localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(list));
     } catch (e) {}
@@ -1178,17 +1224,23 @@ window.PORTFOLIO_DB = {
     return true;
   },
 
-  async toggleWhitelistStatus(handle) {
-    if (!handle) return null;
+  async toggleWhitelistStatus(handle, userId = null) {
+    if (!handle && !userId) return null;
     await this.init();
-    const raw = handle.trim().toLowerCase();
-    const withAt = raw.startsWith("@") ? raw : "@" + raw;
-    const withoutAt = raw.startsWith("@") ? raw.slice(1) : raw;
+    const raw = (handle || "").trim().toLowerCase();
+    const withAt = raw ? (raw.startsWith("@") ? raw : "@" + raw) : "";
+    const withoutAt = raw ? (raw.startsWith("@") ? raw.slice(1) : raw) : "";
+    const cleanUserId = userId ? String(userId).trim() : (raw.startsWith("id:") ? raw.replace(/^id:\s*/i, "").trim() : (/^\d+$/.test(raw) ? raw : null));
 
     const list = await this.getYoutubeWhitelist();
     const target = list.find(item => {
-      const h = item.handle.toLowerCase();
-      return h === withAt || h === withoutAt;
+      const h = (item.handle || "").toLowerCase();
+      const u = item.userId ? String(item.userId).trim() : "";
+      if (cleanUserId && u && u === cleanUserId) return true;
+      if (withAt && h === withAt) return true;
+      if (withoutAt && h === withoutAt) return true;
+      if (cleanUserId && (h === `id: ${cleanUserId}`.toLowerCase() || h === `id:${cleanUserId}`.toLowerCase())) return true;
+      return false;
     });
 
     if (!target) return null;
@@ -1204,8 +1256,13 @@ window.PORTFOLIO_DB = {
     try {
       const fallbackList = this.getFallbackYoutubeWhitelist();
       const idx = fallbackList.findIndex(item => {
-        const h = item.handle.toLowerCase();
-        return h === withAt || h === withoutAt;
+        const h = (item.handle || "").toLowerCase();
+        const u = item.userId ? String(item.userId).trim() : "";
+        if (cleanUserId && u && u === cleanUserId) return true;
+        if (withAt && h === withAt) return true;
+        if (withoutAt && h === withoutAt) return true;
+        if (cleanUserId && (h === `id: ${cleanUserId}`.toLowerCase() || h === `id:${cleanUserId}`.toLowerCase())) return true;
+        return false;
       });
       if (idx !== -1) {
         fallbackList[idx] = target;
@@ -1344,16 +1401,40 @@ window.PORTFOLIO_AUTH = {
     }
   },
 
-  async loginWithTelegram(telegramHandle, displayName = "", authData = null) {
-    if (!telegramHandle || typeof telegramHandle !== "string") {
-      return { success: false, reason: "Valid Telegram handle is required." };
+  async loginWithTelegram(userOrHandle, displayName = "", explicitAuthData = null) {
+    let authData = explicitAuthData;
+    let userId = "";
+    let username = "";
+
+    if (typeof userOrHandle === "object" && userOrHandle !== null) {
+      authData = userOrHandle;
+      userId = authData.id ? String(authData.id) : "";
+      username = authData.username ? authData.username.trim().replace(/^@/, "") : "";
+      displayName = displayName || [authData.first_name, authData.last_name].filter(Boolean).join(" ");
+    } else if (typeof userOrHandle === "string") {
+      const rawClean = userOrHandle.trim();
+      if (/^\d+$/.test(rawClean)) {
+        userId = rawClean;
+      } else {
+        username = rawClean.replace(/^@/, "");
+      }
     }
 
-    const rawClean = telegramHandle.trim();
-    const cleanId = rawClean.startsWith("@") ? rawClean : "@" + rawClean;
+    if (authData && authData.id) {
+      userId = String(authData.id);
+    }
+    if (authData && authData.username) {
+      username = authData.username.trim().replace(/^@/, "");
+    }
+
+    if (!userId && !username) {
+      return { success: false, reason: "Valid Telegram user authentication required." };
+    }
+
+    const cleanId = username ? `@${username}` : `ID: ${userId}`;
     const cleanName = (displayName && displayName.trim()) 
       ? displayName.trim().slice(0, 32) 
-      : cleanId;
+      : (username ? `@${username}` : `User #${userId}`);
 
     let isCryptographicallyVerified = false;
     if (authData && authData.hash) {
@@ -1363,11 +1444,11 @@ window.PORTFOLIO_AUTH = {
     const now = Date.now();
     const expiresAt = now + this.RETENTION_MS;
 
-    // Check YouTube Whitelist
+    // Check YouTube Whitelist using BOTH handle and numeric userId
     let isWhitelisted = false;
     let whitelistRole = "Friend";
     if (window.PORTFOLIO_DB) {
-      const wlCheck = await window.PORTFOLIO_DB.isWhitelistedForYouTube(cleanId);
+      const wlCheck = await window.PORTFOLIO_DB.isWhitelistedForYouTube(cleanId, userId);
       if (wlCheck && wlCheck.whitelisted) {
         isWhitelisted = true;
         whitelistRole = wlCheck.entry.role || "Whitelisted Friend";
@@ -1375,7 +1456,7 @@ window.PORTFOLIO_AUTH = {
     }
 
     // Owner check (Saurav)
-    const isOwner = cleanId.toLowerCase() === "@5auravpandey" || cleanId.toLowerCase() === "saurav";
+    const isOwner = (username && (username.toLowerCase() === "5auravpandey" || username.toLowerCase() === "saurav")) || userId === "7044498519";
     if (isOwner) {
       isWhitelisted = true;
       whitelistRole = "Owner / Host";
@@ -1383,8 +1464,9 @@ window.PORTFOLIO_AUTH = {
 
     const session = {
       type: "telegram",
+      telegramUserId: userId,
       telegramId: cleanId,
-      username: cleanId.replace(/^@/, ""),
+      username: username || "",
       displayName: cleanName,
       photoUrl: (authData && authData.photo_url) ? authData.photo_url : null,
       isVerifiedTelegram: true,
@@ -1394,14 +1476,15 @@ window.PORTFOLIO_AUTH = {
       role: whitelistRole,
       lastLogin: now,
       expiresAt: expiresAt,
-      daysRemaining: 7
+      daysRemaining: 7,
+      authData: authData || null
     };
 
     this.saveSession(session);
 
     // Refresh scores sustainability
     if (window.PORTFOLIO_DB) {
-      window.PORTFOLIO_DB.reverifyTelegramScore(cleanId).catch(() => {});
+      window.PORTFOLIO_DB.reverifyTelegramScore(userId || cleanId).catch(() => {});
     }
 
     this.emitAuthChanged(session);
@@ -1423,8 +1506,8 @@ window.PORTFOLIO_AUTH = {
 
     this.saveSession(session);
 
-    if (window.PORTFOLIO_DB && session.telegramId) {
-      await window.PORTFOLIO_DB.reverifyTelegramScore(session.telegramId);
+    if (window.PORTFOLIO_DB && (session.telegramUserId || session.telegramId)) {
+      await window.PORTFOLIO_DB.reverifyTelegramScore(session.telegramUserId || session.telegramId);
     }
 
     this.emitAuthChanged(session);
@@ -1449,8 +1532,9 @@ window.PORTFOLIO_AUTH = {
   saveSession(session) {
     try {
       localStorage.setItem(this.STORAGE_SESSION_KEY, JSON.stringify(session));
-      if (session.telegramId) {
+      if (session.telegramId || session.telegramUserId) {
         localStorage.setItem("portfolio_telegram_user", JSON.stringify({
+          telegramUserId: session.telegramUserId || null,
           telegramId: session.telegramId,
           displayName: session.displayName,
           lastLogin: session.lastLogin,
@@ -1463,10 +1547,18 @@ window.PORTFOLIO_AUTH = {
           const rawAll = localStorage.getItem("portfolio_all_telegram_users");
           let allUsers = rawAll ? JSON.parse(rawAll) : [];
           if (!Array.isArray(allUsers)) allUsers = [];
-          const idx = allUsers.findIndex(u => (u.telegramId || "").toLowerCase() === session.telegramId.toLowerCase());
+          
+          // Match by telegramUserId first, or by telegramId
+          const idx = allUsers.findIndex(u => 
+            (session.telegramUserId && u.telegramUserId && u.telegramUserId === session.telegramUserId) ||
+            ((u.telegramId || "").toLowerCase() === (session.telegramId || "").toLowerCase())
+          );
           const userRecord = {
+            telegramUserId: session.telegramUserId || null,
             telegramId: session.telegramId,
+            username: session.username || "",
             displayName: session.displayName,
+            photoUrl: session.photoUrl || null,
             lastLogin: session.lastLogin,
             expiresAt: session.expiresAt,
             role: session.role || "Friend",
@@ -1563,7 +1655,8 @@ window.PORTFOLIO_AUTH = {
             </div>
             <div class="auth-profile-meta">
               <h4 class="auth-profile-name">${escape(session.displayName)}</h4>
-              <span class="auth-profile-handle">${escape(session.telegramId || session.username)}</span>
+              <span class="auth-profile-handle">${escape(session.telegramId || session.username || (session.telegramUserId ? 'ID: ' + session.telegramUserId : ''))}</span>
+              ${session.telegramUserId ? `<span class="auth-profile-id" style="font-size: 11px; font-family: var(--mono); color: var(--muted); display: block; margin-top: 2px;">User ID: ${escape(session.telegramUserId)}</span>` : ''}
               <span class="auth-role-tag">${escape(session.role || "Friend")}</span>
             </div>
           </div>
@@ -1614,7 +1707,7 @@ window.PORTFOLIO_AUTH = {
         </div>
       `;
     } else {
-      // User is LOGGED OUT -> 1-Click Telegram Login + Quick Handle Connect Fallback
+      // User is LOGGED OUT -> 1-Click Telegram Login Only
       body.innerHTML = `
         <div class="auth-login-view" style="text-align: center; padding: 12px 4px 6px;">
           <div style="margin-bottom: 20px;">
@@ -1623,7 +1716,7 @@ window.PORTFOLIO_AUTH = {
             </div>
             <h4 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 700;">Sign In with Telegram</h4>
             <p class="auth-tab-desc" style="margin: 0 auto; max-width: 330px; font-size: 13px; line-height: 1.5; color: var(--muted);">
-              1-click authorization to retain your arcade scores for 7 days &amp; access whitelisted YouTube stream.
+              1-click authorization via Telegram bot to retain your arcade scores for 7 days &amp; access whitelisted YouTube stream.
             </p>
           </div>
 
@@ -1639,21 +1732,6 @@ window.PORTFOLIO_AUTH = {
             <!-- Embedded widget mount -->
             <div id="unified-tg-widget-mount" class="unified-tg-mount" style="min-height: 0;"></div>
           </div>
-
-          <!-- Quick Handle Connect Fallback -->
-          <div class="auth-divider" style="display: flex; align-items: center; margin: 16px auto 12px; max-width: 360px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">
-            <span style="flex: 1; height: 1px; background: var(--rule);"></span>
-            <span style="padding: 0 10px;">or quick handle connect</span>
-            <span style="flex: 1; height: 1px; background: var(--rule);"></span>
-          </div>
-
-          <form id="form-tg-handle-quick" style="display: flex; gap: 8px; max-width: 360px; margin: 0 auto;">
-            <input type="text" id="input-tg-quick-handle" class="focus-input" placeholder="@your_username" maxlength="32" style="flex: 1; padding: 7px 14px; font-size: 13px; font-family: var(--mono); border: 1px solid var(--rule); border-radius: 999px; background: var(--card); color: var(--ink);">
-            <button type="submit" id="btn-tg-quick-submit" class="btn-primary-action" style="padding: 7px 16px; font-size: 12.5px; font-weight: 600; border-radius: 999px; white-space: nowrap;">
-              Connect
-            </button>
-          </form>
-          <div id="tg-quick-error" style="color: var(--err); font-size: 11.5px; margin-top: 6px; display: none;"></div>
 
           <div class="auth-footer-clean" style="margin-top: 16px; padding-top: 12px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--rule-light);">
             <span>Melodic soundscapes and arcade games remain 100% free without login.</span>
@@ -1701,50 +1779,6 @@ window.PORTFOLIO_AUTH = {
       };
     }
 
-    // Quick Handle Connect form submit handler
-    const quickForm = document.getElementById("form-tg-handle-quick");
-    if (quickForm) {
-      quickForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const input = document.getElementById("input-tg-quick-handle");
-        const errEl = document.getElementById("tg-quick-error");
-        const btn = document.getElementById("btn-tg-quick-submit");
-        const handle = input ? input.value.trim() : "";
-
-        if (!handle || handle.length < 2) {
-          if (errEl) {
-            errEl.textContent = "Please enter your Telegram handle (e.g. @your_name).";
-            errEl.style.display = "block";
-          }
-          return;
-        }
-
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = "Connecting...";
-        }
-
-        const res = await this.loginWithTelegram(handle, handle);
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "Connect";
-        }
-
-        if (res.success) {
-          if (typeof showToast === "function") {
-            const wlNote = res.session.isWhitelistedYouTube ? " (YouTube Unlocked!)" : "";
-            showToast(`Connected as ${res.session.telegramId}! Scores retained for 7 days${wlNote}.`);
-          }
-          this.closeLoginDialog();
-        } else {
-          if (errEl) {
-            errEl.textContent = res.reason || "Failed to connect.";
-            errEl.style.display = "block";
-          }
-        }
-      };
-    }
-
     // Light-dismiss fallback
     if (dialog && !dialog._backdropFallbackBound) {
       dialog._backdropFallbackBound = true;
@@ -1785,7 +1819,7 @@ window.PORTFOLIO_AUTH = {
       recheckWlBtn.onclick = async () => {
         const session = this.getSession();
         if (session && window.PORTFOLIO_DB) {
-          const wl = await window.PORTFOLIO_DB.isWhitelistedForYouTube(session.telegramId || session.username);
+          const wl = await window.PORTFOLIO_DB.isWhitelistedForYouTube(session.telegramId || session.username, session.telegramUserId);
           if (wl.whitelisted) {
             session.isWhitelistedYouTube = true;
             session.role = wl.entry.role || "Whitelisted Friend";
@@ -1823,16 +1857,16 @@ window.PORTFOLIO_AUTH = {
 window.onTelegramAuth = async function(user) {
   if (!user) return;
   const rawUsername = user.username ? user.username.replace(/^@/, "") : "";
-  const handle = rawUsername ? `@${rawUsername}` : `@id_${user.id}`;
-  const displayName = [user.first_name, user.last_name].filter(Boolean).join(" ") || handle;
+  const handle = rawUsername ? `@${rawUsername}` : (user.id ? `ID: ${user.id}` : "");
+  const displayName = [user.first_name, user.last_name].filter(Boolean).join(" ") || handle || (user.id ? `User #${user.id}` : "Visitor");
 
   if (window.PORTFOLIO_AUTH) {
-    const res = await window.PORTFOLIO_AUTH.loginWithTelegram(handle, displayName, user);
+    const res = await window.PORTFOLIO_AUTH.loginWithTelegram(user, displayName, user);
     if (res && res.success) {
       window.PORTFOLIO_AUTH.closeLoginDialog();
       if (typeof showToast === "function") {
         const wl = res.session.isWhitelistedYouTube ? " • YouTube Unlocked!" : "";
-        showToast(`Connected via Telegram: ${handle} (7-day retention active${wl})`);
+        showToast(`Connected via Telegram: ${handle || displayName} (7-day retention active${wl})`);
       }
     }
   }
