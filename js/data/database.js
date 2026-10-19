@@ -1,16 +1,32 @@
 /**
  * Saurav Pandey - Portfolio Unified Database Engine
  * 1. Dual-Layer Storage: Browser IndexedDB (Transactional NoSQL) + Cloud Sync Adapter.
- * 2. Access Pass Authority: Verifies authorized passes issued by Saurav Pandey.
- * 3. Cross-Game Persistent Leaderboard: Stores Matrix Snake, Chess & Tic-Tac-Toe scores.
+ * 2. Friend Credential Authority: Verifies authorized Friend ID + Password issued by Saurav Pandey.
+ * 3. Cross-Game Persistent Leaderboard with Telegram ID & Weekly Sustainability Purge.
  * 4. Synchronized Study Room Sessions: Tracks active room participants and state.
  */
 window.PORTFOLIO_DB = {
   dbName: "SauravPortfolioDB",
-  dbVersion: 1,
+  dbVersion: 2,
   db: null,
   isReady: false,
   readyPromise: null,
+
+  // Authorized Friends Catalog (ID + Password credentials issued by Saurav)
+  AUTHORIZED_FRIENDS: [
+    { username: "saurav", password: "HAL2026", name: "Saurav Pandey", role: "Host / Admin" },
+    { username: "hal-friend", password: "HAL2026", name: "HAL Avionics Colleague", role: "HAL Colleague" },
+    { username: "hal-colleague", password: "AVIONICS2026", name: "HAL Avionics Colleague", role: "HAL Colleague" },
+    { username: "iitp-mate", password: "IITP2026", name: "IIT Patna Classmate", role: "MCA Classmate" },
+    { username: "iiit-mate", password: "IIIT2026", name: "IIIT Ranchi Classmate", role: "MCA Classmate" },
+    { username: "aman", password: "IITP2026", name: "Aman K. (IITP)", role: "Study Partner" },
+    { username: "rohan", password: "FRIENDS2026", name: "Rohan V.", role: "VIP Friend" },
+    { username: "priya", password: "GOPALGANJ2026", name: "Priya S.", role: "Hometown Peer" },
+    { username: "vip-friend", password: "VIP2026", name: "VIP Friend", role: "Close Friends" },
+    { username: "study-group", password: "STUDY2026", name: "Study Group Member", role: "Study Circle" },
+    { username: "bihar-peer", password: "BIHAR2026", name: "Gopalganj Peer", role: "Bihar Circle" },
+    { username: "dev-peer", password: "DEV2026", name: "Dev Collaborator", role: "Collaborator" }
+  ],
 
   // Authorized Master Pass Catalog (Pre-seeded passes issued by Saurav)
   AUTHORIZED_PASSES: [
@@ -52,21 +68,28 @@ window.PORTFOLIO_DB = {
           try {
             const db = event.target.result;
 
-            // 1. Access Passes Store
+            // 1. Friend Accounts Store (ID + Password)
+            if (!db.objectStoreNames.contains("friend_accounts")) {
+              const accountStore = db.createObjectStore("friend_accounts", { keyPath: "username" });
+              accountStore.createIndex("by_status", "status", { unique: false });
+            }
+
+            // 2. Access Passes Store
             if (!db.objectStoreNames.contains("access_passes")) {
               const passStore = db.createObjectStore("access_passes", { keyPath: "passKey" });
               passStore.createIndex("by_status", "status", { unique: false });
             }
 
-            // 2. Game Scores Store (Snake, Chess, TicTacToe)
+            // 3. Game Scores Store (Snake, Chess, TicTacToe with Telegram ID & Expiry)
             if (!db.objectStoreNames.contains("game_scores")) {
               const scoreStore = db.createObjectStore("game_scores", { keyPath: "id", autoIncrement: true });
               scoreStore.createIndex("by_game", "game", { unique: false });
               scoreStore.createIndex("by_score", "score", { unique: false });
-              scoreStore.createIndex("by_game_score", ["game", "score"], { unique: false });
+              scoreStore.createIndex("by_telegram", "telegramId", { unique: false });
+              scoreStore.createIndex("by_expiry", "expiresAt", { unique: false });
             }
 
-            // 3. Synchronized Study Rooms
+            // 4. Synchronized Study Rooms
             if (!db.objectStoreNames.contains("study_rooms")) {
               const roomStore = db.createObjectStore("study_rooms", { keyPath: "roomId" });
               roomStore.createIndex("by_created", "createdAt", { unique: false });
@@ -108,44 +131,64 @@ window.PORTFOLIO_DB = {
     return this.readyPromise;
   },
 
-  // Seed default master passes and initial high scores
+  // Seed default master passes, friend credentials, and initial scores
   async seedDefaultData() {
     if (!this.db) return;
 
     try {
-      // Seed master passes
-      const passTx = this.db.transaction("access_passes", "readwrite");
-      const passStore = passTx.objectStore("access_passes");
+      // Seed friend accounts
+      if (this.db.objectStoreNames.contains("friend_accounts")) {
+        const accTx = this.db.transaction("friend_accounts", "readwrite");
+        const accStore = accTx.objectStore("friend_accounts");
+        for (const f of this.AUTHORIZED_FRIENDS) {
+          accStore.put({
+            username: f.username.toLowerCase(),
+            password: f.password.toUpperCase(),
+            name: f.name,
+            role: f.role,
+            status: "active",
+            createdAt: "2026-10-01"
+          });
+        }
+      }
 
-      for (const p of this.AUTHORIZED_PASSES) {
-        passStore.put({
-          passKey: p.key.toUpperCase(),
-          label: p.label,
-          issuedTo: p.issuedTo,
-          status: "active",
-          createdAt: "2026-10-01"
-        });
+      // Seed master passes
+      if (this.db.objectStoreNames.contains("access_passes")) {
+        const passTx = this.db.transaction("access_passes", "readwrite");
+        const passStore = passTx.objectStore("access_passes");
+        for (const p of this.AUTHORIZED_PASSES) {
+          passStore.put({
+            passKey: p.key.toUpperCase(),
+            label: p.label,
+            issuedTo: p.issuedTo,
+            status: "active",
+            createdAt: "2026-10-01"
+          });
+        }
       }
 
       // Seed default scores if store is empty
-      const scoreTx = this.db.transaction("game_scores", "readwrite");
-      const scoreStore = scoreTx.objectStore("game_scores");
-      const countReq = scoreStore.count();
+      if (this.db.objectStoreNames.contains("game_scores")) {
+        const scoreTx = this.db.transaction("game_scores", "readwrite");
+        const scoreStore = scoreTx.objectStore("game_scores");
+        const countReq = scoreStore.count();
 
-      countReq.onsuccess = () => {
-        if (countReq.result === 0) {
-          const initialScores = [
-            { game: "snake", playerName: "Saurav (HAL)", score: 240, speed: "Turbo", date: "2026-10-18", passKey: "SP-HAL-2026", timestamp: Date.now() - 86400000 },
-            { game: "snake", playerName: "Aman K. (IITP)", score: 180, speed: "Normal", date: "2026-10-17", passKey: "SP-IIIT-IITP", timestamp: Date.now() - 172800000 },
-            { game: "snake", playerName: "Rohan V.", score: 140, speed: "Normal", date: "2026-10-16", passKey: "SP-VIP-FRIENDS", timestamp: Date.now() - 259200000 },
-            { game: "snake", playerName: "Priya S.", score: 110, speed: "Chill", date: "2026-10-15", passKey: "SP-GOPALGANJ", timestamp: Date.now() - 345600000 },
-            { game: "snake", playerName: "Dev Cadet", score: 80, speed: "Normal", date: "2026-10-14", passKey: "SP-AVIONICS-DEV", timestamp: Date.now() - 432000000 }
-          ];
-          initialScores.forEach(s => {
-            try { scoreStore.add(s); } catch (e) {}
-          });
-        }
-      };
+        countReq.onsuccess = () => {
+          if (countReq.result === 0) {
+            const now = Date.now();
+            const initialScores = [
+              { game: "snake", playerName: "Saurav (HAL)", telegramId: "@5auravpandey", score: 240, speed: "Turbo", date: "2026-10-18", verifiedAt: now, expiresAt: now + 7 * 86400000, timestamp: now - 86400000 },
+              { game: "snake", playerName: "Aman K. (IITP)", telegramId: "@aman_iitp", score: 180, speed: "Normal", date: "2026-10-17", verifiedAt: now - 86400000, expiresAt: now + 6 * 86400000, timestamp: now - 172800000 },
+              { game: "snake", playerName: "Rohan V.", telegramId: "@rohan_v", score: 140, speed: "Normal", date: "2026-10-16", verifiedAt: now - 2 * 86400000, expiresAt: now + 5 * 86400000, timestamp: now - 259200000 },
+              { game: "snake", playerName: "Priya S.", telegramId: "@priya_gopalganj", score: 110, speed: "Chill", date: "2026-10-15", verifiedAt: now - 3 * 86400000, expiresAt: now + 4 * 86400000, timestamp: now - 345600000 },
+              { game: "snake", playerName: "Dev Cadet", telegramId: "@dev_cadet", score: 80, speed: "Normal", date: "2026-10-14", verifiedAt: now - 4 * 86400000, expiresAt: now + 3 * 86400000, timestamp: now - 432000000 }
+            ];
+            initialScores.forEach(s => {
+              try { scoreStore.add(s); } catch (e) {}
+            });
+          }
+        };
+      }
     } catch (e) {
       console.warn("seedDefaultData caught error:", e);
     }
@@ -153,6 +196,16 @@ window.PORTFOLIO_DB = {
 
   seedLocalStorage() {
     try {
+      const now = Date.now();
+      if (!localStorage.getItem("portfolio_db_friend_accounts")) {
+        localStorage.setItem("portfolio_db_friend_accounts", JSON.stringify(this.AUTHORIZED_FRIENDS.map(f => ({
+          username: f.username.toLowerCase(),
+          password: f.password.toUpperCase(),
+          name: f.name,
+          role: f.role,
+          status: "active"
+        }))));
+      }
       if (!localStorage.getItem("portfolio_db_passes")) {
         localStorage.setItem("portfolio_db_passes", JSON.stringify(this.AUTHORIZED_PASSES.map(p => ({
           passKey: p.key.toUpperCase(),
@@ -163,11 +216,11 @@ window.PORTFOLIO_DB = {
       }
       if (!localStorage.getItem("portfolio_snake_leaderboard")) {
         localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify([
-          { name: "Saurav (HAL)", score: 240, speed: "Turbo", date: "2026-10-18", passKey: "SP-HAL-2026" },
-          { name: "Aman K. (IITP)", score: 180, speed: "Normal", date: "2026-10-17", passKey: "SP-IIIT-IITP" },
-          { name: "Rohan V.", score: 140, speed: "Normal", date: "2026-10-16", passKey: "SP-VIP-FRIENDS" },
-          { name: "Priya S.", score: 110, speed: "Chill", date: "2026-10-15", passKey: "SP-GOPALGANJ" },
-          { name: "Dev Cadet", score: 80, speed: "Normal", date: "2026-10-14", passKey: "SP-AVIONICS-DEV" }
+          { name: "Saurav (HAL)", telegramId: "@5auravpandey", score: 240, speed: "Turbo", date: "2026-10-18", verifiedAt: now, expiresAt: now + 7 * 86400000 },
+          { name: "Aman K. (IITP)", telegramId: "@aman_iitp", score: 180, speed: "Normal", date: "2026-10-17", verifiedAt: now - 86400000, expiresAt: now + 6 * 86400000 },
+          { name: "Rohan V.", telegramId: "@rohan_v", score: 140, speed: "Normal", date: "2026-10-16", verifiedAt: now - 2 * 86400000, expiresAt: now + 5 * 86400000 },
+          { name: "Priya S.", telegramId: "@priya_gopalganj", score: 110, speed: "Chill", date: "2026-10-15", verifiedAt: now - 3 * 86400000, expiresAt: now + 4 * 86400000 },
+          { name: "Dev Cadet", telegramId: "@dev_cadet", score: 80, speed: "Normal", date: "2026-10-14", verifiedAt: now - 4 * 86400000, expiresAt: now + 3 * 86400000 }
         ]));
       }
     } catch (e) {}
@@ -270,7 +323,134 @@ window.PORTFOLIO_DB = {
     return activation;
   },
 
+  // =========================================================================
+  // FRIEND CREDENTIALS (ID + PASSWORD) & SESSION MANAGEMENT
+  // =========================================================================
+  async verifyFriendCredentials(username, password) {
+    if (!username || !password) {
+      return { valid: false, reason: "Friend ID and Password are both required." };
+    }
+    await this.init();
+
+    const cleanUser = String(username).trim().toLowerCase();
+    const cleanPass = String(password).trim().toUpperCase();
+
+    // 1. Check pre-seeded AUTHORIZED_FRIENDS catalog
+    const matched = this.AUTHORIZED_FRIENDS.find(f => 
+      f.username.toLowerCase() === cleanUser && 
+      (f.password.toUpperCase() === cleanPass || f.password.toUpperCase().replace(/-/g, "") === cleanPass.replace(/-/g, ""))
+    );
+    if (matched) {
+      return { valid: true, friend: matched };
+    }
+
+    // 2. Check IndexedDB friend_accounts
+    if (this.db && this.db.objectStoreNames.contains("friend_accounts")) {
+      const dbMatch = await new Promise((resolve) => {
+        try {
+          const tx = this.db.transaction("friend_accounts", "readonly");
+          const store = tx.objectStore("friend_accounts");
+          const req = store.get(cleanUser);
+          req.onsuccess = () => {
+            const acc = req.result;
+            if (acc && acc.status === "active" && acc.password.toUpperCase() === cleanPass) {
+              resolve(acc);
+            } else {
+              resolve(null);
+            }
+          };
+          req.onerror = () => resolve(null);
+        } catch (e) {
+          resolve(null);
+        }
+      });
+      if (dbMatch) return { valid: true, friend: dbMatch };
+    }
+
+    // 3. Check LocalStorage fallback
+    try {
+      const stored = JSON.parse(localStorage.getItem("portfolio_db_friend_accounts") || "[]");
+      const found = stored.find(f => f.username.toLowerCase() === cleanUser && f.password.toUpperCase() === cleanPass && f.status === "active");
+      if (found) return { valid: true, friend: found };
+    } catch (e) {}
+
+    return { valid: false, reason: "Invalid Friend ID or Password. Please request authorized credentials from Saurav." };
+  },
+
+  async activateFriendSession(username, password, displayName) {
+    const check = await this.verifyFriendCredentials(username, password);
+    if (!check.valid) return check;
+
+    const friend = check.friend;
+    const finalName = (displayName && displayName.trim()) 
+      ? displayName.trim().slice(0, 24) 
+      : (friend.name || friend.username);
+
+    try {
+      localStorage.setItem("portfolio_friend_authenticated", "true");
+      localStorage.setItem("portfolio_friend_username", friend.username);
+      localStorage.setItem("portfolio_friend_name", finalName);
+      localStorage.setItem("portfolio_friend_role", friend.role || "Friend");
+      localStorage.setItem("portfolio_friend_pass", "true"); // legacy compatibility
+      localStorage.setItem("portfolio_access_pass", friend.password); // legacy compatibility
+    } catch (e) {}
+
+    // Record login time in IndexedDB
+    if (this.db && this.db.objectStoreNames.contains("friend_accounts")) {
+      try {
+        const tx = this.db.transaction("friend_accounts", "readwrite");
+        const store = tx.objectStore("friend_accounts");
+        const getReq = store.get(friend.username);
+        getReq.onsuccess = () => {
+          const record = getReq.result || { username: friend.username };
+          record.lastLoginAt = new Date().toISOString();
+          record.lastDisplayName = finalName;
+          try { store.put(record); } catch (err) {}
+        };
+      } catch (e) {}
+    }
+
+    return { valid: true, friend, name: finalName };
+  },
+
+  getActiveFriendSession() {
+    try {
+      const isAuth = localStorage.getItem("portfolio_friend_authenticated") === "true";
+      const username = localStorage.getItem("portfolio_friend_username");
+      const name = localStorage.getItem("portfolio_friend_name");
+      const role = localStorage.getItem("portfolio_friend_role");
+      if (isAuth && username) {
+        return {
+          username,
+          name: name || username,
+          role: role || "Friend",
+          isAuthenticated: true
+        };
+      }
+    } catch (e) {}
+    return null;
+  },
+
+  revokeFriendSession() {
+    try {
+      localStorage.removeItem("portfolio_friend_authenticated");
+      localStorage.removeItem("portfolio_friend_username");
+      localStorage.removeItem("portfolio_friend_name");
+      localStorage.removeItem("portfolio_friend_role");
+      localStorage.removeItem("portfolio_friend_pass");
+      localStorage.removeItem("portfolio_access_pass");
+    } catch (e) {}
+  },
+
   getActivePass() {
+    const friendSession = this.getActiveFriendSession();
+    if (friendSession) {
+      return {
+        key: friendSession.username,
+        name: friendSession.name,
+        role: friendSession.role
+      };
+    }
     try {
       const key = localStorage.getItem("portfolio_access_pass");
       const name = localStorage.getItem("portfolio_friend_name");
@@ -283,17 +463,24 @@ window.PORTFOLIO_DB = {
   },
 
   revokeCurrentSession() {
-    try {
-      localStorage.removeItem("portfolio_access_pass");
-      localStorage.removeItem("portfolio_friend_pass");
-      localStorage.removeItem("portfolio_friend_name");
-    } catch (e) {}
+    this.revokeFriendSession();
   },
 
   // =========================================================================
-  // GAMES SCORES DATABASE
+  // GAMES SCORES DATABASE WITH TELEGRAM ID & 7-DAY DATA SUSTAINABILITY
   // =========================================================================
-  async saveScore(game, playerName, score, speed = "Normal", passKey = "") {
+  RETENTION_MS: 7 * 24 * 60 * 60 * 1000, // Strict 7-day sustainability window
+
+  // Clean and format Telegram handle
+  formatTelegramId(input) {
+    if (!input || typeof input !== "string") return "";
+    let clean = input.trim();
+    if (!clean) return "";
+    if (!clean.startsWith("@")) clean = "@" + clean;
+    return clean.slice(0, 32);
+  },
+
+  async saveScore(game, playerName, score, speed = "Normal", telegramId = "") {
     const numericScore = parseInt(score, 10);
     if (isNaN(numericScore) || numericScore <= 0) return null;
     await this.init();
@@ -302,22 +489,40 @@ window.PORTFOLIO_DB = {
       ? playerName.trim().slice(0, 24) 
       : "Friend";
 
-    let sessionPass = "";
-    try {
-      sessionPass = localStorage.getItem("portfolio_access_pass") || "";
-    } catch (e) {}
+    let cleanTelegram = this.formatTelegramId(telegramId);
+    if (!cleanTelegram) {
+      try {
+        cleanTelegram = this.formatTelegramId(localStorage.getItem("portfolio_user_telegram") || "");
+      } catch (e) {}
+    }
+
+    const now = Date.now();
+    const expiresAt = now + this.RETENTION_MS;
 
     const entry = {
       game: String(game || "snake").toLowerCase(),
       playerName: cleanName,
+      telegramId: cleanTelegram || "@guest_player",
       score: numericScore,
       speed: String(speed || "Normal"),
-      passKey: passKey || sessionPass || "VERIFIED-GUEST",
       date: new Date().toISOString().slice(0, 10),
-      timestamp: Date.now()
+      timestamp: now,
+      verifiedAt: now,
+      expiresAt: expiresAt,
+      isVerified: true
     };
 
-    // 1. Save to IndexedDB
+    // Store preferred telegram handle for user's convenience
+    if (cleanTelegram && cleanTelegram !== "@guest_player") {
+      try {
+        localStorage.setItem("portfolio_user_telegram", cleanTelegram);
+      } catch (e) {}
+    }
+
+    // 1. Purge expired scores first to maintain sustainability
+    await this.purgeExpiredScores();
+
+    // 2. Save to IndexedDB
     if (this.db) {
       try {
         const tx = this.db.transaction("game_scores", "readwrite");
@@ -328,23 +533,140 @@ window.PORTFOLIO_DB = {
       }
     }
 
-    // 2. Synchronize to LocalStorage Top 5 Cache
+    // 3. Synchronize to LocalStorage Top 5 Cache
     try {
       const topList = await this.getLeaderboard(game, 5);
       localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(topList.map(s => ({
         name: s.playerName,
+        telegramId: s.telegramId,
         score: s.score,
         speed: s.speed,
         date: s.date,
-        passKey: s.passKey
+        verifiedAt: s.verifiedAt,
+        expiresAt: s.expiresAt
       }))));
     } catch (e) {}
 
     return entry;
   },
 
+  // Weekly Re-Verification to Extend 7-day Data Sustainability
+  async reverifyTelegramScore(telegramId) {
+    if (!telegramId) return { success: false, reason: "Telegram ID required" };
+    await this.init();
+
+    const cleanHandle = this.formatTelegramId(telegramId);
+    if (!cleanHandle) return { success: false, reason: "Invalid Telegram ID" };
+
+    const now = Date.now();
+    const newExpiresAt = now + this.RETENTION_MS;
+    let count = 0;
+
+    if (this.db) {
+      try {
+        const tx = this.db.transaction("game_scores", "readwrite");
+        const store = tx.objectStore("game_scores");
+        const req = store.openCursor();
+
+        await new Promise((resolve) => {
+          req.onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+              const record = cursor.value;
+              if (record.telegramId && record.telegramId.toLowerCase() === cleanHandle.toLowerCase()) {
+                record.verifiedAt = now;
+                record.expiresAt = newExpiresAt;
+                record.isVerified = true;
+                cursor.update(record);
+                count++;
+              }
+              cursor.continue();
+            } else {
+              resolve();
+            }
+          };
+          req.onerror = () => resolve();
+        });
+      } catch (e) {}
+    }
+
+    // Update LocalStorage cache as well
+    try {
+      const raw = localStorage.getItem("portfolio_snake_leaderboard");
+      if (raw) {
+        const list = JSON.parse(raw);
+        let modified = false;
+        list.forEach(item => {
+          if (item.telegramId && item.telegramId.toLowerCase() === cleanHandle.toLowerCase()) {
+            item.verifiedAt = now;
+            item.expiresAt = newExpiresAt;
+            modified = true;
+            count++;
+          }
+        });
+        if (modified) {
+          localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(list));
+        }
+      }
+      localStorage.setItem("portfolio_user_telegram", cleanHandle);
+    } catch (e) {}
+
+    return { 
+      success: true, 
+      count: Math.max(1, count), 
+      telegramId: cleanHandle, 
+      newExpiresAt,
+      daysRemaining: 7 
+    };
+  },
+
+  // Silent Purge of Expired Scores (> 7 days without re-verification)
+  async purgeExpiredScores() {
+    await this.init();
+    const now = Date.now();
+
+    // 1. Purge from IndexedDB
+    if (this.db) {
+      try {
+        const tx = this.db.transaction("game_scores", "readwrite");
+        const store = tx.objectStore("game_scores");
+        const req = store.openCursor();
+
+        req.onsuccess = (e) => {
+          const cursor = e.target.result;
+          if (cursor) {
+            const record = cursor.value;
+            const isExpired = record.expiresAt ? (record.expiresAt < now) : ((now - (record.timestamp || now)) > this.RETENTION_MS);
+            if (isExpired) {
+              cursor.delete();
+            }
+            cursor.continue();
+          }
+        };
+      } catch (e) {}
+    }
+
+    // 2. Purge from LocalStorage cache
+    try {
+      const raw = localStorage.getItem("portfolio_snake_leaderboard");
+      if (raw) {
+        const list = JSON.parse(raw);
+        const filtered = list.filter(item => {
+          if (item.expiresAt) return item.expiresAt >= now;
+          if (item.verifiedAt) return (now - item.verifiedAt) <= this.RETENTION_MS;
+          return true;
+        });
+        if (filtered.length !== list.length) {
+          localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(filtered));
+        }
+      }
+    } catch (e) {}
+  },
+
   async getLeaderboard(game = "snake", limit = 5) {
     await this.init();
+    await this.purgeExpiredScores();
+    const now = Date.now();
 
     if (this.db) {
       return new Promise((resolve) => {
@@ -356,8 +678,27 @@ window.PORTFOLIO_DB = {
 
           req.onsuccess = () => {
             const list = req.result || [];
-            list.sort((a, b) => b.score - a.score);
-            resolve(list.slice(0, limit));
+            const activeList = list.filter(item => {
+              if (item.expiresAt) return item.expiresAt >= now;
+              return true;
+            });
+            activeList.sort((a, b) => b.score - a.score);
+            const enriched = activeList.slice(0, limit).map(item => {
+              const remainingMs = item.expiresAt ? (item.expiresAt - now) : this.RETENTION_MS;
+              const daysRemaining = Math.max(0, Math.ceil(remainingMs / (24 * 60 * 60 * 1000)));
+              return {
+                playerName: item.playerName,
+                telegramId: item.telegramId || "@guest_player",
+                score: item.score,
+                speed: item.speed,
+                date: item.date,
+                verifiedAt: item.verifiedAt,
+                expiresAt: item.expiresAt,
+                daysRemaining,
+                isVerified: true
+              };
+            });
+            resolve(enriched);
           };
           req.onerror = () => {
             resolve(this.getFallbackLeaderboard(limit));
@@ -372,25 +713,36 @@ window.PORTFOLIO_DB = {
   },
 
   getFallbackLeaderboard(limit = 5) {
+    const now = Date.now();
     try {
       const raw = localStorage.getItem("portfolio_snake_leaderboard");
       if (raw) {
         const parsed = JSON.parse(raw);
-        return parsed.slice(0, limit).map(p => ({
-          playerName: p.name || p.playerName,
-          score: p.score,
-          speed: p.speed,
-          date: p.date,
-          passKey: p.passKey || ""
-        }));
+        const filtered = parsed.filter(p => !p.expiresAt || p.expiresAt >= now);
+        return filtered.slice(0, limit).map(p => {
+          const remainingMs = p.expiresAt ? (p.expiresAt - now) : this.RETENTION_MS;
+          const daysRemaining = Math.max(0, Math.ceil(remainingMs / (24 * 60 * 60 * 1000)));
+          return {
+            playerName: p.name || p.playerName,
+            telegramId: p.telegramId || "@guest_player",
+            score: p.score,
+            speed: p.speed,
+            date: p.date,
+            verifiedAt: p.verifiedAt || now,
+            expiresAt: p.expiresAt || (now + this.RETENTION_MS),
+            daysRemaining,
+            isVerified: true
+          };
+        });
       }
     } catch (e) {}
+
     return [
-      { playerName: "Saurav (HAL)", score: 240, speed: "Turbo", date: "2026-10-18", passKey: "SP-HAL-2026" },
-      { playerName: "Aman K. (IITP)", score: 180, speed: "Normal", date: "2026-10-17", passKey: "SP-IIIT-IITP" },
-      { playerName: "Rohan V.", score: 140, speed: "Normal", date: "2026-10-16", passKey: "SP-VIP-FRIENDS" },
-      { playerName: "Priya S.", score: 110, speed: "Chill", date: "2026-10-15", passKey: "SP-GOPALGANJ" },
-      { playerName: "Dev Cadet", score: 80, speed: "Normal", date: "2026-10-14", passKey: "SP-AVIONICS-DEV" }
+      { playerName: "Saurav (HAL)", telegramId: "@5auravpandey", score: 240, speed: "Turbo", date: "2026-10-18", daysRemaining: 7, isVerified: true },
+      { playerName: "Aman K. (IITP)", telegramId: "@aman_iitp", score: 180, speed: "Normal", date: "2026-10-17", daysRemaining: 6, isVerified: true },
+      { playerName: "Rohan V.", telegramId: "@rohan_v", score: 140, speed: "Normal", date: "2026-10-16", daysRemaining: 5, isVerified: true },
+      { playerName: "Priya S.", telegramId: "@priya_gopalganj", score: 110, speed: "Chill", date: "2026-10-15", daysRemaining: 4, isVerified: true },
+      { playerName: "Dev Cadet", telegramId: "@dev_cadet", score: 80, speed: "Normal", date: "2026-10-14", daysRemaining: 3, isVerified: true }
     ].slice(0, limit);
   },
 

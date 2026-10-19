@@ -51,15 +51,19 @@ window.PORTFOLIO_PLAYGROUND = {
 
   init() {
     this.sprintsCompleted = parseInt(localStorage.getItem("portfolio_sprints") || "0", 10);
-    const activePass = window.PORTFOLIO_DB ? window.PORTFOLIO_DB.getActivePass() : null;
-    if (activePass) {
+    const friendSession = window.PORTFOLIO_DB ? window.PORTFOLIO_DB.getActiveFriendSession() : null;
+    if (friendSession) {
       this.isFriend = true;
-      this.friendName = activePass.name || localStorage.getItem("portfolio_friend_name") || "";
-      this.activePassKey = activePass.key;
+      this.friendName = friendSession.name;
+      this.friendUsername = friendSession.username;
+      this.friendRole = friendSession.role;
+      this.activePassKey = friendSession.username.toUpperCase();
     } else {
-      this.isFriend = localStorage.getItem("portfolio_friend_pass") === "true";
-      this.friendName = localStorage.getItem("portfolio_friend_name") || "";
-      this.activePassKey = localStorage.getItem("portfolio_access_pass") || "";
+      this.isFriend = false;
+      this.friendName = "";
+      this.friendUsername = "";
+      this.friendRole = "";
+      this.activePassKey = "";
     }
     this.checkUrlParams();
     this.render();
@@ -69,35 +73,16 @@ window.PORTFOLIO_PLAYGROUND = {
     try {
       const params = new URLSearchParams(window.location.search);
       
-      // Friends Access Pass Verification from invite link
-      const passParam = params.get("pass") || params.get("invite");
-      const fromName = params.get("from") || params.get("name") || this.friendName || "";
-      
-      if (passParam) {
-        if (window.PORTFOLIO_DB) {
-          window.PORTFOLIO_DB.verifyAccessPass(passParam).then(res => {
-            if (res.valid) {
-              const nameToSet = fromName ? decodeURIComponent(fromName) : "Friend";
-              window.PORTFOLIO_DB.activatePass(passParam, nameToSet);
-              this.isFriend = true;
-              this.friendName = nameToSet;
-              this.activePassKey = passParam.toUpperCase();
-              this.render();
-            }
-          });
-        }
-      } else if (params.get("friend") === "true") {
-        if (this.isFriend && fromName) {
-          this.friendName = decodeURIComponent(fromName);
-          localStorage.setItem("portfolio_friend_name", this.friendName);
-        }
+      const fromName = params.get("from") || params.get("name") || "";
+      if (fromName && !this.friendName) {
+        this.friendName = decodeURIComponent(fromName);
       }
 
       if (params.has("room")) {
         this.activeRoomId = params.get("room");
         this.currentTab = "focus";
         if (window.PORTFOLIO_DB && this.isFriend) {
-          window.PORTFOLIO_DB.joinRoomSession(this.activeRoomId, this.friendName || "Participant", this.activePassKey || "");
+          window.PORTFOLIO_DB.joinRoomSession(this.activeRoomId, this.friendName || "Participant", this.friendUsername || this.activePassKey || "");
         }
       }
 
@@ -281,12 +266,13 @@ window.PORTFOLIO_PLAYGROUND = {
               <div class="youtube-controls">
                 <div class="friend-active-banner" style="margin-bottom: 10px;">
                   <div class="friend-banner-info">
-                    <span>🌟 Verified Stream Active${this.friendName ? `: <strong>${this.friendName}</strong>` : ''}</span>
-                    ${this.activePassKey ? `<span class="friend-pass-code-pill">${this.activePassKey}</span>` : ''}
+                    <span>🌟 Verified Friend Stream Active: <strong>${this.friendName || this.friendUsername}</strong></span>
+                    ${this.friendUsername ? `<span class="friend-pass-code-pill">@${this.friendUsername}</span>` : ''}
+                    ${this.friendRole ? `<span class="friend-role-badge">${this.friendRole}</span>` : ''}
                   </div>
                   <div class="friend-banner-actions">
-                    <button type="button" class="btn-invite-pill" id="btn-share-friend-pass-yt">🔗 Invite Friends</button>
-                    <button type="button" class="btn-revoke-pill" id="btn-revoke-pass" title="Switch or log out of this access pass">Switch Pass</button>
+                    <button type="button" class="btn-invite-pill" id="btn-share-friend-pass-yt">👥 Invite Study Friends</button>
+                    <button type="button" class="btn-revoke-pill" id="btn-revoke-pass" title="Switch or log out of this friend account">Log Out / Switch</button>
                   </div>
                 </div>
                 <div class="youtube-presets">
@@ -424,21 +410,21 @@ window.PORTFOLIO_PLAYGROUND = {
   renderFriendGate(context = "youtube") {
     return `
       <div class="friend-gate-card">
-        <div class="friend-gate-badge">🔒 Private Focus Stream &bull; Access Pass Required</div>
+        <div class="friend-gate-badge">🔒 Private Feature &bull; Friends ID &amp; Password Required</div>
         <h3 class="friend-gate-title">🎧 Friends YouTube Focus Stream Gate</h3>
         <p class="friend-gate-desc">
-          The YouTube synced focus stream and study rooms are private features reserved for Saurav's study circle and friends. You must enter an authorized Access Pass from Saurav Pandey to unlock synced playback.
+          The synchronized YouTube focus stream and collaborative study rooms are strictly reserved for Saurav's verified circle. Every user—including invited friends—must log in with their personal Friend ID (Username) and Password issued by Saurav.
         </p>
 
-        <!-- Direct Contact to Get Access Pass -->
+        <!-- Direct Contact to Get Credentials -->
         <div class="friend-gate-contact-box">
-          <span class="gate-contact-label">Need an Access Pass? Request one directly from Saurav:</span>
+          <span class="gate-contact-label">Need a Friend ID &amp; Password? Request yours directly from Saurav:</span>
           <div class="gate-contact-buttons">
             <a href="https://t.me/sauravpandey" target="_blank" rel="noopener noreferrer" class="btn-gate-contact telegram">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/></svg>
-              Request on Telegram
+              Request on Telegram (@sauravpandey)
             </a>
-            <a href="mailto:thesauravpandey@outlook.com?subject=YouTube%20Focus%20Stream%20Access%20Pass%20Request&body=Hi%20Saurav,%0D%0A%0D%0AI%20would%20like%20to%20request%20an%20Access%20Pass%20for%20your%20YouTube%20Focus%20Stream%20and%20Study%20Room.%0D%0A%0D%0AMy%20Name:%20" class="btn-gate-contact email">
+            <a href="mailto:thesauravpandey@outlook.com?subject=YouTube%20Study%20Stream%20Credentials%20Request&body=Hi%20Saurav,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20Friend%20ID%20and%20Password%20for%20your%20synchronized%20YouTube%20Focus%20Stream%20and%20Study%20Room.%0D%0A%0D%0AMy%20Name:%20%0D%0AMy%20Telegram%20ID:%20" class="btn-gate-contact email">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
               Request via Email
             </a>
@@ -447,20 +433,24 @@ window.PORTFOLIO_PLAYGROUND = {
 
         <div class="friend-gate-form">
           <div class="friend-gate-field">
-            <label for="input-friend-name">Your Name / Handle:</label>
-            <input type="text" id="input-friend-name" class="focus-input" placeholder="e.g., Aman, Rohan, Priya..." value="${this.friendName || ''}" maxlength="24">
+            <label for="input-friend-id">Friend ID (Username):</label>
+            <input type="text" id="input-friend-id" class="focus-input" placeholder="e.g. hal-friend, aman, iitp-mate..." maxlength="32" autocomplete="username" spellcheck="false" style="font-family: var(--mono);">
           </div>
           <div class="friend-gate-field">
-            <label for="input-friend-code">Access Pass Key:</label>
-            <input type="text" id="input-friend-code" class="focus-input" placeholder="Enter pass (e.g. SP-HAL-2026, HAL2026)..." maxlength="32" autocomplete="off" spellcheck="false" style="font-family: var(--mono); text-transform: uppercase;">
+            <label for="input-friend-password">Password:</label>
+            <input type="password" id="input-friend-password" class="focus-input" placeholder="Enter password from Saurav..." maxlength="32" autocomplete="current-password" spellcheck="false">
+          </div>
+          <div class="friend-gate-field">
+            <label for="input-friend-name">Display Name (Optional):</label>
+            <input type="text" id="input-friend-name" class="focus-input" placeholder="How you appear to study buddies (e.g. Aman K.)..." value="${this.friendName || ''}" maxlength="24">
           </div>
           <div id="friend-gate-error-msg" class="friend-gate-error" style="display: none;" role="alert"></div>
           <button type="button" id="btn-unlock-friend" class="btn-primary-action" style="padding: 10px 20px; font-weight: 600; width: 100%;">
-            ✨ Verify &amp; Unlock YouTube Stream
+            ✨ Authenticate &amp; Unlock YouTube Stream
           </button>
         </div>
         <div class="friend-gate-footer-note">
-          <span>🔒 Passes are verified against the database and stored locally.</span>
+          <span>🔒 Native audio soundscapes are 100% free and open for everyone. YouTube streams require individual friend authentication.</span>
         </div>
       </div>
     `;
@@ -505,67 +495,66 @@ window.PORTFOLIO_PLAYGROUND = {
       });
     });
 
-    // Friend Gate Actions (Pass Verification)
+    // Friend Gate Actions (ID + Password Verification)
     const unlockBtn = document.getElementById("btn-unlock-friend");
+    const friendIdInput = document.getElementById("input-friend-id");
+    const friendPassInput = document.getElementById("input-friend-password");
     const friendNameInput = document.getElementById("input-friend-name");
-    const friendCodeInput = document.getElementById("input-friend-code");
     const errorEl = document.getElementById("friend-gate-error-msg");
 
     if (unlockBtn) {
       unlockBtn.addEventListener("click", async () => {
-        const name = (friendNameInput ? friendNameInput.value.trim() : "") || "Friend";
-        const code = (friendCodeInput ? friendCodeInput.value.trim() : "").toUpperCase();
+        const username = (friendIdInput ? friendIdInput.value.trim() : "");
+        const password = (friendPassInput ? friendPassInput.value.trim() : "");
+        const customName = (friendNameInput ? friendNameInput.value.trim() : "");
 
-        if (!code) {
+        if (!username || !password) {
           if (errorEl) {
-            errorEl.innerHTML = "⚠️ Please enter your Access Pass key.";
+            errorEl.innerHTML = "⚠️ Please enter both your Friend ID (Username) and Password.";
             errorEl.style.display = "block";
           }
-          if (friendCodeInput) friendCodeInput.focus();
+          if (!username && friendIdInput) friendIdInput.focus();
+          else if (!password && friendPassInput) friendPassInput.focus();
           return;
         }
 
-        unlockBtn.textContent = "Verifying Pass...";
+        unlockBtn.textContent = "Verifying Credentials...";
         unlockBtn.disabled = true;
 
         if (window.PORTFOLIO_DB) {
-          const res = await window.PORTFOLIO_DB.verifyAccessPass(code);
+          const res = await window.PORTFOLIO_DB.activateFriendSession(username, password, customName);
           if (res.valid) {
-            await window.PORTFOLIO_DB.activatePass(code, name);
             this.isFriend = true;
-            this.friendName = name;
-            this.activePassKey = code;
+            this.friendName = res.name;
+            this.friendUsername = res.friend.username;
+            this.friendRole = res.friend.role;
+            this.activePassKey = res.friend.username.toUpperCase();
             if (errorEl) errorEl.style.display = "none";
             this.render();
           } else {
-            unlockBtn.textContent = "✨ Verify & Unlock Access";
+            unlockBtn.textContent = "✨ Authenticate & Unlock YouTube Stream";
             unlockBtn.disabled = false;
             if (errorEl) {
-              errorEl.innerHTML = `❌ <strong>Access Denied:</strong> ${res.reason || 'Invalid pass key.'}<br><span style="font-size:11.5px; opacity:0.9;">Please contact Saurav directly on Telegram or Email to receive an authorized pass.</span>`;
+              errorEl.innerHTML = `❌ <strong>Authentication Failed:</strong> ${res.reason || 'Invalid Friend ID or Password.'}<br><span style="font-size:11.5px; opacity:0.9;">Please contact Saurav directly on Telegram (@sauravpandey) or Email to receive verified credentials.</span>`;
               errorEl.style.display = "block";
             }
           }
-        } else {
-          this.isFriend = true;
-          this.friendName = name;
-          this.render();
         }
       });
     }
 
-    // Revoke / Switch Pass
+    // Revoke / Switch Account
     const revokeBtns = document.querySelectorAll("#btn-revoke-pass");
     revokeBtns.forEach(btn => {
       btn.addEventListener("click", () => {
         if (window.PORTFOLIO_DB) {
-          window.PORTFOLIO_DB.revokeCurrentSession();
+          window.PORTFOLIO_DB.revokeFriendSession();
         }
         this.isFriend = false;
         this.friendName = "";
+        this.friendUsername = "";
+        this.friendRole = "";
         this.activePassKey = "";
-        localStorage.removeItem("portfolio_friend_pass");
-        localStorage.removeItem("portfolio_friend_name");
-        localStorage.removeItem("portfolio_access_pass");
         this.render();
       });
     });
@@ -911,14 +900,9 @@ window.PORTFOLIO_PLAYGROUND = {
 
     const sprintMins = Math.round(this.timerDuration / 60);
     const t = this.roomStartTime || Date.now();
-    let shareUrl = `${liveOrigin}${window.location.pathname}?tab=focus&room=${this.activeRoomId}&sprint=${sprintMins}&audioMode=${this.audioMode}&t=${t}&friend=true`;
+    let shareUrl = `${liveOrigin}${window.location.pathname}?tab=focus&room=${this.activeRoomId}&sprint=${sprintMins}&audioMode=${this.audioMode}&t=${t}`;
     if (this.friendName) {
       shareUrl += `&from=${encodeURIComponent(this.friendName)}`;
-    }
-
-    const activePass = window.PORTFOLIO_DB ? window.PORTFOLIO_DB.getActivePass() : null;
-    if (activePass && activePass.key) {
-      shareUrl += `&pass=${encodeURIComponent(activePass.key)}`;
     }
 
     if (this.audioMode === "ambient") {
@@ -1606,41 +1590,43 @@ window.PORTFOLIO_PLAYGROUND = {
 
       case "friend":
       case "invite":
-        if (!arg1) {
-          reply = "🔒 Access Pass required for private YouTube Stream & Study Rooms.\nUsage: friend <pass-key> [your-name]\nExample: friend HAL2026 Saurav\nTo request an authorized pass, contact Saurav directly on Telegram (@sauravpandey) or Email (thesauravpandey@outlook.com).";
+        if (!arg1 || !parts[2]) {
+          reply = "🔒 Friend ID and Password required for private YouTube Stream & Study Rooms.\nUsage: friend <username> <password> [display-name]\nExample: friend hal-friend HAL2026 Saurav\nTo request credentials, contact Saurav directly on Telegram (@sauravpandey) or Email (thesauravpandey@outlook.com).";
         } else {
-          const passInput = arg1.toUpperCase();
-          const friendNameInput = parts.slice(2).join(" ") || this.friendName || "Friend";
+          const userInput = arg1.toLowerCase();
+          const passInput = parts[2].toUpperCase();
+          const customName = parts.slice(3).join(" ") || this.friendName || "";
           if (window.PORTFOLIO_DB) {
-            window.PORTFOLIO_DB.verifyAccessPass(passInput).then(res => {
+            window.PORTFOLIO_DB.activateFriendSession(userInput, passInput, customName).then(res => {
               const hist = document.getElementById("terminal-history");
               const win = document.getElementById("terminal-window");
               const entry = document.createElement("div");
               entry.className = "term-entry";
-              const safeName = (typeof window.escapeHTML === "function") ? window.escapeHTML(friendNameInput) : friendNameInput;
 
               if (res.valid) {
-                window.PORTFOLIO_DB.activatePass(passInput, friendNameInput);
                 this.isFriend = true;
-                this.friendName = friendNameInput;
-                this.activePassKey = passInput;
+                this.friendName = res.name;
+                this.friendUsername = res.friend.username;
+                this.friendRole = res.friend.role;
+                this.activePassKey = res.friend.username.toUpperCase();
                 this.render();
+                const safeName = (typeof window.escapeHTML === "function") ? window.escapeHTML(res.name) : res.name;
                 entry.innerHTML = `
-                  <div class="term-cmd-echo"><span class="terminal-prompt">saurav@gopalganj:~$</span> friend ${passInput}</div>
-                  <div class="term-reply">🌟 Access Pass verified! Welcome, ${safeName}! Private YouTube stream &amp; study rooms unlocked.</div>
+                  <div class="term-cmd-echo"><span class="terminal-prompt">saurav@gopalganj:~$</span> friend ${userInput} ******</div>
+                  <div class="term-reply">🌟 Verified Friend Authenticated! Welcome, ${safeName} (${res.friend.role})! Private YouTube stream &amp; study rooms unlocked.</div>
                 `;
               } else {
                 entry.innerHTML = `
-                  <div class="term-cmd-echo"><span class="terminal-prompt">saurav@gopalganj:~$</span> friend ${passInput}</div>
-                  <div class="term-reply">❌ Access Denied: ${res.reason || "Invalid pass key."}<br>Please request an Access Pass from Saurav on Telegram (@sauravpandey) or Email.</div>
+                  <div class="term-cmd-echo"><span class="terminal-prompt">saurav@gopalganj:~$</span> friend ${userInput} ******</div>
+                  <div class="term-reply">❌ Authentication Failed: ${res.reason || "Invalid credentials."}<br>Please request your Friend ID &amp; Password from Saurav on Telegram (@sauravpandey) or Email.</div>
                 `;
               }
               if (hist) hist.appendChild(entry);
               if (win) win.scrollTop = win.scrollHeight;
             });
-            reply = `Verifying Access Pass '${passInput}' against database...`;
+            reply = `Verifying credentials for '${userInput}' against database...`;
           } else {
-            reply = "⚠️ Database unavailable to verify pass.";
+            reply = "⚠️ Database engine initializing...";
           }
         }
         break;

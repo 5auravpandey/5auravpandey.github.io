@@ -138,17 +138,18 @@ window.PORTFOLIO_GAMES = {
       if (raw) return JSON.parse(raw);
     } catch (e) {}
     return [
-      { name: "Saurav (HAL)", score: 180, speed: "Turbo", date: "2026-10-18" },
-      { name: "Aman K.", score: 140, speed: "Normal", date: "2026-10-17" },
-      { name: "Rohan V.", score: 110, speed: "Normal", date: "2026-10-16" },
-      { name: "Priya S.", score: 90, speed: "Chill", date: "2026-10-15" },
-      { name: "Dev Cadet", score: 60, speed: "Normal", date: "2026-10-14" }
+      { name: "Saurav (HAL)", telegramId: "@5auravpandey", score: 240, speed: "Turbo", date: "2026-10-18", daysRemaining: 7 },
+      { name: "Aman K.", telegramId: "@aman_iitp", score: 180, speed: "Normal", date: "2026-10-17", daysRemaining: 6 },
+      { name: "Rohan V.", telegramId: "@rohan_v", score: 140, speed: "Normal", date: "2026-10-16", daysRemaining: 5 },
+      { name: "Priya S.", telegramId: "@priya_gopalganj", score: 110, speed: "Chill", date: "2026-10-15", daysRemaining: 4 },
+      { name: "Dev Cadet", telegramId: "@dev_cadet", score: 80, speed: "Normal", date: "2026-10-14", daysRemaining: 3 }
     ];
   },
 
   renderSnakeHtml() {
     this.snakeHighScore = parseInt(localStorage.getItem("portfolio_snake_hs") || "0", 10);
     const friendName = localStorage.getItem("portfolio_friend_name") || "Friend";
+    const userTelegram = localStorage.getItem("portfolio_user_telegram") || "";
     const leaderboard = this.getSnakeLeaderboard();
     const escape = (str) => typeof window.escapeHTML === "function" ? window.escapeHTML(str) : String(str || "");
 
@@ -197,13 +198,17 @@ window.PORTFOLIO_GAMES = {
               <h4 id="snake-overlay-title" style="margin: 0 0 6px; font-size: 20px;">Game Over!</h4>
               <p id="snake-overlay-desc" style="margin: 0 0 14px; font-size: 13px; color: var(--muted);">Press restart to play again</p>
               <div id="snake-name-save-box" style="margin-bottom: 14px; display: none;">
-                <label for="snake-player-name" style="font-size: 12px; display: block; margin-bottom: 4px; color: var(--muted);">
-                  Save to Friends Hall of Fame:
+                <label for="snake-player-name" style="font-size: 12px; display: block; margin-bottom: 6px; color: var(--muted);">
+                  Save Score to Friends Hall of Fame:
                 </label>
-                <div style="display: flex; gap: 6px; justify-content: center;">
-                  <input type="text" id="snake-player-name" class="focus-input" value="${escape(friendName)}" style="max-width: 170px; font-size: 13px; padding: 5px 8px;" maxlength="18">
-                  <button type="button" id="btn-save-snake-score" class="btn-primary-action" style="padding: 5px 12px; font-size: 12px;">Save</button>
+                <div style="display: flex; flex-direction: column; gap: 8px; max-width: 250px; margin: 0 auto;">
+                  <input type="text" id="snake-player-name" class="focus-input" placeholder="Your Name / Handle" value="${escape(friendName)}" style="font-size: 13px; padding: 6px 10px;" maxlength="18">
+                  <input type="text" id="snake-player-telegram" class="focus-input" placeholder="Telegram @handle (Weekly Purge ToS)" value="${escape(userTelegram)}" style="font-size: 13px; padding: 6px 10px; font-family: var(--mono);" maxlength="32">
+                  <button type="button" id="btn-save-snake-score" class="btn-primary-action" style="padding: 7px 12px; font-size: 12.5px; width: 100%;">Save Score</button>
                 </div>
+                <span style="font-size: 11px; color: var(--muted); display: block; margin-top: 6px; line-height: 1.35;">
+                  ⚡ Stored with 7-day retention under our unnotified Data Sustainability Policy.
+                </span>
               </div>
               <button type="button" id="btn-snake-retry" class="btn-primary-action" style="padding: 8px 18px;">Try Again</button>
             </div>
@@ -223,31 +228,77 @@ window.PORTFOLIO_GAMES = {
           </span>
         </div>
 
-        <!-- Persistent Friends Hall of Fame -->
+        <!-- Persistent Friends Hall of Fame with Telegram & 7-Day Sustainability -->
         <div class="snake-leaderboard-card">
           <div class="snake-lb-head">
-            <span>🏆 Friends Hall of Fame (Top 5)</span>
-            <span class="db-sync-badge" title="Persisted in SauravPortfolioDB (Transactional IndexedDB)">💾 Database Synced</span>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span>🏆 Friends Hall of Fame (Top 5)</span>
+              <span class="db-sync-badge" title="Persisted in SauravPortfolioDB (Transactional IndexedDB)">💾 Database Synced</span>
+            </div>
+            <button type="button" id="btn-toggle-reverify" class="btn-reverify-pill" title="Re-verify your Telegram handle to renew 7-day retention clock">
+              ⚡ Re-Verify Telegram ID
+            </button>
           </div>
+
+          <!-- Quick Inline Re-Verification Widget -->
+          <div id="snake-reverify-box" class="reverify-box" style="display: none;">
+            <div class="reverify-inner">
+              <span class="reverify-title">⚡ Weekly Sustainability Re-Verification</span>
+              <p class="reverify-desc">Enter your connected Telegram ID to renew your scores for another 7 days before unnotified purge.</p>
+              <div style="display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap;">
+                <input type="text" id="input-reverify-telegram" class="focus-input" placeholder="@your_telegram" value="${escape(userTelegram)}" style="font-size: 12.5px; padding: 5px 8px; font-family: var(--mono); width: 170px;">
+                <button type="button" id="btn-submit-reverify" class="btn-primary-action" style="font-size: 12px; padding: 5px 12px;">Renew (7 Days)</button>
+                <button type="button" id="btn-cancel-reverify" class="btn-secondary-action" style="font-size: 12px; padding: 5px 8px;">Cancel</button>
+              </div>
+              <div id="reverify-msg" style="display: none; font-size: 12px; margin-top: 6px; text-align: center; font-weight: 500;"></div>
+            </div>
+          </div>
+
           <div class="snake-lb-table">
             <div class="snake-lb-row header">
               <span>#</span>
-              <span>Player</span>
+              <span>Player &amp; Telegram</span>
               <span>Score</span>
               <span>Speed</span>
-              <span>Date</span>
+              <span>Retention</span>
             </div>
             <div id="snake-lb-rows">
-              ${leaderboard.map((item, idx) => `
-                <div class="snake-lb-row ${item.name.toLowerCase().includes(friendName.toLowerCase()) ? 'highlight' : ''}">
-                  <span>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}</span>
-                  <strong>${escape(item.name)}</strong>
-                  <span class="lb-score">${item.score}</span>
-                  <span class="lb-speed">${escape(item.speed || 'Normal')}</span>
-                  <span class="lb-date">${escape(item.date || '')}</span>
-                </div>
-              `).join('')}
+              ${leaderboard.map((item, idx) => {
+                const days = item.daysRemaining !== undefined ? item.daysRemaining : 7;
+                return `
+                  <div class="snake-lb-row ${item.name && item.name.toLowerCase().includes(friendName.toLowerCase()) ? 'highlight' : ''}">
+                    <span>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}</span>
+                    <div class="lb-player-col">
+                      <strong>${escape(item.name || item.playerName)}</strong>
+                      <span class="lb-telegram">${escape(item.telegramId || '@guest')}</span>
+                    </div>
+                    <span class="lb-score">${item.score}</span>
+                    <span class="lb-speed">${escape(item.speed || 'Normal')}</span>
+                    <span class="lb-retention-pill ${days <= 2 ? 'warning' : 'active'}" title="Active 7-Day Sustainability Window">
+                      ${days <= 1 ? '⚠️' : '🟢'} ${days}d left
+                    </span>
+                  </div>
+                `;
+              }).join('')}
             </div>
+          </div>
+        </div>
+
+        <!-- Mandatory Data Sustainability & Retention Terms of Service (ToS) for Everyone -->
+        <div class="arcade-tos-card">
+          <div class="tos-header">
+            <span class="tos-icon">📋</span>
+            <strong>Dev Arcade Data Sustainability Terms of Service (ToS)</strong>
+          </div>
+          <div class="tos-body">
+            <p class="tos-lead">This Data Sustainability Policy is active for all visitors and friends playing in the Dev Arcade:</p>
+            <ul class="tos-list">
+              <li><strong>1. Telegram Connection:</strong> All scores are indexed to a player's Telegram ID (e.g. <code>@handle</code>) for proof of authenticity and community leaderboards.</li>
+              <li><strong>2. 7-Day Sustainability Window:</strong> To prevent dormant database bloat and preserve lean browser storage, scores are stored on a strict rolling <strong>7-day retention period</strong>.</li>
+              <li><strong>3. Weekly Re-Verification Requirement:</strong> Players must re-verify their Telegram ID at least once every 7 days via the <em>⚡ Re-Verify Telegram ID</em> button to reset their retention countdown.</li>
+              <li><strong>4. Silent Unnotified Purge Policy:</strong> Any score record that passes 7 days without active weekly re-verification <strong>will be permanently purged from the database without any prior notification</strong>.</li>
+              <li><strong>5. Universal Access:</strong> Dev Arcade games (Matrix Snake, Tic-Tac-Toe, Chess) and score submissions do not require an access pass; access passes are solely required for the synchronized YouTube study streams.</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -278,6 +329,67 @@ window.PORTFOLIO_GAMES = {
     const speedBtns = document.querySelectorAll(".snake-speed-btn");
     const saveScoreBtn = document.getElementById("btn-save-snake-score");
     const nameInput = document.getElementById("snake-player-name");
+    const telegramInput = document.getElementById("snake-player-telegram");
+
+    const toggleReverifyBtn = document.getElementById("btn-toggle-reverify");
+    const reverifyBox = document.getElementById("snake-reverify-box");
+    const submitReverifyBtn = document.getElementById("btn-submit-reverify");
+    const cancelReverifyBtn = document.getElementById("btn-cancel-reverify");
+    const reverifyInput = document.getElementById("input-reverify-telegram");
+    const reverifyMsg = document.getElementById("reverify-msg");
+
+    if (toggleReverifyBtn && reverifyBox) {
+      toggleReverifyBtn.addEventListener("click", () => {
+        const isHidden = reverifyBox.style.display === "none";
+        reverifyBox.style.display = isHidden ? "block" : "none";
+        if (isHidden && reverifyInput) {
+          reverifyInput.focus();
+        }
+      });
+    }
+
+    if (cancelReverifyBtn && reverifyBox) {
+      cancelReverifyBtn.addEventListener("click", () => {
+        reverifyBox.style.display = "none";
+      });
+    }
+
+    if (submitReverifyBtn && reverifyInput) {
+      submitReverifyBtn.addEventListener("click", async () => {
+        const rawTg = reverifyInput.value.trim();
+        if (!rawTg) {
+          if (reverifyMsg) {
+            reverifyMsg.style.display = "block";
+            reverifyMsg.style.color = "#ef4444";
+            reverifyMsg.textContent = "⚠️ Please enter your Telegram handle (e.g. @username).";
+          }
+          return;
+        }
+
+        submitReverifyBtn.textContent = "Verifying...";
+        submitReverifyBtn.disabled = true;
+
+        if (window.PORTFOLIO_DB) {
+          const res = await window.PORTFOLIO_DB.reverifyTelegramScore(rawTg);
+          submitReverifyBtn.textContent = "Renew (7 Days)";
+          submitReverifyBtn.disabled = false;
+          if (res.success) {
+            if (reverifyMsg) {
+              reverifyMsg.style.display = "block";
+              reverifyMsg.style.color = "#22c55e";
+              reverifyMsg.textContent = `✓ Retention renewed! ${res.telegramId} scores extended for 7 days.`;
+            }
+            await this.loadLeaderboardFromDb();
+          } else {
+            if (reverifyMsg) {
+              reverifyMsg.style.display = "block";
+              reverifyMsg.style.color = "#ef4444";
+              reverifyMsg.textContent = `❌ Verification failed: ${res.reason || "Handle not found."}`;
+            }
+          }
+        }
+      });
+    }
 
     if (startBtn) {
       startBtn.addEventListener("click", () => {
@@ -310,12 +422,13 @@ window.PORTFOLIO_GAMES = {
       });
     });
 
-    if (saveScoreBtn && nameInput) {
+    if (saveScoreBtn) {
       saveScoreBtn.addEventListener("click", async () => {
-        const name = nameInput.value.trim() || "Friend";
+        const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : "Friend";
+        const tg = (telegramInput && telegramInput.value.trim()) ? telegramInput.value.trim() : "";
         saveScoreBtn.textContent = "Saving...";
         saveScoreBtn.disabled = true;
-        await this.saveSnakeScore(name, this.snakeScore);
+        await this.saveSnakeScore(name, this.snakeScore, tg);
         saveScoreBtn.textContent = "Saved ✓";
       });
     }
@@ -629,14 +742,21 @@ window.PORTFOLIO_GAMES = {
         rowsEl.innerHTML = top5.map((item, idx) => {
           const rawName = item.playerName || item.name || "Anonymous";
           const pName = escape(rawName);
+          const pTg = escape(item.telegramId || "@guest");
           const isHighlight = rawName.toLowerCase().includes(friendName.toLowerCase());
+          const days = item.daysRemaining !== undefined ? item.daysRemaining : 7;
           return `
             <div class="snake-lb-row ${isHighlight ? 'highlight' : ''}">
               <span>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}</span>
-              <strong>${pName}</strong>
+              <div class="lb-player-col">
+                <strong>${pName}</strong>
+                <span class="lb-telegram">${pTg}</span>
+              </div>
               <span class="lb-score">${item.score}</span>
               <span class="lb-speed">${escape(item.speed || 'Normal')}</span>
-              <span class="lb-date">${escape(item.date || '')}</span>
+              <span class="lb-retention-pill ${days <= 2 ? 'warning' : 'active'}" title="Data Sustainability: ${days} days until unnotified purge">
+                ${days <= 1 ? '⚠️' : '🟢'} ${days}d left
+              </span>
             </div>
           `;
         }).join('');
@@ -644,34 +764,44 @@ window.PORTFOLIO_GAMES = {
     } catch (e) {}
   },
 
-  async saveSnakeScore(name, score) {
+  async saveSnakeScore(name, score, telegramId = "") {
     const cleanName = (typeof name === "string" && name.trim()) 
       ? name.trim().slice(0, 24) 
       : "Friend";
     const numericScore = parseInt(score, 10);
     if (isNaN(numericScore) || numericScore <= 0) return;
 
+    let cleanTelegram = (typeof telegramId === "string" && telegramId.trim())
+      ? telegramId.trim()
+      : (localStorage.getItem("portfolio_user_telegram") || "");
+    if (cleanTelegram && !cleanTelegram.startsWith("@")) {
+      cleanTelegram = "@" + cleanTelegram;
+    }
+
     try {
       const speedLabel = this.snakeSpeedName.charAt(0).toUpperCase() + this.snakeSpeedName.slice(1);
-      const passKey = window.PORTFOLIO_DB ? (window.PORTFOLIO_DB.getActivePass()?.key || localStorage.getItem("portfolio_access_pass") || "") : "";
 
       if (window.PORTFOLIO_DB) {
-        await window.PORTFOLIO_DB.saveScore("snake", cleanName, numericScore, speedLabel, passKey);
+        await window.PORTFOLIO_DB.saveScore("snake", cleanName, numericScore, speedLabel, cleanTelegram);
       } else {
         const list = this.getSnakeLeaderboard();
         const today = new Date().toISOString().slice(0, 10);
         list.push({
           name: cleanName,
+          telegramId: cleanTelegram || "@guest",
           score: numericScore,
           speed: speedLabel,
           date: today,
-          passKey
+          daysRemaining: 7
         });
         list.sort((a, b) => b.score - a.score);
         localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(list.slice(0, 5)));
       }
 
       localStorage.setItem("portfolio_friend_name", cleanName);
+      if (cleanTelegram) {
+        localStorage.setItem("portfolio_user_telegram", cleanTelegram);
+      }
       await this.loadLeaderboardFromDb();
     } catch (e) {}
   },
@@ -854,8 +984,8 @@ window.PORTFOLIO_GAMES = {
           this.tttScore.p1++;
           if (window.PORTFOLIO_DB) {
             const pName = localStorage.getItem("portfolio_friend_name") || "Player 1";
-            const pPass = window.PORTFOLIO_DB.getActivePass()?.key || "";
-            window.PORTFOLIO_DB.saveScore("tictactoe", pName, this.tttScore.p1 * 10, this.tttMode === "ai" ? "vs-AI" : "PvP", pPass);
+            const tg = localStorage.getItem("portfolio_user_telegram") || "";
+            window.PORTFOLIO_DB.saveScore("tictactoe", pName, this.tttScore.p1 * 10, this.tttMode === "ai" ? "vs-AI" : "PvP", tg);
           }
         } else {
           this.tttScore.p2++;
@@ -1174,8 +1304,8 @@ window.PORTFOLIO_GAMES = {
       this.playTone(880, 0.25, "triangle");
       if (window.PORTFOLIO_DB && winner === "White") {
         const pName = localStorage.getItem("portfolio_friend_name") || "Grandmaster";
-        const pPass = window.PORTFOLIO_DB.getActivePass()?.key || "";
-        window.PORTFOLIO_DB.saveScore("chess", pName, 100, this.chessMode === "ai" ? "vs-DeepCode" : "PvP", pPass);
+        const tg = localStorage.getItem("portfolio_user_telegram") || "";
+        window.PORTFOLIO_DB.saveScore("chess", pName, 100, this.chessMode === "ai" ? "vs-DeepCode" : "PvP", tg);
       }
       this.updateCapturedTrays();
       this.renderChessBoard();
