@@ -4656,6 +4656,176 @@ dialog#invite-dialog {
 }
 
 /* ==========================================================================
+   Dev Arcade Telegram Login Bar & 7-Day Score Retention Styles
+   ========================================================================== */
+.arcade-tg-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  gap: 12px;
+  flex-wrap: wrap;
+  transition: all var(--transition-fast);
+}
+
+.arcade-tg-bar.connected {
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  color: var(--ink);
+}
+
+.arcade-tg-bar.unauth {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: var(--ink);
+}
+
+.arcade-tg-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.arcade-tg-info .tg-icon {
+  font-size: 16px;
+}
+
+.tg-account-text {
+  font-family: var(--mono);
+}
+
+.tg-retention-pill {
+  font-size: 11px;
+  font-family: var(--mono);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 1px solid currentColor;
+}
+
+.tg-retention-pill.ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.tg-retention-pill.warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+
+.arcade-tg-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-tg-login-trigger {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.btn-tg-login-trigger:hover {
+  opacity: 0.9;
+}
+
+.btn-tg-action {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  cursor: pointer;
+  background: var(--card);
+  color: var(--ink);
+  transition: all var(--transition-fast);
+}
+
+.btn-tg-action.renew:hover {
+  background: var(--ok-bg);
+  color: var(--ok);
+  border-color: var(--ok);
+}
+
+.btn-tg-action.logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+/* Generic Game Overlay Modal */
+.game-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 16px;
+}
+
+.game-modal-box {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: 22px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  color: var(--ink);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+.modal-close-btn:hover {
+  color: var(--ink);
+}
+
+/* Admin Whitelist Table in Admin Studio */
+.admin-whitelist-card table th,
+.admin-whitelist-card table td {
+  border-color: var(--rule-light);
+}
+
+:root[data-theme="dark"] .arcade-tg-bar.connected {
+  background: rgba(6, 182, 212, 0.12);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+:root[data-theme="dark"] .arcade-tg-bar.unauth {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+
+/* ==========================================================================
    Comprehensive ATS-Friendly Print Stylesheet (@media print)
    ========================================================================== */
 @media print {

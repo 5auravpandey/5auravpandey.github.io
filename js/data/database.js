@@ -7,10 +7,27 @@
  */
 window.PORTFOLIO_DB = {
   dbName: "SauravPortfolioDB",
-  dbVersion: 2,
+  dbName: "SauravPortfolioDB",
+  dbVersion: 3,
   db: null,
   isReady: false,
   readyPromise: null,
+
+  // Initial YouTube Whitelist (Permanent access granted by Saurav - no expiry time)
+  INITIAL_YOUTUBE_WHITELIST: [
+    { handle: "@5auravpandey", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
+    { handle: "saurav", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
+    { handle: "@aman_iitp", name: "Aman K. (IITP)", role: "Study Buddy", addedAt: "2026-10-10", status: "active" },
+    { handle: "aman", name: "Aman K. (IITP)", role: "Study Buddy", addedAt: "2026-10-10", status: "active" },
+    { handle: "@rohan_v", name: "Rohan V.", role: "Friend", addedAt: "2026-10-12", status: "active" },
+    { handle: "rohan", name: "Rohan V.", role: "Friend", addedAt: "2026-10-12", status: "active" },
+    { handle: "@priya_gopalganj", name: "Priya S.", role: "Hometown Peer", addedAt: "2026-10-14", status: "active" },
+    { handle: "priya", name: "Priya S.", role: "Hometown Peer", addedAt: "2026-10-14", status: "active" },
+    { handle: "@hal_avionics", name: "HAL Avionics Colleague", role: "HAL Colleague", addedAt: "2026-10-15", status: "active" },
+    { handle: "hal-friend", name: "HAL Avionics Colleague", role: "HAL Colleague", addedAt: "2026-10-15", status: "active" },
+    { handle: "@iitp_mate", name: "IIT Patna Classmate", role: "MCA Classmate", addedAt: "2026-10-15", status: "active" },
+    { handle: "iitp-mate", name: "IIT Patna Classmate", role: "MCA Classmate", addedAt: "2026-10-15", status: "active" }
+  ],
 
   // Authorized Friends Catalog (ID + Password credentials issued by Saurav)
   AUTHORIZED_FRIENDS: [
@@ -94,6 +111,20 @@ window.PORTFOLIO_DB = {
               const roomStore = db.createObjectStore("study_rooms", { keyPath: "roomId" });
               roomStore.createIndex("by_created", "createdAt", { unique: false });
             }
+
+            // 5. YouTube Whitelist Store (Permanent Access, No Expiry)
+            if (!db.objectStoreNames.contains("youtube_whitelist")) {
+              const wlStore = db.createObjectStore("youtube_whitelist", { keyPath: "handle" });
+              wlStore.createIndex("by_status", "status", { unique: false });
+              wlStore.createIndex("by_added", "addedAt", { unique: false });
+            }
+
+            // 6. Telegram User Sessions Store (7-Day Rolling Retention)
+            if (!db.objectStoreNames.contains("telegram_sessions")) {
+              const tgStore = db.createObjectStore("telegram_sessions", { keyPath: "telegramId" });
+              tgStore.createIndex("by_expires", "expiresAt", { unique: false });
+              tgStore.createIndex("by_last_login", "lastLogin", { unique: false });
+            }
           } catch (upgradeErr) {
             console.warn("IndexedDB onupgradeneeded error:", upgradeErr);
           }
@@ -131,7 +162,7 @@ window.PORTFOLIO_DB = {
     return this.readyPromise;
   },
 
-  // Seed default master passes, friend credentials, and initial scores
+  // Seed default master passes, friend credentials, YouTube whitelist, and initial scores
   async seedDefaultData() {
     if (!this.db) return;
 
@@ -148,6 +179,21 @@ window.PORTFOLIO_DB = {
             role: f.role,
             status: "active",
             createdAt: "2026-10-01"
+          });
+        }
+      }
+
+      // Seed YouTube Whitelist (Permanent, No Expiry)
+      if (this.db.objectStoreNames.contains("youtube_whitelist")) {
+        const wlTx = this.db.transaction("youtube_whitelist", "readwrite");
+        const wlStore = wlTx.objectStore("youtube_whitelist");
+        for (const w of this.INITIAL_YOUTUBE_WHITELIST) {
+          wlStore.put({
+            handle: w.handle.toLowerCase(),
+            name: w.name,
+            role: w.role,
+            status: w.status,
+            addedAt: w.addedAt
           });
         }
       }
@@ -204,6 +250,15 @@ window.PORTFOLIO_DB = {
           name: f.name,
           role: f.role,
           status: "active"
+        }))));
+      }
+      if (!localStorage.getItem("portfolio_youtube_whitelist")) {
+        localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(this.INITIAL_YOUTUBE_WHITELIST.map(w => ({
+          handle: w.handle.toLowerCase(),
+          name: w.name,
+          role: w.role,
+          status: w.status,
+          addedAt: w.addedAt
         }))));
       }
       if (!localStorage.getItem("portfolio_db_passes")) {
@@ -485,16 +540,20 @@ window.PORTFOLIO_DB = {
     if (isNaN(numericScore) || numericScore <= 0) return null;
     await this.init();
 
-    const cleanName = (typeof playerName === "string" && playerName.trim()) 
-      ? playerName.trim().slice(0, 24) 
-      : "Friend";
-
+    const activeTg = this.getTelegramUser();
     let cleanTelegram = this.formatTelegramId(telegramId);
+    if (!cleanTelegram && activeTg) {
+      cleanTelegram = activeTg.telegramId;
+    }
     if (!cleanTelegram) {
       try {
         cleanTelegram = this.formatTelegramId(localStorage.getItem("portfolio_user_telegram") || "");
       } catch (e) {}
     }
+
+    const cleanName = (typeof playerName === "string" && playerName.trim()) 
+      ? playerName.trim().slice(0, 24) 
+      : (activeTg?.displayName || "Friend");
 
     const now = Date.now();
     const expiresAt = now + this.RETENTION_MS;
@@ -520,7 +579,7 @@ window.PORTFOLIO_DB = {
     }
 
     // 1. Purge expired scores first to maintain sustainability
-    await this.purgeExpiredScores();
+    await this.purgeInactiveTelegramData();
 
     // 2. Save to IndexedDB
     if (this.db) {
@@ -865,6 +924,312 @@ window.PORTFOLIO_DB = {
     } catch (e) {}
 
     return newPass;
+  },
+
+  // =========================================================================
+  // TELEGRAM LOGIN & 7-DAY SUSTAINABILITY SESSION ENGINE
+  // =========================================================================
+  loginTelegramUser(telegramId, displayName) {
+    if (!telegramId || typeof telegramId !== "string") {
+      return { success: false, reason: "Telegram ID required" };
+    }
+    const cleanId = this.formatTelegramId(telegramId);
+    if (!cleanId) return { success: false, reason: "Invalid Telegram ID" };
+
+    const name = (displayName && displayName.trim()) 
+      ? displayName.trim().slice(0, 24) 
+      : cleanId;
+
+    const now = Date.now();
+    const expiresAt = now + this.RETENTION_MS;
+    const user = {
+      telegramId: cleanId,
+      displayName: name,
+      lastLogin: now,
+      expiresAt: expiresAt
+    };
+
+    try {
+      localStorage.setItem("portfolio_telegram_user", JSON.stringify(user));
+      localStorage.setItem("portfolio_user_telegram", cleanId);
+      localStorage.setItem("portfolio_friend_name", name);
+    } catch (e) {}
+
+    if (this.db && this.db.objectStoreNames.contains("telegram_sessions")) {
+      try {
+        const tx = this.db.transaction("telegram_sessions", "readwrite");
+        tx.objectStore("telegram_sessions").put(user);
+      } catch (e) {}
+    }
+
+    // Automatically refresh scores retention window to 7 days
+    this.reverifyTelegramScore(cleanId).catch(() => {});
+
+    return { 
+      success: true, 
+      user: {
+        ...user,
+        daysRemaining: 7
+      } 
+    };
+  },
+
+  getTelegramUser() {
+    try {
+      const raw = localStorage.getItem("portfolio_telegram_user");
+      if (!raw) return null;
+      const user = JSON.parse(raw);
+      const now = Date.now();
+      // Strict 7-day sustainability expiration check
+      if (!user.expiresAt || user.expiresAt < now) {
+        // Inactive for more than 7 days - clean from database without prior notification
+        this.logoutTelegramUser();
+        this.purgeInactiveTelegramData().catch(() => {});
+        return null;
+      }
+      const daysRemaining = Math.max(0, Math.ceil((user.expiresAt - now) / (24 * 60 * 60 * 1000)));
+      return {
+        ...user,
+        daysRemaining
+      };
+    } catch (e) {
+      return null;
+    }
+  },
+
+  logoutTelegramUser() {
+    try {
+      localStorage.removeItem("portfolio_telegram_user");
+      localStorage.removeItem("portfolio_user_telegram");
+    } catch (e) {}
+    return true;
+  },
+
+  async purgeInactiveTelegramData() {
+    await this.init();
+    const now = Date.now();
+
+    // 1. Purge expired game scores from IndexedDB
+    if (this.db && this.db.objectStoreNames.contains("game_scores")) {
+      try {
+        const tx = this.db.transaction("game_scores", "readwrite");
+        const store = tx.objectStore("game_scores");
+        const req = store.openCursor();
+        req.onsuccess = (e) => {
+          const cursor = e.target.result;
+          if (cursor) {
+            const rec = cursor.value;
+            const isExpired = rec.expiresAt ? (rec.expiresAt < now) : ((now - (rec.timestamp || now)) > this.RETENTION_MS);
+            if (isExpired) {
+              cursor.delete();
+            }
+            cursor.continue();
+          }
+        };
+      } catch (e) {}
+    }
+
+    // 2. Purge expired telegram sessions from IndexedDB
+    if (this.db && this.db.objectStoreNames.contains("telegram_sessions")) {
+      try {
+        const tx = this.db.transaction("telegram_sessions", "readwrite");
+        const store = tx.objectStore("telegram_sessions");
+        const req = store.openCursor();
+        req.onsuccess = (e) => {
+          const cursor = e.target.result;
+          if (cursor) {
+            const rec = cursor.value;
+            if (rec.expiresAt && rec.expiresAt < now) {
+              cursor.delete();
+            }
+            cursor.continue();
+          }
+        };
+      } catch (e) {}
+    }
+
+    // 3. Purge expired scores from LocalStorage cache
+    try {
+      const raw = localStorage.getItem("portfolio_snake_leaderboard");
+      if (raw) {
+        const list = JSON.parse(raw);
+        const filtered = list.filter(item => {
+          if (item.expiresAt) return item.expiresAt >= now;
+          if (item.verifiedAt) return (now - item.verifiedAt) <= this.RETENTION_MS;
+          return true;
+        });
+        if (filtered.length !== list.length) {
+          localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(filtered));
+        }
+      }
+    } catch (e) {}
+
+    // 4. Check active telegram user session
+    try {
+      const rawUser = localStorage.getItem("portfolio_telegram_user");
+      if (rawUser) {
+        const parsedUser = JSON.parse(rawUser);
+        if (parsedUser.expiresAt && parsedUser.expiresAt < now) {
+          this.logoutTelegramUser();
+        }
+      }
+    } catch (e) {}
+
+    // NOTE: youtube_whitelist is NOT purged because whitelist has NO expiry time.
+  },
+
+  // =========================================================================
+  // YOUTUBE WHITELIST CRUD ENGINE (PERMANENT ACCESS - NO EXPIRATION TIME)
+  // =========================================================================
+  getFallbackYoutubeWhitelist() {
+    try {
+      const raw = localStorage.getItem("portfolio_youtube_whitelist");
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return this.INITIAL_YOUTUBE_WHITELIST;
+  },
+
+  async getYoutubeWhitelist() {
+    await this.init();
+    if (this.db && this.db.objectStoreNames.contains("youtube_whitelist")) {
+      return new Promise((resolve) => {
+        try {
+          const tx = this.db.transaction("youtube_whitelist", "readonly");
+          const store = tx.objectStore("youtube_whitelist");
+          const req = store.getAll();
+          req.onsuccess = () => {
+            const list = req.result || [];
+            if (list.length > 0) resolve(list);
+            else resolve(this.getFallbackYoutubeWhitelist());
+          };
+          req.onerror = () => resolve(this.getFallbackYoutubeWhitelist());
+        } catch (e) {
+          resolve(this.getFallbackYoutubeWhitelist());
+        }
+      });
+    }
+    return this.getFallbackYoutubeWhitelist();
+  },
+
+  // Check if a handle is whitelisted (Whitelisted data has NO expiry time)
+  async isWhitelistedForYouTube(handle) {
+    if (!handle || typeof handle !== "string") {
+      return { whitelisted: false, reason: "Handle required" };
+    }
+    await this.init();
+    const rawClean = handle.trim().toLowerCase();
+    const withAt = rawClean.startsWith("@") ? rawClean : "@" + rawClean;
+    const withoutAt = rawClean.startsWith("@") ? rawClean.slice(1) : rawClean;
+
+    const list = await this.getYoutubeWhitelist();
+    const match = list.find(item => {
+      const itemHandle = (item.handle || "").toLowerCase();
+      return itemHandle === withAt || itemHandle === withoutAt;
+    });
+
+    if (match) {
+      if (match.status === "active") {
+        return { whitelisted: true, entry: match };
+      } else {
+        return { whitelisted: false, reason: "Access revoked by admin", entry: match };
+      }
+    }
+
+    return { whitelisted: false, reason: "Not on Saurav's whitelist" };
+  },
+
+  async addToYoutubeWhitelist(handle, name, role = "Friend") {
+    if (!handle || typeof handle !== "string") return null;
+    await this.init();
+    const raw = handle.trim();
+    const cleanHandle = raw.startsWith("@") ? raw : "@" + raw;
+    const entry = {
+      handle: cleanHandle.toLowerCase(),
+      name: (name && name.trim()) ? name.trim().slice(0, 32) : cleanHandle,
+      role: (role && role.trim()) ? role.trim().slice(0, 32) : "Friend",
+      status: "active",
+      addedAt: new Date().toISOString().slice(0, 10)
+    };
+
+    if (this.db && this.db.objectStoreNames.contains("youtube_whitelist")) {
+      try {
+        const tx = this.db.transaction("youtube_whitelist", "readwrite");
+        tx.objectStore("youtube_whitelist").put(entry);
+      } catch (e) {}
+    }
+
+    try {
+      const list = this.getFallbackYoutubeWhitelist().filter(item => item.handle.toLowerCase() !== entry.handle.toLowerCase());
+      list.unshift(entry);
+      localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(list));
+    } catch (e) {}
+
+    return entry;
+  },
+
+  async removeFromYoutubeWhitelist(handle) {
+    if (!handle) return false;
+    await this.init();
+    const raw = handle.trim().toLowerCase();
+    const withAt = raw.startsWith("@") ? raw : "@" + raw;
+    const withoutAt = raw.startsWith("@") ? raw.slice(1) : raw;
+
+    if (this.db && this.db.objectStoreNames.contains("youtube_whitelist")) {
+      try {
+        const tx = this.db.transaction("youtube_whitelist", "readwrite");
+        const store = tx.objectStore("youtube_whitelist");
+        store.delete(withAt);
+        store.delete(withoutAt);
+      } catch (e) {}
+    }
+
+    try {
+      const list = this.getFallbackYoutubeWhitelist().filter(item => {
+        const h = item.handle.toLowerCase();
+        return h !== withAt && h !== withoutAt;
+      });
+      localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(list));
+    } catch (e) {}
+
+    return true;
+  },
+
+  async toggleWhitelistStatus(handle) {
+    if (!handle) return null;
+    await this.init();
+    const raw = handle.trim().toLowerCase();
+    const withAt = raw.startsWith("@") ? raw : "@" + raw;
+    const withoutAt = raw.startsWith("@") ? raw.slice(1) : raw;
+
+    const list = await this.getYoutubeWhitelist();
+    const target = list.find(item => {
+      const h = item.handle.toLowerCase();
+      return h === withAt || h === withoutAt;
+    });
+
+    if (!target) return null;
+    target.status = target.status === "active" ? "revoked" : "active";
+
+    if (this.db && this.db.objectStoreNames.contains("youtube_whitelist")) {
+      try {
+        const tx = this.db.transaction("youtube_whitelist", "readwrite");
+        tx.objectStore("youtube_whitelist").put(target);
+      } catch (e) {}
+    }
+
+    try {
+      const fallbackList = this.getFallbackYoutubeWhitelist();
+      const idx = fallbackList.findIndex(item => {
+        const h = item.handle.toLowerCase();
+        return h === withAt || h === withoutAt;
+      });
+      if (idx !== -1) {
+        fallbackList[idx] = target;
+        localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(fallbackList));
+      }
+    } catch (e) {}
+
+    return target;
   }
 };
 

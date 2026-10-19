@@ -13,6 +13,7 @@ window.PORTFOLIO_ADMIN = {
   isAuthenticated: false,
   editingItemId: null,
   showSecuritySettings: false,
+  showYoutubeWhitelist: false,
   lockoutInterval: null,
   isEnrolling2FA: false,
   pendingEnrollKey: null,
@@ -976,6 +977,9 @@ window.PORTFOLIO_ADMIN = {
             </span>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="btn-admin-toggle-whitelist" class="btn-secondary-action" style="font-size: 12px; padding: 5px 12px; background: rgba(6, 182, 212, 0.12); color: #06b6d4; border-color: rgba(6, 182, 212, 0.4);">
+              ${this.showYoutubeWhitelist ? "✕ Close Whitelist" : "👥 YouTube Whitelist"}
+            </button>
             <button type="button" id="btn-admin-toggle-sec" class="btn-secondary-action" style="font-size: 12px; padding: 5px 12px;">
               ${this.showSecuritySettings ? "✕ Close Security" : "🛡️ 2FA & Security"}
             </button>
@@ -990,6 +994,66 @@ window.PORTFOLIO_ADMIN = {
             </button>
           </div>
         </div>
+
+        <!-- YouTube Whitelist Management Card (Permanent Access - Zero Expiry) -->
+        ${this.showYoutubeWhitelist ? `
+          <div class="admin-whitelist-card" style="margin-bottom: 20px; border-left: 3px solid #06b6d4; background: var(--paper); border-radius: var(--radius-sm); padding: 16px; border: 1px solid var(--rule);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <h4 style="margin: 0; font-size: 16px;">👥 YouTube Focus Stream &bull; Friends Whitelist</h4>
+                <span style="font-size: 12px; color: var(--muted);">Whitelisted friends enjoy permanent access to YouTube study streams with zero expiry.</span>
+              </div>
+              <span style="font-size: 11.5px; font-family: var(--mono); padding: 2px 8px; border-radius: 999px; background: var(--ok-bg); color: var(--ok); border: 1px solid currentColor;">
+                ● Permanent Whitelist (No Expiry Time)
+              </span>
+            </div>
+
+            <!-- Add to Whitelist Form -->
+            <form id="adm-whitelist-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) 130px; gap: 8px; align-items: end; margin-bottom: 14px; background: var(--card); padding: 12px; border-radius: 6px; border: 1px solid var(--rule);">
+              <div>
+                <label for="adm-wl-handle" style="font-size: 11px; font-family: var(--mono); color: var(--muted); display: block; margin-bottom: 4px; text-transform: uppercase;">
+                  Handle / Username:
+                </label>
+                <input type="text" id="adm-wl-handle" class="focus-input" placeholder="@handle or username" required style="font-size: 13px; padding: 6px 10px; width: 100%;">
+              </div>
+              <div>
+                <label for="adm-wl-name" style="font-size: 11px; font-family: var(--mono); color: var(--muted); display: block; margin-bottom: 4px; text-transform: uppercase;">
+                  Friend Name:
+                </label>
+                <input type="text" id="adm-wl-name" class="focus-input" placeholder="e.g. Aman K." required style="font-size: 13px; padding: 6px 10px; width: 100%;">
+              </div>
+              <div>
+                <label for="adm-wl-role" style="font-size: 11px; font-family: var(--mono); color: var(--muted); display: block; margin-bottom: 4px; text-transform: uppercase;">
+                  Role / Circle Note:
+                </label>
+                <input type="text" id="adm-wl-role" class="focus-input" placeholder="e.g. HAL Colleague, Study Partner" style="font-size: 13px; padding: 6px 10px; width: 100%;">
+              </div>
+              <button type="submit" id="btn-adm-wl-submit" class="btn-primary-action" style="padding: 7px 12px; font-size: 12.5px; height: 35px;">
+                + Whitelist Friend
+              </button>
+            </form>
+
+            <!-- Table of Whitelisted Friends -->
+            <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--card);">
+              <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--rule); background: var(--paper); color: var(--muted); font-family: var(--mono); font-size: 11px; text-transform: uppercase;">
+                    <th style="padding: 8px 12px;">Handle</th>
+                    <th style="padding: 8px 12px;">Friend Name</th>
+                    <th style="padding: 8px 12px;">Role / Note</th>
+                    <th style="padding: 8px 12px;">Status</th>
+                    <th style="padding: 8px 12px; text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adm-wl-table-body">
+                  <tr>
+                    <td colspan="5" style="text-align: center; padding: 14px; color: var(--muted);">Loading whitelist from database...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ` : ''}
 
         <!-- Security & 2FA Device Pairing Card (100% Offline & Private) -->
         ${this.showSecuritySettings ? `
@@ -1129,6 +1193,19 @@ window.PORTFOLIO_ADMIN = {
   },
 
   bindStudioEvents() {
+    // Toggle YouTube Whitelist
+    const toggleWlBtn = document.getElementById("btn-admin-toggle-whitelist");
+    if (toggleWlBtn) {
+      toggleWlBtn.addEventListener("click", () => {
+        this.showYoutubeWhitelist = !this.showYoutubeWhitelist;
+        this.render();
+      });
+    }
+
+    if (this.showYoutubeWhitelist) {
+      this.loadAndRenderWhitelist();
+    }
+
     // Toggle security settings
     const toggleSecBtn = document.getElementById("btn-admin-toggle-sec");
     if (toggleSecBtn) {
@@ -1281,6 +1358,92 @@ window.PORTFOLIO_ADMIN = {
           this.render();
         }
       });
+    }
+  },
+
+  async loadAndRenderWhitelist() {
+    const tbody = document.getElementById("adm-wl-table-body");
+    if (!tbody || !window.PORTFOLIO_DB) return;
+
+    try {
+      const list = await window.PORTFOLIO_DB.getYoutubeWhitelist();
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 14px; color: var(--muted);">No whitelisted friends yet. Use the form above to add friends.</td></tr>`;
+      } else {
+        tbody.innerHTML = list.map(item => {
+          const isActive = item.status === "active";
+          return `
+            <tr style="border-bottom: 1px solid var(--rule-light);">
+              <td style="padding: 8px 12px; font-family: var(--mono); font-weight: bold; color: var(--accent);">${this.escapeHTML(item.handle)}</td>
+              <td style="padding: 8px 12px;"><strong>${this.escapeHTML(item.name || item.handle)}</strong></td>
+              <td style="padding: 8px 12px; color: var(--muted);">${this.escapeHTML(item.role || "Friend")}</td>
+              <td style="padding: 8px 12px;">
+                <span style="font-size: 11px; padding: 2px 7px; border-radius: 999px; font-weight: 600; background: ${isActive ? 'var(--ok-bg)' : 'rgba(239, 68, 68, 0.12)'}; color: ${isActive ? 'var(--ok)' : '#ef4444'}; border: 1px solid currentColor;">
+                  ${isActive ? '● Active (Permanent)' : '○ Revoked'}
+                </span>
+              </td>
+              <td style="padding: 8px 12px; text-align: right; white-space: nowrap;">
+                <button type="button" class="btn-wl-toggle btn-secondary-action" data-handle="${this.escapeHTML(item.handle)}" style="font-size: 11px; padding: 3px 8px; margin-right: 4px;">
+                  ${isActive ? 'Revoke' : 'Activate'}
+                </button>
+                <button type="button" class="btn-wl-delete btn-ambient-action" data-handle="${this.escapeHTML(item.handle)}" style="font-size: 11px; padding: 3px 8px; color: #ef4444;">
+                  ✕ Remove
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+        // Bind toggle buttons
+        const toggleBtns = tbody.querySelectorAll(".btn-wl-toggle");
+        toggleBtns.forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const handle = btn.dataset.handle;
+            await window.PORTFOLIO_DB.toggleWhitelistStatus(handle);
+            this.loadAndRenderWhitelist();
+          });
+        });
+
+        // Bind delete buttons
+        const delBtns = tbody.querySelectorAll(".btn-wl-delete");
+        delBtns.forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const handle = btn.dataset.handle;
+            if (confirm(`Remove '${handle}' from the YouTube Whitelist?`)) {
+              await window.PORTFOLIO_DB.removeFromYoutubeWhitelist(handle);
+              this.loadAndRenderWhitelist();
+            }
+          });
+        });
+      }
+
+      // Bind whitelist form
+      const wlForm = document.getElementById("adm-whitelist-form");
+      if (wlForm && !wlForm.dataset.bound) {
+        wlForm.dataset.bound = "true";
+        wlForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const handleInput = document.getElementById("adm-wl-handle");
+          const nameInput = document.getElementById("adm-wl-name");
+          const roleInput = document.getElementById("adm-wl-role");
+          const handle = handleInput ? handleInput.value.trim() : "";
+          const name = nameInput ? nameInput.value.trim() : "";
+          const role = roleInput ? roleInput.value.trim() : "";
+          if (!handle) return;
+
+          await window.PORTFOLIO_DB.addToYoutubeWhitelist(handle, name, role);
+          if (handleInput) handleInput.value = "";
+          if (nameInput) nameInput.value = "";
+          if (roleInput) roleInput.value = "";
+
+          if (typeof showToast === "function") {
+            showToast(`Whitelisted '${handle}' with permanent YouTube access!`);
+          }
+          this.loadAndRenderWhitelist();
+        });
+      }
+    } catch (e) {
+      console.warn("loadAndRenderWhitelist error:", e);
     }
   }
 };
