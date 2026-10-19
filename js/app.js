@@ -91,7 +91,7 @@ function loadAdminStudio(autoOpen = true) {
   if (!adminLoadPromise) {
     adminLoadPromise = new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = "js/components/admin.js";
+      script.src = "js/components/admin.js?v=20261020_v3";
       script.defer = true;
       script.onload = () => {
         if (window.PORTFOLIO_ADMIN) {
@@ -559,8 +559,8 @@ function renderEducation() {
         <h3 class="timeline-title">${escapeHTML(item.degree)}</h3>
         <span class="timeline-period">${escapeHTML(item.period)}</span>
       </div>
-      <div class="timeline-institution">${escapeHTML(item.institution)} • ${escapeHTML(item.location)}</div>
-      <p class="timeline-desc">${escapeHTML(item.focus)}</p>
+      <div class="timeline-institution">${escapeHTML(item.institution)}${item.status ? ` • <span class="education-status-pill">${escapeHTML(item.status)}</span>` : ""}${item.location ? ` • ${escapeHTML(item.location)}` : ""}</div>
+      <p class="timeline-desc">${escapeHTML(item.description || item.focus || "")}</p>
     </li>
   `).join("");
 }
@@ -617,14 +617,17 @@ function initUtilities() {
   }
 
   if (copyInviteBtn && inviteLinkInput) {
-    try {
-      inviteLinkInput.value = `${window.location.origin}${window.location.pathname}?tab=focus&sprint=25`;
-    } catch (e) {}
+    if (!inviteLinkInput.value) {
+      try {
+        inviteLinkInput.value = `${window.location.origin}${window.location.pathname}?tab=focus&sprint=25`;
+      } catch (e) {}
+    }
 
     copyInviteBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText(inviteLinkInput.value).then(() => {
+      const link = inviteLinkInput.value || `${window.location.origin}${window.location.pathname}?tab=focus&sprint=25`;
+      navigator.clipboard.writeText(link).then(() => {
         showToast("Focus sprint invite link copied!");
-        copyInviteBtn.textContent = "Copied!";
+        copyInviteBtn.textContent = "Copied! ✓";
         setTimeout(() => { copyInviteBtn.textContent = "Copy Link"; }, 2000);
       });
     });

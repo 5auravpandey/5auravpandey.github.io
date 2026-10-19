@@ -628,15 +628,8 @@ window.PORTFOLIO_PLAYGROUND = {
     });
 
     // Share Pass Buttons
-    const sharePassBtn = document.getElementById("btn-share-friend-pass");
-    const sharePassYtBtn = document.getElementById("btn-share-friend-pass-yt");
+    const sharePassBtn = document.getElementById("btn-share-friend-pass-yt");
     if (sharePassBtn) sharePassBtn.addEventListener("click", () => this.openInviteModal());
-    if (sharePassYtBtn) sharePassYtBtn.addEventListener("click", () => this.openInviteModal());
-
-    // Initialize Games if on games tab
-    if (this.currentTab === "games" && window.PORTFOLIO_GAMES) {
-      window.PORTFOLIO_GAMES.init();
-    }
 
     // --- Tab 1: Focus Sprint Events ---
     if (this.currentTab === "focus") {
