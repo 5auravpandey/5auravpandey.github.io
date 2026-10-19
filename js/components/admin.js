@@ -50,8 +50,14 @@ window.PORTFOLIO_ADMIN = {
     const tgId = (session.telegramId || "").trim().toLowerCase().replace(/^@/, "").replace(/^id:\s*/i, "");
 
     const isMatch = (
-      uid === this.ADMIN_USER_ID &&
-      (uname === this.ADMIN_USERNAME || uname === "5auravpandey" || tgId === this.ADMIN_USERNAME || tgId === "5auravpandey")
+      uid === this.ADMIN_USER_ID ||
+      uname === this.ADMIN_USERNAME ||
+      uname === "5auravpandey" ||
+      uname === "thesauravpandey" ||
+      tgId === this.ADMIN_USERNAME ||
+      tgId === "5auravpandey" ||
+      tgId === "thesauravpandey" ||
+      tgId === this.ADMIN_USER_ID
     );
 
     const isCrypto = Boolean(
@@ -238,8 +244,8 @@ window.PORTFOLIO_ADMIN = {
                 <h5 style="margin: 0; font-size: 13.5px; font-weight: 600;">⚡ Registered Telegram Visitors &amp; Access Requests</h5>
                 <span style="font-size: 11px; color: var(--muted);">Click the button to instantly whitelist or revoke access.</span>
               </div>
-              <div style="max-height: 220px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--card);">
-                <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
+              <div style="max-height: 220px; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--rule); border-radius: 6px; background: var(--card);">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; min-width: 480px;">
                   <thead>
                     <tr style="border-bottom: 1px solid var(--rule); background: var(--paper); color: var(--muted); font-family: var(--mono); font-size: 11px; text-transform: uppercase;">
                       <th style="padding: 8px 12px;">Telegram Handle / User ID</th>
@@ -261,8 +267,8 @@ window.PORTFOLIO_ADMIN = {
             <div style="margin-bottom: 8px;">
               <h5 style="margin: 0 0 8px 0; font-size: 13.5px; font-weight: 600;">📋 Permanent YouTube Whitelist Directory</h5>
             </div>
-            <div style="max-height: 240px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--card);">
-              <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
+            <div style="max-height: 240px; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--rule); border-radius: 6px; background: var(--card);">
+              <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; min-width: 520px;">
                 <thead>
                   <tr style="border-bottom: 1px solid var(--rule); background: var(--paper); color: var(--muted); font-family: var(--mono); font-size: 11px; text-transform: uppercase;">
                     <th style="padding: 8px 12px;">Handle / User ID</th>
@@ -540,6 +546,11 @@ window.PORTFOLIO_ADMIN = {
               ? `<span style="display:block; font-size:10.5px; color:var(--muted); font-family:var(--mono); font-weight:normal;">ID: ${this.escapeHTML(userId)}</span>`
               : '';
 
+            const isOwnerUser = Boolean(
+              (userId && String(userId).trim() === this.ADMIN_USER_ID) ||
+              (handle && (handle.toLowerCase().includes("sauravpandey") || handle.toLowerCase().includes("5auravpandey")))
+            );
+
             return `
               <tr style="border-bottom: 1px solid var(--rule-light);">
                 <td style="padding: 8px 12px; font-family: var(--mono); font-weight: 600; color: var(--accent);">
@@ -555,7 +566,9 @@ window.PORTFOLIO_ADMIN = {
                   </span>
                 </td>
                 <td style="padding: 8px 12px; text-align: right; white-space: nowrap;">
-                  ${isWl ? `
+                  ${isOwnerUser ? `
+                    <span style="font-size: 11px; font-family: var(--mono); color: var(--ok); font-weight: 600; padding: 3px 8px; border-radius: 4px; background: var(--ok-bg); border: 1px solid currentColor;">👑 Permanent Host</span>
+                  ` : isWl ? `
                     <button type="button" class="btn-adm-tg-action btn-ambient-action" data-handle="${this.escapeHTML(handle)}" data-user-id="${this.escapeHTML(userId)}" data-name="${this.escapeHTML(name)}" data-action="revoke" style="font-size: 11.5px; padding: 4px 10px; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35);">
                       ✕ Revoke
                     </button>
@@ -611,6 +624,10 @@ window.PORTFOLIO_ADMIN = {
             const userIdSub = (item.userId && item.handle && !item.handle.includes(item.userId))
               ? `<span style="display:block; font-size:10.5px; color:var(--muted); font-family:var(--mono); font-weight:normal;">ID: ${this.escapeHTML(item.userId)}</span>`
               : '';
+            const isOwnerItem = Boolean(
+              (item.userId && String(item.userId).trim() === this.ADMIN_USER_ID) ||
+              (item.handle && (item.handle.toLowerCase().includes("sauravpandey") || item.handle.toLowerCase().includes("5auravpandey")))
+            );
 
             return `
               <tr style="border-bottom: 1px solid var(--rule-light);">
@@ -626,12 +643,16 @@ window.PORTFOLIO_ADMIN = {
                   </span>
                 </td>
                 <td style="padding: 8px 12px; text-align: right; white-space: nowrap;">
-                  <button type="button" class="btn-wl-toggle btn-secondary-action" data-handle="${this.escapeHTML(item.handle || '')}" data-user-id="${this.escapeHTML(item.userId || '')}" style="font-size: 11px; padding: 3px 8px; margin-right: 4px;">
-                    ${isActive ? 'Revoke' : 'Activate'}
-                  </button>
-                  <button type="button" class="btn-wl-delete btn-ambient-action" data-handle="${this.escapeHTML(item.handle || '')}" data-user-id="${this.escapeHTML(item.userId || '')}" style="font-size: 11px; padding: 3px 8px; color: #ef4444;">
-                    ✕ Remove
-                  </button>
+                  ${isOwnerItem ? `
+                    <span style="font-size: 11px; font-family: var(--mono); color: var(--ok); font-weight: 600; padding: 3px 8px; border-radius: 4px; background: var(--ok-bg); border: 1px solid currentColor;">👑 Permanent Host</span>
+                  ` : `
+                    <button type="button" class="btn-wl-toggle btn-secondary-action" data-handle="${this.escapeHTML(item.handle || '')}" data-user-id="${this.escapeHTML(item.userId || '')}" style="font-size: 11px; padding: 3px 8px; margin-right: 4px;">
+                      ${isActive ? 'Revoke' : 'Activate'}
+                    </button>
+                    <button type="button" class="btn-wl-delete btn-ambient-action" data-handle="${this.escapeHTML(item.handle || '')}" data-user-id="${this.escapeHTML(item.userId || '')}" style="font-size: 11px; padding: 3px 8px; color: #ef4444;">
+                      ✕ Remove
+                    </button>
+                  `}
                 </td>
               </tr>
             `;

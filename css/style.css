@@ -2495,13 +2495,13 @@ dialog#case-study-dialog::backdrop {
 
 @media (max-width: 480px) {
   .snake-canvas-box {
-    max-width: 320px;
+    max-width: min(320px, 100%);
   }
   .ttt-grid {
-    max-width: 260px;
+    max-width: min(260px, 100%);
   }
   .chessboard-wrapper {
-    max-width: 340px;
+    max-width: min(340px, 100%);
   }
   .chess-piece {
     font-size: clamp(20px, 6.5vw, 32px);
@@ -3521,6 +3521,11 @@ dialog#invite-dialog {
     font-size: 12px;
   }
 
+  .terminal-window.fullscreen-term {
+    min-height: 320px;
+    max-height: 60dvh;
+  }
+
   .terminal-prompt-row {
     gap: 6px;
   }
@@ -3797,6 +3802,10 @@ dialog#invite-dialog {
   .admin-form-row {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  #adm-whitelist-form {
+    grid-template-columns: 1fr !important;
   }
 
   .admin-topbar {

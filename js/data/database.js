@@ -443,6 +443,7 @@ window.PORTFOLIO_DB = {
       const isOwner = (
         clean === "@sauravpandey" || clean === "sauravpandey" || 
         clean === "@5auravpandey" || clean === "5auravpandey" || 
+        clean === "@thesauravpandey" || clean === "thesauravpandey" || 
         uid === "6639686782"
       );
 
@@ -1203,7 +1204,8 @@ window.PORTFOLIO_DB = {
       isVerifiedOwner &&
       (cleanUserId === "6639686782" ||
        withoutAt === "sauravpandey" ||
-       withoutAt === "5auravpandey")
+       withoutAt === "5auravpandey" ||
+       withoutAt === "thesauravpandey")
     ) {
       return {
         whitelisted: true,
@@ -1739,7 +1741,8 @@ window.PORTFOLIO_AUTH = {
         session.isOwner === true ||
         uid === "6639686782" ||
         uname === "sauravpandey" ||
-        uname === "5auravpandey"
+        uname === "5auravpandey" ||
+        uname === "thesauravpandey"
       );
 
       let isOwner = false;
@@ -1752,7 +1755,7 @@ window.PORTFOLIO_AUTH = {
           authData.hash &&
           authData.auth_date &&
           String(authData.id).trim() === "6639686782" &&
-          (uname === "sauravpandey" || uname === "5auravpandey" || uid === "6639686782")
+          (uname === "sauravpandey" || uname === "5auravpandey" || uname === "thesauravpandey" || uid === "6639686782" || String(authData.id).trim() === "6639686782")
         );
 
         if (!isVerifiedOwner) {
@@ -1821,7 +1824,8 @@ window.PORTFOLIO_AUTH = {
       userId === "6639686782" ||
       (username && (
         username.toLowerCase() === "sauravpandey" ||
-        username.toLowerCase() === "5auravpandey"
+        username.toLowerCase() === "5auravpandey" ||
+        username.toLowerCase() === "thesauravpandey"
       ))
     );
 

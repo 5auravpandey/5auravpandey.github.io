@@ -128,8 +128,8 @@ function initAdminLazyLoader() {
   const isOwner = session && (
     session.isOwner || 
     session.telegramUserId === "6639686782" || 
-    (session.username && session.username.toLowerCase() === "sauravpandey") ||
-    (session.telegramId && session.telegramId.toLowerCase() === "@sauravpandey")
+    (session.username && (session.username.toLowerCase() === "sauravpandey" || session.username.toLowerCase() === "5auravpandey" || session.username.toLowerCase() === "thesauravpandey")) ||
+    (session.telegramId && (session.telegramId.toLowerCase() === "@sauravpandey" || session.telegramId.toLowerCase() === "@5auravpandey" || session.telegramId.toLowerCase() === "@thesauravpandey"))
   );
   if (isOwner) {
     if ("requestIdleCallback" in window) {
@@ -855,7 +855,7 @@ function initGlobalAuthUI() {
     }
     if (mobileAdminBtn) {
       if (isOwner) {
-        mobileAdminBtn.style.display = "block";
+        mobileAdminBtn.style.display = "flex";
         mobileAdminBtn.innerHTML = `<span>👑 Open Admin Studio</span>`;
         mobileAdminBtn.classList.add("is-owner");
       } else {
