@@ -21,6 +21,10 @@ window.PORTFOLIO_COMMAND_PALETTE = {
   getAllActions() {
     const actions = [
       // Quick Actions
+      { id: "act-admin-studio", type: "action", icon: "⚙️", title: "Admin Studio & Content Manager", desc: "Manage research, notes, and YouTube whitelist (@sauravpandey)", handler: () => {
+        if (typeof window.loadAdminStudio === "function") window.loadAdminStudio(true);
+        else if (window.PORTFOLIO_ADMIN) window.PORTFOLIO_ADMIN.open();
+      }},
       { id: "act-auth", type: "action", icon: "✈️", title: "Account Center & Telegram Login", desc: "Manage Telegram connection, 7-day score sustainability & whitelist", handler: () => {
         if (window.PORTFOLIO_AUTH) window.PORTFOLIO_AUTH.openLoginDialog();
       }},

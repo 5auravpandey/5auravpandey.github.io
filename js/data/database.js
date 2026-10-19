@@ -15,8 +15,10 @@ window.PORTFOLIO_DB = {
 
   // Initial YouTube Whitelist (Permanent access granted by Saurav - no expiry time)
   INITIAL_YOUTUBE_WHITELIST: [
-    { handle: "@5auravpandey", userId: "7044498519", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
-    { handle: "saurav", userId: "7044498519", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
+    { handle: "@sauravpandey", userId: "6639686782", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
+    { handle: "sauravpandey", userId: "6639686782", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
+    { handle: "@5auravpandey", userId: "6639686782", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
+    { handle: "saurav", userId: "6639686782", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
     { handle: "@aman_iitp", name: "Aman K. (IITP)", role: "Study Buddy", addedAt: "2026-10-10", status: "active" },
     { handle: "aman", name: "Aman K. (IITP)", role: "Study Buddy", addedAt: "2026-10-10", status: "active" },
     { handle: "@rohan_v", name: "Rohan V.", role: "Friend", addedAt: "2026-10-12", status: "active" },
@@ -158,6 +160,7 @@ window.PORTFOLIO_DB = {
         for (const w of this.INITIAL_YOUTUBE_WHITELIST) {
           wlStore.put({
             handle: w.handle.toLowerCase(),
+            userId: w.userId || null,
             name: w.name,
             role: w.role,
             status: w.status,
@@ -213,6 +216,7 @@ window.PORTFOLIO_DB = {
       if (!localStorage.getItem("portfolio_youtube_whitelist")) {
         localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(this.INITIAL_YOUTUBE_WHITELIST.map(w => ({
           handle: w.handle.toLowerCase(),
+          userId: w.userId || null,
           name: w.name,
           role: w.role,
           status: w.status,
@@ -447,7 +451,11 @@ window.PORTFOLIO_DB = {
         : (wlMap.has(clean) ? wlMap.get(clean) : (wlMap.has(noAt) ? wlMap.get(noAt) : false));
       return {
         ...u,
-        isWhitelisted: isWl || u.isWhitelisted || (clean === "@5auravpandey" || clean === "saurav" || uid === "7044498519")
+        isWhitelisted: isWl || u.isWhitelisted || (
+          clean === "@sauravpandey" || clean === "sauravpandey" || 
+          clean === "@5auravpandey" || clean === "saurav" || 
+          uid === "6639686782" || uid === "7044498519"
+        )
       };
     });
 
@@ -1130,6 +1138,26 @@ window.PORTFOLIO_DB = {
     const withoutAt = rawClean.startsWith("@") ? rawClean.slice(1) : rawClean;
     const cleanUserId = userId ? String(userId).trim() : "";
 
+    // Immediate master owner bypass
+    if (
+      cleanUserId === "6639686782" ||
+      cleanUserId === "7044498519" ||
+      withoutAt === "sauravpandey" ||
+      withoutAt === "5auravpandey" ||
+      withoutAt === "saurav"
+    ) {
+      return {
+        whitelisted: true,
+        entry: {
+          handle: "@sauravpandey",
+          userId: "6639686782",
+          name: "Saurav Pandey",
+          role: "Owner / Host",
+          status: "active"
+        }
+      };
+    }
+
     const list = await this.getYoutubeWhitelist();
     const match = list.find(item => {
       const itemHandle = (item.handle || "").toLowerCase();
@@ -1392,8 +1420,22 @@ window.PORTFOLIO_AUTH = {
       }
 
       const daysRemaining = Math.max(0, Math.ceil(((session.expiresAt || (now + this.RETENTION_MS)) - now) / (24 * 60 * 60 * 1000)));
+      const uid = session.telegramUserId ? String(session.telegramUserId).trim() : "";
+      const uname = (session.username || session.telegramId || "").toLowerCase().replace(/^@/, "").replace(/^id:\s*/i, "");
+      const isOwner = (
+        session.isOwner === true ||
+        uid === "6639686782" ||
+        uid === "7044498519" ||
+        uname === "sauravpandey" ||
+        uname === "5auravpandey" ||
+        uname === "saurav" ||
+        uname === "6639686782"
+      );
       return {
         ...session,
+        isOwner,
+        role: isOwner ? "Owner / Administrator" : (session.role || "Friend"),
+        isWhitelistedYouTube: isOwner ? true : Boolean(session.isWhitelistedYouTube),
         daysRemaining
       };
     } catch (e) {
@@ -1455,11 +1497,20 @@ window.PORTFOLIO_AUTH = {
       }
     }
 
-    // Owner check (Saurav)
-    const isOwner = (username && (username.toLowerCase() === "5auravpandey" || username.toLowerCase() === "saurav")) || userId === "7044498519";
+    // Owner check (Saurav Pandey)
+    const isOwner = (
+      userId === "6639686782" ||
+      userId === "7044498519" ||
+      (username && (
+        username.toLowerCase() === "sauravpandey" ||
+        username.toLowerCase() === "5auravpandey" ||
+        username.toLowerCase() === "saurav" ||
+        username === "6639686782"
+      ))
+    );
     if (isOwner) {
       isWhitelisted = true;
-      whitelistRole = "Owner / Host";
+      whitelistRole = "Owner / Administrator";
     }
 
     const session = {
@@ -1696,6 +1747,18 @@ window.PORTFOLIO_AUTH = {
             ` : `<span class="auth-tag-unlocked">Active ✓</span>`}
           </div>
 
+          ${session.isOwner ? `
+            <div style="margin: 12px 0 6px; padding: 12px 14px; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left;">
+              <div>
+                <strong style="display: block; font-size: 13px; color: var(--ink);">⚙️ Administrator Studio</strong>
+                <span style="font-size: 11.5px; color: var(--muted);">Full access active for @sauravpandey</span>
+              </div>
+              <button type="button" id="btn-dialog-open-admin" class="btn-primary-action" style="font-size: 12px; padding: 6px 14px; font-weight: 600; white-space: nowrap;">
+                Open Studio
+              </button>
+            </div>
+          ` : ''}
+
           <div class="auth-dialog-footer">
             <button type="button" id="btn-dialog-logout" class="btn-danger-outline" style="font-size: 12px; padding: 6px 14px;">
               Log Out
@@ -1835,6 +1898,18 @@ window.PORTFOLIO_AUTH = {
           }
           this.renderDialogContent();
           this.bindDialogEvents();
+        }
+      };
+    }
+
+    const openAdminBtn = document.getElementById("btn-dialog-open-admin");
+    if (openAdminBtn) {
+      openAdminBtn.onclick = () => {
+        this.closeLoginDialog();
+        if (typeof window.loadAdminStudio === "function") {
+          window.loadAdminStudio(true);
+        } else if (window.PORTFOLIO_ADMIN) {
+          window.PORTFOLIO_ADMIN.open();
         }
       };
     }

@@ -2843,48 +2843,6 @@ dialog#invite-dialog::backdrop {
   margin: 0 auto;
 }
 
-.otp-code-input {
-  font-family: var(--mono);
-  font-size: 26px;
-  font-weight: 500;
-  letter-spacing: 0.25em;
-  text-align: center;
-  width: 100%;
-  max-width: 260px;
-  margin: 12px auto;
-  padding: 10px 14px;
-  background-color: var(--paper);
-  border: 2px solid var(--accent);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
-  outline: none;
-}
-
-.authenticator-setup-card {
-  margin-top: 18px;
-  padding: 16px;
-  background-color: var(--paper);
-  border: 1px dashed var(--rule);
-  border-radius: var(--radius-sm);
-  text-align: left;
-  font-size: 13.5px;
-  line-height: 1.5;
-}
-
-.authenticator-key-badge {
-  font-family: var(--mono);
-  font-size: 14.5px;
-  font-weight: bold;
-  letter-spacing: 0.1em;
-  background-color: var(--tint);
-  border: 1px solid var(--rule);
-  padding: 4px 10px;
-  border-radius: 4px;
-  color: var(--accent);
-  display: inline-block;
-  user-select: all;
-}
-
 .admin-dashboard {
   padding: 24px;
   overflow-y: auto;

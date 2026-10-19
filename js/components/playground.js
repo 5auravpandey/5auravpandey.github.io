@@ -69,10 +69,10 @@ window.PORTFOLIO_PLAYGROUND = {
       
     if (authSession) {
       if (!authSession.isWhitelistedYouTube && window.PORTFOLIO_DB) {
-        const check = await window.PORTFOLIO_DB.isWhitelistedForYouTube(authSession.telegramId || authSession.username);
-        if (check && check.whitelisted) {
+        const check = await window.PORTFOLIO_DB.isWhitelistedForYouTube(authSession.telegramId || authSession.username, authSession.telegramUserId);
+        if (authSession.isOwner || (check && check.whitelisted)) {
           authSession.isWhitelistedYouTube = true;
-          authSession.role = check.entry.role || "Whitelisted Friend";
+          authSession.role = authSession.isOwner ? "Owner / Administrator" : (check.entry?.role || "Whitelisted Friend");
           if (window.PORTFOLIO_AUTH) window.PORTFOLIO_AUTH.saveSession(authSession);
         }
       }
@@ -582,10 +582,10 @@ window.PORTFOLIO_PLAYGROUND = {
       quickCheckBtn.addEventListener("click", async () => {
         const s = window.PORTFOLIO_AUTH ? window.PORTFOLIO_AUTH.getSession() : null;
         if (s && window.PORTFOLIO_DB) {
-          const check = await window.PORTFOLIO_DB.isWhitelistedForYouTube(s.telegramId || s.username);
-          if (check && check.whitelisted) {
+          const check = await window.PORTFOLIO_DB.isWhitelistedForYouTube(s.telegramId || s.username, s.telegramUserId);
+          if (s.isOwner || (check && check.whitelisted)) {
             s.isWhitelistedYouTube = true;
-            s.role = check.entry.role || "Whitelisted Friend";
+            s.role = s.isOwner ? "Owner / Administrator" : (check.entry?.role || "Whitelisted Friend");
             if (window.PORTFOLIO_AUTH) window.PORTFOLIO_AUTH.saveSession(s);
             this.isFriend = true;
             this.friendName = s.displayName;
@@ -1603,19 +1603,17 @@ window.PORTFOLIO_PLAYGROUND = {
         break;
 
       case "myspace":
+      case "admin":
+      case "studio":
         if (typeof window.loadAdminStudio === "function") {
           window.loadAdminStudio(true);
-          reply = "🔐 Launching Secure Admin Studio (myspace protocol authenticated)...";
+          reply = "🔐 Launching Admin Studio & Content Manager...";
         } else if (window.PORTFOLIO_ADMIN) {
           window.PORTFOLIO_ADMIN.open();
-          reply = "🔐 Launching Secure Admin Studio...";
+          reply = "🔐 Launching Admin Studio & Content Manager...";
         } else {
           reply = "⚠️ Admin Studio is loading...";
         }
-        break;
-
-      case "admin":
-        reply = "Permission denied: 'admin' command is disabled. System access is restricted.";
         break;
 
       case "matrix":

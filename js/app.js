@@ -109,9 +109,17 @@ function loadAdminStudio(autoOpen = true) {
 window.loadAdminStudio = loadAdminStudio;
 
 function initAdminLazyLoader() {
-  // Silent background pre-load only if an active admin session is already present
-  const hasActiveSession = !!sessionStorage.getItem("portfolio_admin_session_v2");
-  if (hasActiveSession) {
+  // Silent background pre-load if owner is logged in
+  const session = window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function"
+    ? window.PORTFOLIO_AUTH.getSession()
+    : null;
+  const isOwner = session && (
+    session.isOwner || 
+    session.telegramUserId === "6639686782" || 
+    (session.username && session.username.toLowerCase() === "sauravpandey") ||
+    (session.telegramId && session.telegramId.toLowerCase() === "@sauravpandey")
+  );
+  if (isOwner) {
     if ("requestIdleCallback" in window) {
       window.requestIdleCallback(() => loadAdminStudio(false), { timeout: 3000 });
     } else {
@@ -588,6 +596,13 @@ function initUtilities() {
         copyInviteBtn.textContent = "Copied!";
         setTimeout(() => { copyInviteBtn.textContent = "Copy Link"; }, 2000);
       });
+    });
+  }
+
+  const footerAdminBtn = document.getElementById("btn-footer-admin");
+  if (footerAdminBtn) {
+    footerAdminBtn.addEventListener("click", () => {
+      loadAdminStudio(true);
     });
   }
 }
