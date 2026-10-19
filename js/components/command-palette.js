@@ -25,9 +25,6 @@ window.PORTFOLIO_COMMAND_PALETTE = {
         const btn = document.getElementById("theme-toggle-btn");
         if (btn) btn.click();
       }},
-      { id: "act-cv", type: "action", icon: "📄", title: "Print / Save CV as PDF", desc: "Opens clean 2-page ATS-formatted printable resume", handler: () => {
-        window.print();
-      }},
       { id: "act-focus", type: "action", icon: "⏱️", title: "Start 25m Focus Sprint", desc: "Launches deep work timer in Dev Lab", handler: () => {
         window.location.hash = "#playground";
         if (window.PORTFOLIO_PLAYGROUND) {
@@ -82,9 +79,6 @@ window.PORTFOLIO_COMMAND_PALETTE = {
           if (typeof showToast === "function") showToast("Portfolio link copied to clipboard!");
         }
       }},
-      { id: "act-admin", type: "action", icon: "🛡️", title: "Admin Studio (2FA Protected)", desc: "Open content editor and Authenticator manager", handler: () => {
-        if (typeof loadAdminStudio === "function") loadAdminStudio(true);
-      }},
 
       // Sections
       { id: "sec-about", type: "section", icon: "👤", title: "Jump to: About Saurav", desc: "Bio, engineering pillars, and background", url: "#about" },
@@ -107,10 +101,9 @@ window.PORTFOLIO_COMMAND_PALETTE = {
           title: `Project: ${proj.title}`,
           desc: `${proj.category.toUpperCase()} • ${proj.tech.slice(0, 3).join(", ")}`,
           handler: () => {
+            window.location.hash = "#projects";
             if (window.PORTFOLIO_CASE_STUDY) {
-              window.PORTFOLIO_CASE_STUDY.openCaseStudy(proj.id);
-            } else {
-              window.location.hash = "#projects";
+              window.PORTFOLIO_CASE_STUDY.open(proj.id);
             }
           }
         });
@@ -127,11 +120,7 @@ window.PORTFOLIO_COMMAND_PALETTE = {
           title: `${item.badge || item.category}: ${item.title}`,
           desc: item.summary || item.meta,
           handler: () => {
-            if (window.PORTFOLIO_CASE_STUDY) {
-              window.PORTFOLIO_CASE_STUDY.openShelfItem(item);
-            } else {
-              window.location.hash = "#curations";
-            }
+            window.location.hash = "#curations";
           }
         });
       });

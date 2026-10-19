@@ -555,6 +555,14 @@ function initUtilities() {
     inviteCloseBtn.addEventListener("click", () => inviteDialog.close());
   }
 
+  if (inviteDialog) {
+    inviteDialog.addEventListener("click", (e) => {
+      if (e.target === inviteDialog) {
+        inviteDialog.close();
+      }
+    });
+  }
+
   if (copyInviteBtn && inviteLinkInput) {
     try {
       inviteLinkInput.value = `${window.location.origin}${window.location.pathname}?tab=focus&sprint=25`;

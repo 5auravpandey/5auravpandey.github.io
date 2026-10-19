@@ -43,6 +43,10 @@ window.PORTFOLIO_CASE_STUDY = {
     });
   },
 
+  openCaseStudy(projectId, triggerElement = null) {
+    return this.open(projectId, triggerElement);
+  },
+
   open(projectId, triggerElement = null) {
     if (!this.dialog) return;
     const project = window.PORTFOLIO_PROJECTS.find(p => p.id === projectId);

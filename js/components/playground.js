@@ -496,6 +496,7 @@ window.PORTFOLIO_PLAYGROUND = {
       tab.addEventListener("click", () => {
         const next = tab.dataset.tab;
         if (this.currentTab === next) return;
+        this.stopVisualizer();
         if (this.currentTab === "games" && window.PORTFOLIO_GAMES && typeof window.PORTFOLIO_GAMES.destroyCurrentGame === "function") {
           window.PORTFOLIO_GAMES.destroyCurrentGame();
         }
@@ -1053,6 +1054,11 @@ window.PORTFOLIO_PLAYGROUND = {
         this.clearVisualizer(canvas, ctx);
         return;
       }
+      const currentCanvas = document.getElementById("soundscape-visualizer");
+      if (!currentCanvas || this.currentTab !== "focus") {
+        this.stopVisualizer();
+        return;
+      }
       this.animFrameId = requestAnimationFrame(draw);
       this.analyser.getByteFrequencyData(dataArray);
 
@@ -1600,14 +1606,43 @@ window.PORTFOLIO_PLAYGROUND = {
 
       case "friend":
       case "invite":
-        this.isFriend = true;
-        if (arg1) {
-          this.friendName = parts.slice(1).join(" ");
-          localStorage.setItem("portfolio_friend_name", this.friendName);
+        if (!arg1) {
+          reply = "🔒 Access Pass required for private YouTube Stream & Study Rooms.\nUsage: friend <pass-key> [your-name]\nExample: friend HAL2026 Saurav\nTo request an authorized pass, contact Saurav directly on Telegram (@sauravpandey) or Email (thesauravpandey@outlook.com).";
+        } else {
+          const passInput = arg1.toUpperCase();
+          const friendNameInput = parts.slice(2).join(" ") || this.friendName || "Friend";
+          if (window.PORTFOLIO_DB) {
+            window.PORTFOLIO_DB.verifyAccessPass(passInput).then(res => {
+              const hist = document.getElementById("terminal-history");
+              const win = document.getElementById("terminal-window");
+              const entry = document.createElement("div");
+              entry.className = "term-entry";
+              const safeName = (typeof window.escapeHTML === "function") ? window.escapeHTML(friendNameInput) : friendNameInput;
+
+              if (res.valid) {
+                window.PORTFOLIO_DB.activatePass(passInput, friendNameInput);
+                this.isFriend = true;
+                this.friendName = friendNameInput;
+                this.activePassKey = passInput;
+                this.render();
+                entry.innerHTML = `
+                  <div class="term-cmd-echo"><span class="terminal-prompt">saurav@gopalganj:~$</span> friend ${passInput}</div>
+                  <div class="term-reply">🌟 Access Pass verified! Welcome, ${safeName}! Private YouTube stream &amp; study rooms unlocked.</div>
+                `;
+              } else {
+                entry.innerHTML = `
+                  <div class="term-cmd-echo"><span class="terminal-prompt">saurav@gopalganj:~$</span> friend ${passInput}</div>
+                  <div class="term-reply">❌ Access Denied: ${res.reason || "Invalid pass key."}<br>Please request an Access Pass from Saurav on Telegram (@sauravpandey) or Email.</div>
+                `;
+              }
+              if (hist) hist.appendChild(entry);
+              if (win) win.scrollTop = win.scrollHeight;
+            });
+            reply = `Verifying Access Pass '${passInput}' against database...`;
+          } else {
+            reply = "⚠️ Database unavailable to verify pass.";
+          }
         }
-        localStorage.setItem("portfolio_friend_pass", "true");
-        this.render();
-        reply = `🌟 VIP Friends Access unlocked! Welcome${this.friendName ? `, ${this.friendName}` : ''}!`;
         break;
 
       case "spotify":
@@ -1811,12 +1846,12 @@ window.PORTFOLIO_PLAYGROUND = {
     }
 
     const escListener = (e) => {
-      if (e.key === "Escape" || this.isMatrixRunning) {
+      if (e.key === "Escape") {
         this.stopMatrixRain();
         window.removeEventListener("keydown", escListener);
       }
     };
-    window.addEventListener("keydown", escListener, { once: true });
+    window.addEventListener("keydown", escListener);
   },
 
   stopMatrixRain() {

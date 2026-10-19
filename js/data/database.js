@@ -45,46 +45,64 @@ window.PORTFOLIO_DB = {
         return;
       }
 
-      const request = window.indexedDB.open(this.dbName, this.dbVersion);
+      try {
+        const request = window.indexedDB.open(this.dbName, this.dbVersion);
 
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
+        request.onupgradeneeded = (event) => {
+          try {
+            const db = event.target.result;
 
-        // 1. Access Passes Store
-        if (!db.objectStoreNames.contains("access_passes")) {
-          const passStore = db.createObjectStore("access_passes", { keyPath: "passKey" });
-          passStore.createIndex("by_status", "status", { unique: false });
-        }
+            // 1. Access Passes Store
+            if (!db.objectStoreNames.contains("access_passes")) {
+              const passStore = db.createObjectStore("access_passes", { keyPath: "passKey" });
+              passStore.createIndex("by_status", "status", { unique: false });
+            }
 
-        // 2. Game Scores Store (Snake, Chess, TicTacToe)
-        if (!db.objectStoreNames.contains("game_scores")) {
-          const scoreStore = db.createObjectStore("game_scores", { keyPath: "id", autoIncrement: true });
-          scoreStore.createIndex("by_game", "game", { unique: false });
-          scoreStore.createIndex("by_score", "score", { unique: false });
-          scoreStore.createIndex("by_game_score", ["game", "score"], { unique: false });
-        }
+            // 2. Game Scores Store (Snake, Chess, TicTacToe)
+            if (!db.objectStoreNames.contains("game_scores")) {
+              const scoreStore = db.createObjectStore("game_scores", { keyPath: "id", autoIncrement: true });
+              scoreStore.createIndex("by_game", "game", { unique: false });
+              scoreStore.createIndex("by_score", "score", { unique: false });
+              scoreStore.createIndex("by_game_score", ["game", "score"], { unique: false });
+            }
 
-        // 3. Synchronized Study Rooms
-        if (!db.objectStoreNames.contains("study_rooms")) {
-          const roomStore = db.createObjectStore("study_rooms", { keyPath: "roomId" });
-          roomStore.createIndex("by_created", "createdAt", { unique: false });
-        }
-      };
+            // 3. Synchronized Study Rooms
+            if (!db.objectStoreNames.contains("study_rooms")) {
+              const roomStore = db.createObjectStore("study_rooms", { keyPath: "roomId" });
+              roomStore.createIndex("by_created", "createdAt", { unique: false });
+            }
+          } catch (upgradeErr) {
+            console.warn("IndexedDB onupgradeneeded error:", upgradeErr);
+          }
+        };
 
-      request.onsuccess = (event) => {
-        this.db = event.target.result;
-        this.isReady = true;
-        this.seedDefaultData().then(() => {
+        request.onsuccess = (event) => {
+          this.db = event.target.result;
+          this.isReady = true;
+          this.seedDefaultData().catch(() => {}).then(() => {
+            resolve(this);
+          });
+        };
+
+        request.onerror = (event) => {
+          console.warn("IndexedDB request error, falling back to LocalStorage:", event.target ? event.target.error : event);
+          this.isReady = true;
+          this.seedLocalStorage();
           resolve(this);
-        });
-      };
+        };
 
-      request.onerror = (event) => {
-        console.warn("IndexedDB error, falling back to LocalStorage:", event.target.error);
+        request.onblocked = () => {
+          console.warn("IndexedDB blocked, falling back to LocalStorage");
+          this.isReady = true;
+          this.seedLocalStorage();
+          resolve(this);
+        };
+      } catch (err) {
+        console.warn("IndexedDB open exception, falling back to LocalStorage:", err);
         this.isReady = true;
         this.seedLocalStorage();
         resolve(this);
-      };
+      }
     });
 
     return this.readyPromise;
@@ -94,37 +112,43 @@ window.PORTFOLIO_DB = {
   async seedDefaultData() {
     if (!this.db) return;
 
-    // Seed master passes
-    const passTx = this.db.transaction("access_passes", "readwrite");
-    const passStore = passTx.objectStore("access_passes");
+    try {
+      // Seed master passes
+      const passTx = this.db.transaction("access_passes", "readwrite");
+      const passStore = passTx.objectStore("access_passes");
 
-    for (const p of this.AUTHORIZED_PASSES) {
-      passStore.put({
-        passKey: p.key.toUpperCase(),
-        label: p.label,
-        issuedTo: p.issuedTo,
-        status: "active",
-        createdAt: "2026-10-01"
-      });
-    }
-
-    // Seed default scores if store is empty
-    const scoreTx = this.db.transaction("game_scores", "readwrite");
-    const scoreStore = scoreTx.objectStore("game_scores");
-    const countReq = scoreStore.count();
-
-    countReq.onsuccess = () => {
-      if (countReq.result === 0) {
-        const initialScores = [
-          { game: "snake", playerName: "Saurav (HAL)", score: 240, speed: "Turbo", date: "2026-10-18", passKey: "SP-HAL-2026", timestamp: Date.now() - 86400000 },
-          { game: "snake", playerName: "Aman K. (IITP)", score: 180, speed: "Normal", date: "2026-10-17", passKey: "SP-IIIT-IITP", timestamp: Date.now() - 172800000 },
-          { game: "snake", playerName: "Rohan V.", score: 140, speed: "Normal", date: "2026-10-16", passKey: "SP-VIP-FRIENDS", timestamp: Date.now() - 259200000 },
-          { game: "snake", playerName: "Priya S.", score: 110, speed: "Chill", date: "2026-10-15", passKey: "SP-GOPALGANJ", timestamp: Date.now() - 345600000 },
-          { game: "snake", playerName: "Dev Cadet", score: 80, speed: "Normal", date: "2026-10-14", passKey: "SP-AVIONICS-DEV", timestamp: Date.now() - 432000000 }
-        ];
-        initialScores.forEach(s => scoreStore.add(s));
+      for (const p of this.AUTHORIZED_PASSES) {
+        passStore.put({
+          passKey: p.key.toUpperCase(),
+          label: p.label,
+          issuedTo: p.issuedTo,
+          status: "active",
+          createdAt: "2026-10-01"
+        });
       }
-    };
+
+      // Seed default scores if store is empty
+      const scoreTx = this.db.transaction("game_scores", "readwrite");
+      const scoreStore = scoreTx.objectStore("game_scores");
+      const countReq = scoreStore.count();
+
+      countReq.onsuccess = () => {
+        if (countReq.result === 0) {
+          const initialScores = [
+            { game: "snake", playerName: "Saurav (HAL)", score: 240, speed: "Turbo", date: "2026-10-18", passKey: "SP-HAL-2026", timestamp: Date.now() - 86400000 },
+            { game: "snake", playerName: "Aman K. (IITP)", score: 180, speed: "Normal", date: "2026-10-17", passKey: "SP-IIIT-IITP", timestamp: Date.now() - 172800000 },
+            { game: "snake", playerName: "Rohan V.", score: 140, speed: "Normal", date: "2026-10-16", passKey: "SP-VIP-FRIENDS", timestamp: Date.now() - 259200000 },
+            { game: "snake", playerName: "Priya S.", score: 110, speed: "Chill", date: "2026-10-15", passKey: "SP-GOPALGANJ", timestamp: Date.now() - 345600000 },
+            { game: "snake", playerName: "Dev Cadet", score: 80, speed: "Normal", date: "2026-10-14", passKey: "SP-AVIONICS-DEV", timestamp: Date.now() - 432000000 }
+          ];
+          initialScores.forEach(s => {
+            try { scoreStore.add(s); } catch (e) {}
+          });
+        }
+      };
+    } catch (e) {
+      console.warn("seedDefaultData caught error:", e);
+    }
   },
 
   seedLocalStorage() {
@@ -153,10 +177,15 @@ window.PORTFOLIO_DB = {
   // ACCESS PASS VERIFICATION & ACTIVATION
   // =========================================================================
   async verifyAccessPass(inputKey) {
-    if (!inputKey) return { valid: false, reason: "Key is required" };
+    if (!inputKey || typeof inputKey !== "string") {
+      return { valid: false, reason: "Pass key must be a non-empty string" };
+    }
     await this.init();
 
     const cleanKey = inputKey.trim().toUpperCase().replace(/\s+/g, "");
+    if (!cleanKey) {
+      return { valid: false, reason: "Pass key cannot be empty" };
+    }
 
     // Check pre-seeded master passes (exact or hyphen-flexible)
     const matchedMaster = this.AUTHORIZED_PASSES.find(p => 
@@ -185,7 +214,13 @@ window.PORTFOLIO_DB = {
           };
           req.onerror = () => resolve({ valid: false, reason: "Database query failed" });
         } catch (e) {
-          resolve({ valid: false, reason: e.message });
+          // If transaction fails, check LocalStorage fallback
+          try {
+            const stored = JSON.parse(localStorage.getItem("portfolio_db_passes") || "[]");
+            const found = stored.find(p => p.passKey === cleanKey && p.status === "active");
+            if (found) return resolve({ valid: true, pass: found });
+          } catch (storageErr) {}
+          resolve({ valid: false, reason: e.message || "Database access error" });
         }
       });
     }
@@ -202,8 +237,8 @@ window.PORTFOLIO_DB = {
 
   async activatePass(passKey, playerName) {
     await this.init();
-    const cleanKey = passKey.trim().toUpperCase();
-    const cleanName = playerName ? playerName.trim() : "Friend";
+    const cleanKey = (typeof passKey === "string" ? passKey.trim().toUpperCase() : "");
+    const cleanName = (typeof playerName === "string" && playerName.trim()) ? playerName.trim().slice(0, 24) : "Friend";
     const activation = {
       passKey: cleanKey,
       playerName: cleanName,
@@ -211,9 +246,11 @@ window.PORTFOLIO_DB = {
     };
 
     // Store active credentials in localStorage for instant access
-    localStorage.setItem("portfolio_access_pass", cleanKey);
-    localStorage.setItem("portfolio_friend_name", cleanName);
-    localStorage.setItem("portfolio_friend_pass", "true");
+    try {
+      localStorage.setItem("portfolio_access_pass", cleanKey);
+      localStorage.setItem("portfolio_friend_name", cleanName);
+      localStorage.setItem("portfolio_friend_pass", "true");
+    } catch (e) {}
 
     // Persist activation in database
     if (this.db) {
@@ -225,7 +262,7 @@ window.PORTFOLIO_DB = {
           const existing = getReq.result || { passKey: cleanKey, status: "active" };
           existing.lastUsedBy = cleanName;
           existing.lastUsedAt = new Date().toISOString();
-          store.put(existing);
+          try { store.put(existing); } catch (err) {}
         };
       } catch (e) {}
     }
@@ -234,34 +271,48 @@ window.PORTFOLIO_DB = {
   },
 
   getActivePass() {
-    const key = localStorage.getItem("portfolio_access_pass");
-    const name = localStorage.getItem("portfolio_friend_name");
-    const isUnlocked = localStorage.getItem("portfolio_friend_pass") === "true";
-    if (isUnlocked && key) {
-      return { key, name: name || "Verified Member" };
-    }
+    try {
+      const key = localStorage.getItem("portfolio_access_pass");
+      const name = localStorage.getItem("portfolio_friend_name");
+      const isUnlocked = localStorage.getItem("portfolio_friend_pass") === "true";
+      if (isUnlocked && key) {
+        return { key, name: name || "Verified Member" };
+      }
+    } catch (e) {}
     return null;
   },
 
   revokeCurrentSession() {
-    localStorage.removeItem("portfolio_access_pass");
-    localStorage.removeItem("portfolio_friend_pass");
-    localStorage.removeItem("portfolio_friend_name");
+    try {
+      localStorage.removeItem("portfolio_access_pass");
+      localStorage.removeItem("portfolio_friend_pass");
+      localStorage.removeItem("portfolio_friend_name");
+    } catch (e) {}
   },
 
   // =========================================================================
   // GAMES SCORES DATABASE
   // =========================================================================
   async saveScore(game, playerName, score, speed = "Normal", passKey = "") {
-    if (score <= 0) return null;
+    const numericScore = parseInt(score, 10);
+    if (isNaN(numericScore) || numericScore <= 0) return null;
     await this.init();
 
+    const cleanName = (typeof playerName === "string" && playerName.trim()) 
+      ? playerName.trim().slice(0, 24) 
+      : "Friend";
+
+    let sessionPass = "";
+    try {
+      sessionPass = localStorage.getItem("portfolio_access_pass") || "";
+    } catch (e) {}
+
     const entry = {
-      game: game || "snake",
-      playerName: (playerName || "Friend").trim(),
-      score: parseInt(score, 10),
-      speed: speed || "Normal",
-      passKey: passKey || localStorage.getItem("portfolio_access_pass") || "VERIFIED-GUEST",
+      game: String(game || "snake").toLowerCase(),
+      playerName: cleanName,
+      score: numericScore,
+      speed: String(speed || "Normal"),
+      passKey: passKey || sessionPass || "VERIFIED-GUEST",
       date: new Date().toISOString().slice(0, 10),
       timestamp: Date.now()
     };
@@ -449,8 +500,10 @@ window.PORTFOLIO_DB = {
     };
 
     if (this.db) {
-      const tx = this.db.transaction("access_passes", "readwrite");
-      tx.objectStore("access_passes").put(newPass);
+      try {
+        const tx = this.db.transaction("access_passes", "readwrite");
+        tx.objectStore("access_passes").put(newPass);
+      } catch (e) {}
     }
 
     try {

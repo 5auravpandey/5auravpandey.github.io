@@ -102,6 +102,7 @@ window.PORTFOLIO_GAMES = {
       clearInterval(this.snakeInterval);
       this.snakeInterval = null;
     }
+    this.clearBonusFood();
   },
 
   initActiveGame() {
@@ -149,6 +150,7 @@ window.PORTFOLIO_GAMES = {
     this.snakeHighScore = parseInt(localStorage.getItem("portfolio_snake_hs") || "0", 10);
     const friendName = localStorage.getItem("portfolio_friend_name") || "Friend";
     const leaderboard = this.getSnakeLeaderboard();
+    const escape = (str) => typeof window.escapeHTML === "function" ? window.escapeHTML(str) : String(str || "");
 
     return `
       <div class="snake-arena">
@@ -199,7 +201,7 @@ window.PORTFOLIO_GAMES = {
                   Save to Friends Hall of Fame:
                 </label>
                 <div style="display: flex; gap: 6px; justify-content: center;">
-                  <input type="text" id="snake-player-name" class="focus-input" value="${friendName}" style="max-width: 170px; font-size: 13px; padding: 5px 8px;" maxlength="18">
+                  <input type="text" id="snake-player-name" class="focus-input" value="${escape(friendName)}" style="max-width: 170px; font-size: 13px; padding: 5px 8px;" maxlength="18">
                   <button type="button" id="btn-save-snake-score" class="btn-primary-action" style="padding: 5px 12px; font-size: 12px;">Save</button>
                 </div>
               </div>
@@ -239,10 +241,10 @@ window.PORTFOLIO_GAMES = {
               ${leaderboard.map((item, idx) => `
                 <div class="snake-lb-row ${item.name.toLowerCase().includes(friendName.toLowerCase()) ? 'highlight' : ''}">
                   <span>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}</span>
-                  <strong>${item.name}</strong>
+                  <strong>${escape(item.name)}</strong>
                   <span class="lb-score">${item.score}</span>
-                  <span class="lb-speed">${item.speed || 'Normal'}</span>
-                  <span class="lb-date">${item.date || ''}</span>
+                  <span class="lb-speed">${escape(item.speed || 'Normal')}</span>
+                  <span class="lb-date">${escape(item.date || '')}</span>
                 </div>
               `).join('')}
             </div>
@@ -318,8 +320,11 @@ window.PORTFOLIO_GAMES = {
       });
     }
 
-    // Keyboard handlers
-    window.addEventListener("keydown", (e) => {
+    // Keyboard handlers (deduplicated)
+    if (this._snakeKeyHandler) {
+      window.removeEventListener("keydown", this._snakeKeyHandler);
+    }
+    this._snakeKeyHandler = (e) => {
       if (this.activeGame !== "snake") return;
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
         // Prevent window scrolling while playing
@@ -338,7 +343,8 @@ window.PORTFOLIO_GAMES = {
       } else if ((e.key === "ArrowRight" || e.key === "d" || e.key === "D") && this.snakeDir.x !== -1) {
         this.snakeNextDir = { x: 1, y: 0 };
       }
-    });
+    };
+    window.addEventListener("keydown", this._snakeKeyHandler);
 
     // Touch D-Pad buttons
     const dpadBtns = document.querySelectorAll(".dpad-btn");
@@ -362,6 +368,11 @@ window.PORTFOLIO_GAMES = {
         touchStartY = e.touches[0].clientY;
       }
     }, { passive: true });
+
+    // Prevent page scroll during canvas touch swipe
+    canvas.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+    }, { passive: false });
 
     canvas.addEventListener("touchend", (e) => {
       if (e.changedTouches.length > 0) {
@@ -612,17 +623,20 @@ window.PORTFOLIO_GAMES = {
         : this.getSnakeLeaderboard();
       const friendName = localStorage.getItem("portfolio_friend_name") || "Friend";
       const rowsEl = document.getElementById("snake-lb-rows");
+      const escape = (str) => typeof window.escapeHTML === "function" ? window.escapeHTML(str) : String(str || "");
+
       if (rowsEl && top5 && top5.length > 0) {
         rowsEl.innerHTML = top5.map((item, idx) => {
-          const pName = item.playerName || item.name || "Anonymous";
-          const isHighlight = pName.toLowerCase().includes(friendName.toLowerCase());
+          const rawName = item.playerName || item.name || "Anonymous";
+          const pName = escape(rawName);
+          const isHighlight = rawName.toLowerCase().includes(friendName.toLowerCase());
           return `
             <div class="snake-lb-row ${isHighlight ? 'highlight' : ''}">
               <span>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}</span>
               <strong>${pName}</strong>
               <span class="lb-score">${item.score}</span>
-              <span class="lb-speed">${item.speed || 'Normal'}</span>
-              <span class="lb-date">${item.date || ''}</span>
+              <span class="lb-speed">${escape(item.speed || 'Normal')}</span>
+              <span class="lb-date">${escape(item.date || '')}</span>
             </div>
           `;
         }).join('');
@@ -631,19 +645,24 @@ window.PORTFOLIO_GAMES = {
   },
 
   async saveSnakeScore(name, score) {
-    if (!name || score <= 0) return;
+    const cleanName = (typeof name === "string" && name.trim()) 
+      ? name.trim().slice(0, 24) 
+      : "Friend";
+    const numericScore = parseInt(score, 10);
+    if (isNaN(numericScore) || numericScore <= 0) return;
+
     try {
       const speedLabel = this.snakeSpeedName.charAt(0).toUpperCase() + this.snakeSpeedName.slice(1);
       const passKey = window.PORTFOLIO_DB ? (window.PORTFOLIO_DB.getActivePass()?.key || localStorage.getItem("portfolio_access_pass") || "") : "";
 
       if (window.PORTFOLIO_DB) {
-        await window.PORTFOLIO_DB.saveScore("snake", name, score, speedLabel, passKey);
+        await window.PORTFOLIO_DB.saveScore("snake", cleanName, numericScore, speedLabel, passKey);
       } else {
         const list = this.getSnakeLeaderboard();
         const today = new Date().toISOString().slice(0, 10);
         list.push({
-          name,
-          score,
+          name: cleanName,
+          score: numericScore,
           speed: speedLabel,
           date: today,
           passKey
@@ -652,7 +671,7 @@ window.PORTFOLIO_GAMES = {
         localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(list.slice(0, 5)));
       }
 
-      localStorage.setItem("portfolio_friend_name", name);
+      localStorage.setItem("portfolio_friend_name", cleanName);
       await this.loadLeaderboardFromDb();
     } catch (e) {}
   },
