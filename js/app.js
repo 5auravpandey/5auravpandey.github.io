@@ -50,7 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.PORTFOLIO_CASE_STUDY) window.PORTFOLIO_CASE_STUDY.init();
   if (window.PORTFOLIO_STACK_EXPLORER) window.PORTFOLIO_STACK_EXPLORER.init();
   if (window.PORTFOLIO_PLAYGROUND) window.PORTFOLIO_PLAYGROUND.init();
-  if (window.PORTFOLIO_COMMAND_PALETTE) window.PORTFOLIO_COMMAND_PALETTE.init();
   initAdminLazyLoader();
 
   // 8. Initialize Clipboard, Print CV & Utility Actions
@@ -808,10 +807,21 @@ function initDesktopNav() {
 function initGlobalAuthUI() {
   const desktopAuthBtn = document.getElementById("btn-global-auth");
   const mobileAuthBtn = document.getElementById("btn-mobile-auth");
+  const desktopAdminBtn = document.getElementById("btn-desktop-admin");
+  const mobileAdminBtn = document.getElementById("btn-mobile-admin");
   const globalLabel = document.getElementById("global-auth-label");
   const mobileLabel = document.getElementById("mobile-auth-label");
 
   function updateAuthUI(session) {
+    const isOwner = Boolean(session && session.isOwner);
+
+    if (desktopAdminBtn) {
+      desktopAdminBtn.style.display = isOwner ? "inline-flex" : "none";
+    }
+    if (mobileAdminBtn) {
+      mobileAdminBtn.style.display = isOwner ? "block" : "none";
+    }
+
     if (session) {
       const handle = session.telegramId || session.username || "Account";
       const displayShort = handle.length > 14 ? handle.slice(0, 12) + "…" : handle;
@@ -846,8 +856,17 @@ function initGlobalAuthUI() {
     }
   };
 
+  const openAdmin = () => {
+    if (typeof window.closeMobileNav === "function") {
+      window.closeMobileNav();
+    }
+    loadAdminStudio(true);
+  };
+
   if (desktopAuthBtn) desktopAuthBtn.addEventListener("click", openAuth);
   if (mobileAuthBtn) mobileAuthBtn.addEventListener("click", openAuth);
+  if (desktopAdminBtn) desktopAdminBtn.addEventListener("click", openAdmin);
+  if (mobileAdminBtn) mobileAdminBtn.addEventListener("click", openAdmin);
 
   // Initial state check
   if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function") {

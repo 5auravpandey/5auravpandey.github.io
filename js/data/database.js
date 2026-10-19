@@ -1809,16 +1809,18 @@ window.PORTFOLIO_AUTH = {
   injectTelegramWidget() {
     const mount = document.getElementById("unified-tg-widget-mount");
     if (!mount) return;
+    mount.innerHTML = "";
     try {
-      if (!window.Telegram) {
-        const existingScript = document.querySelector('script[src*="telegram-widget.js"]');
-        if (!existingScript) {
-          const script = document.createElement("script");
-          script.async = true;
-          script.src = "https://telegram.org/js/telegram-widget.js?22";
-          document.head.appendChild(script);
-        }
-      }
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = "https://telegram.org/js/telegram-widget.js?22";
+      script.setAttribute("data-telegram-login", this.BOT_USERNAME);
+      script.setAttribute("data-size", "large");
+      script.setAttribute("data-userpic", "true");
+      script.setAttribute("data-radius", "8");
+      script.setAttribute("data-onauth", "onTelegramAuth(user)");
+      script.setAttribute("data-request-access", "write");
+      mount.appendChild(script);
     } catch (e) {
       console.warn("Telegram widget setup:", e);
     }
@@ -1939,9 +1941,20 @@ window.onTelegramAuth = async function(user) {
     const res = await window.PORTFOLIO_AUTH.loginWithTelegram(user, displayName, user);
     if (res && res.success) {
       window.PORTFOLIO_AUTH.closeLoginDialog();
-      if (typeof showToast === "function") {
-        const wl = res.session.isWhitelistedYouTube ? " • YouTube Unlocked!" : "";
-        showToast(`Connected via Telegram: ${handle || displayName} (7-day retention active${wl})`);
+      if (res.session && res.session.isOwner) {
+        if (typeof window.loadAdminStudio === "function") {
+          window.loadAdminStudio(true);
+        } else if (window.PORTFOLIO_ADMIN) {
+          window.PORTFOLIO_ADMIN.open();
+        }
+        if (typeof showToast === "function") {
+          showToast("👑 Welcome back Saurav! Full Administrator Studio unlocked.");
+        }
+      } else {
+        if (typeof showToast === "function") {
+          const wl = res.session.isWhitelistedYouTube ? " • YouTube Unlocked!" : "";
+          showToast(`Connected via Telegram: ${handle || displayName} (7-day retention active${wl})`);
+        }
       }
     }
   }

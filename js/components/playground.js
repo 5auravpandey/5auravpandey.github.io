@@ -46,7 +46,7 @@ window.PORTFOLIO_PLAYGROUND = {
   matrixInterval: null,
   terminalCommands: [
     "help", "about", "hal", "projects", "books", "games", "arcade", "snake", "chess", "tictactoe", 
-    "skills", "contact", "myspace", "matrix", "theme", "timer", "crypto", "sound", "youtube", "sync", "invite", "friend", "weather", "quote", "clear", "sudo hire"
+    "skills", "contact", "matrix", "theme", "timer", "crypto", "sound", "youtube", "sync", "invite", "friend", "weather", "quote", "clear", "sudo hire"
   ],
 
   escapeHTML(str) {
@@ -1602,19 +1602,6 @@ window.PORTFOLIO_PLAYGROUND = {
         reply = "1. Lightweight Symmetric Bitwise Ciphers for Resource-Constrained Embedded Controllers (C++)\n2. Orthogonal Persistence vs EVM Gas on the Internet Computer (Motoko)";
         break;
 
-      case "myspace":
-      case "admin":
-      case "studio":
-        if (typeof window.loadAdminStudio === "function") {
-          window.loadAdminStudio(true);
-          reply = "🔐 Launching Admin Studio & Content Manager...";
-        } else if (window.PORTFOLIO_ADMIN) {
-          window.PORTFOLIO_ADMIN.open();
-          reply = "🔐 Launching Admin Studio & Content Manager...";
-        } else {
-          reply = "⚠️ Admin Studio is loading...";
-        }
-        break;
 
       case "matrix":
         this.startMatrixRain();
