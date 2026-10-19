@@ -22,6 +22,7 @@ window.PORTFOLIO_PLAYGROUND = {
   // Friends VIP Access State
   isFriend: false,
   friendName: "",
+  activePassKey: "",
   
   // Music & Sound System (Zero-Lag Web Audio Synthesizer)
   audioMode: "ambient", // 'ambient' | 'youtube'
@@ -50,8 +51,16 @@ window.PORTFOLIO_PLAYGROUND = {
 
   init() {
     this.sprintsCompleted = parseInt(localStorage.getItem("portfolio_sprints") || "0", 10);
-    this.isFriend = localStorage.getItem("portfolio_friend_pass") === "true";
-    this.friendName = localStorage.getItem("portfolio_friend_name") || "";
+    const activePass = window.PORTFOLIO_DB ? window.PORTFOLIO_DB.getActivePass() : null;
+    if (activePass) {
+      this.isFriend = true;
+      this.friendName = activePass.name || localStorage.getItem("portfolio_friend_name") || "";
+      this.activePassKey = activePass.key;
+    } else {
+      this.isFriend = localStorage.getItem("portfolio_friend_pass") === "true";
+      this.friendName = localStorage.getItem("portfolio_friend_name") || "";
+      this.activePassKey = localStorage.getItem("portfolio_access_pass") || "";
+    }
     this.checkUrlParams();
     this.render();
   },
@@ -60,12 +69,25 @@ window.PORTFOLIO_PLAYGROUND = {
     try {
       const params = new URLSearchParams(window.location.search);
       
-      // Friends Access Detection from invite link
-      if (params.get("friend") === "true" || params.has("invite") || params.has("pass")) {
-        this.isFriend = true;
-        localStorage.setItem("portfolio_friend_pass", "true");
-        const fromName = params.get("from") || params.get("name") || (params.get("friend") !== "true" ? params.get("friend") : "");
-        if (fromName) {
+      // Friends Access Pass Verification from invite link
+      const passParam = params.get("pass") || params.get("invite");
+      const fromName = params.get("from") || params.get("name") || this.friendName || "";
+      
+      if (passParam) {
+        if (window.PORTFOLIO_DB) {
+          window.PORTFOLIO_DB.verifyAccessPass(passParam).then(res => {
+            if (res.valid) {
+              const nameToSet = fromName ? decodeURIComponent(fromName) : "Friend";
+              window.PORTFOLIO_DB.activatePass(passParam, nameToSet);
+              this.isFriend = true;
+              this.friendName = nameToSet;
+              this.activePassKey = passParam.toUpperCase();
+              this.render();
+            }
+          });
+        }
+      } else if (params.get("friend") === "true") {
+        if (this.isFriend && fromName) {
           this.friendName = decodeURIComponent(fromName);
           localStorage.setItem("portfolio_friend_name", this.friendName);
         }
@@ -74,6 +96,9 @@ window.PORTFOLIO_PLAYGROUND = {
       if (params.has("room")) {
         this.activeRoomId = params.get("room");
         this.currentTab = "focus";
+        if (window.PORTFOLIO_DB && this.isFriend) {
+          window.PORTFOLIO_DB.joinRoomSession(this.activeRoomId, this.friendName || "Participant", this.activePassKey || "");
+        }
       }
 
       if (params.has("sprint")) {
@@ -172,8 +197,14 @@ window.PORTFOLIO_PLAYGROUND = {
       }
       return `
         <div class="friend-active-banner">
-          <span>🌟 Friends VIP Pass Active${this.friendName ? `: <strong>${this.friendName}</strong>` : ''}</span>
-          <button type="button" class="btn-invite-pill" id="btn-share-friend-pass">🔗 Invite Classmates</button>
+          <div class="friend-banner-info">
+            <span>🌟 Verified Access Pass Active${this.friendName ? `: <strong>${this.friendName}</strong>` : ''}</span>
+            ${this.activePassKey ? `<span class="friend-pass-code-pill">${this.activePassKey}</span>` : ''}
+          </div>
+          <div class="friend-banner-actions">
+            <button type="button" class="btn-invite-pill" id="btn-share-friend-pass">🔗 Invite Friends</button>
+            <button type="button" class="btn-revoke-pill" id="btn-revoke-pass" title="Switch or log out of this access pass">Switch Pass</button>
+          </div>
         </div>
         <div id="dev-games-container"></div>
       `;
@@ -262,8 +293,14 @@ window.PORTFOLIO_PLAYGROUND = {
             ` : !this.isFriend ? this.renderFriendGate("youtube") : `
               <div class="youtube-controls">
                 <div class="friend-active-banner" style="margin-bottom: 10px;">
-                  <span>🌟 Friends VIP Stream Active${this.friendName ? `: <strong>${this.friendName}</strong>` : ''}</span>
-                  <button type="button" class="btn-invite-pill" id="btn-share-friend-pass-yt">🔗 Invite Classmates</button>
+                  <div class="friend-banner-info">
+                    <span>🌟 Verified Stream Active${this.friendName ? `: <strong>${this.friendName}</strong>` : ''}</span>
+                    ${this.activePassKey ? `<span class="friend-pass-code-pill">${this.activePassKey}</span>` : ''}
+                  </div>
+                  <div class="friend-banner-actions">
+                    <button type="button" class="btn-invite-pill" id="btn-share-friend-pass-yt">🔗 Invite Friends</button>
+                    <button type="button" class="btn-revoke-pill" id="btn-revoke-pass" title="Switch or log out of this access pass">Switch Pass</button>
+                  </div>
                 </div>
                 <div class="youtube-presets">
                   <button type="button" class="youtube-pill ${this.youtubePreset === 'genshin-ost' ? 'active' : ''}" data-youtube="genshin-ost">🍃 Genshin Relaxing OST</button>
@@ -401,29 +438,45 @@ window.PORTFOLIO_PLAYGROUND = {
     const isGames = context === "games";
     return `
       <div class="friend-gate-card">
-        <div class="friend-gate-badge">🔒 Saurav's Friends &amp; Study Group VIP Pass</div>
+        <div class="friend-gate-badge">🔒 Private Dev Lab &bull; Access Pass Required</div>
         <h3 class="friend-gate-title">${isGames ? "🎮 Dev Arcade Access Gate" : "🎧 YouTube Focus Stream Gate"}</h3>
         <p class="friend-gate-desc">
           ${isGames 
-            ? "The Dev Arcade (Matrix Snake, Tic-Tac-Toe, Chess) is reserved for Saurav's friends, classmates, and study group to play together and save their high scores!" 
-            : "The YouTube synced focus player is reserved for Saurav's friends and study group so you can study to Genshin, Sky, and Krishna melodies together in sync!"}
+            ? "The Dev Arcade (Matrix Snake, Tic-Tac-Toe, Chess) is a private feature. Only visitors with an authorized Access Pass issued by Saurav Pandey can play and save their high scores to the persistent database." 
+            : "The YouTube synced focus stream is a private feature. You must enter an authorized Access Pass from Saurav Pandey to unlock synced playback."}
         </p>
+
+        <!-- Direct Contact to Get Access Pass -->
+        <div class="friend-gate-contact-box">
+          <span class="gate-contact-label">Need an Access Pass? Request one directly from Saurav:</span>
+          <div class="gate-contact-buttons">
+            <a href="https://t.me/sauravpandey" target="_blank" rel="noopener noreferrer" class="btn-gate-contact telegram">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/></svg>
+              Request on Telegram
+            </a>
+            <a href="mailto:thesauravpandey@outlook.com?subject=Dev%20Lab%20Access%20Pass%20Request&body=Hi%20Saurav,%0D%0A%0D%0AI%20would%20like%20to%20request%20an%20Access%20Pass%20for%20your%20Dev%20Lab%20and%20Arcade.%0D%0A%0D%0AMy%20Name:%20" class="btn-gate-contact email">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              Request via Email
+            </a>
+          </div>
+        </div>
+
         <div class="friend-gate-form">
           <div class="friend-gate-field">
-            <label for="input-friend-name">Your Name / Nickname:</label>
+            <label for="input-friend-name">Your Name / Handle:</label>
             <input type="text" id="input-friend-name" class="focus-input" placeholder="e.g., Aman, Rohan, Priya..." value="${this.friendName || ''}" maxlength="24">
           </div>
           <div class="friend-gate-field">
-            <label for="input-friend-code">Invite Passcode:</label>
-            <input type="text" id="input-friend-code" class="focus-input" placeholder="Enter code (e.g. SAURAV, HAL2026, STUDY)..." maxlength="24">
+            <label for="input-friend-code">Access Pass Key:</label>
+            <input type="text" id="input-friend-code" class="focus-input" placeholder="Enter pass (e.g. SP-HAL-2026, SP-VIP-FRIENDS)..." maxlength="32" autocomplete="off" spellcheck="false" style="font-family: var(--mono); text-transform: uppercase;">
           </div>
+          <div id="friend-gate-error-msg" class="friend-gate-error" style="display: none;" role="alert"></div>
           <button type="button" id="btn-unlock-friend" class="btn-primary-action" style="padding: 10px 20px; font-weight: 600; width: 100%;">
-            ✨ Unlock Friends Access
+            ✨ Verify &amp; Unlock Access
           </button>
         </div>
-        <div class="friend-gate-quick-hint">
-          <span>💡 Received a direct invite link from Saurav?</span>
-          <button type="button" id="btn-quick-unlock-friend" class="btn-text-link">Instant Unlock with Guest Pass</button>
+        <div class="friend-gate-footer-note">
+          <span>🔒 Passes are verified against the transactional database and stored locally.</span>
         </div>
       </div>
     `;
@@ -467,35 +520,70 @@ window.PORTFOLIO_PLAYGROUND = {
       });
     });
 
-    // Friend Gate Actions (Unlock & Instant Guest Pass)
+    // Friend Gate Actions (Pass Verification)
     const unlockBtn = document.getElementById("btn-unlock-friend");
-    const quickUnlockBtn = document.getElementById("btn-quick-unlock-friend");
     const friendNameInput = document.getElementById("input-friend-name");
     const friendCodeInput = document.getElementById("input-friend-code");
+    const errorEl = document.getElementById("friend-gate-error-msg");
 
     if (unlockBtn) {
-      unlockBtn.addEventListener("click", () => {
+      unlockBtn.addEventListener("click", async () => {
         const name = (friendNameInput ? friendNameInput.value.trim() : "") || "Friend";
         const code = (friendCodeInput ? friendCodeInput.value.trim() : "").toUpperCase();
-        // Accepts any code or friendly phrase
-        this.isFriend = true;
-        this.friendName = name;
-        localStorage.setItem("portfolio_friend_pass", "true");
-        localStorage.setItem("portfolio_friend_name", name);
-        this.render();
+
+        if (!code) {
+          if (errorEl) {
+            errorEl.innerHTML = "⚠️ Please enter your Access Pass key.";
+            errorEl.style.display = "block";
+          }
+          if (friendCodeInput) friendCodeInput.focus();
+          return;
+        }
+
+        unlockBtn.textContent = "Verifying Pass...";
+        unlockBtn.disabled = true;
+
+        if (window.PORTFOLIO_DB) {
+          const res = await window.PORTFOLIO_DB.verifyAccessPass(code);
+          if (res.valid) {
+            await window.PORTFOLIO_DB.activatePass(code, name);
+            this.isFriend = true;
+            this.friendName = name;
+            this.activePassKey = code;
+            if (errorEl) errorEl.style.display = "none";
+            this.render();
+          } else {
+            unlockBtn.textContent = "✨ Verify & Unlock Access";
+            unlockBtn.disabled = false;
+            if (errorEl) {
+              errorEl.innerHTML = `❌ <strong>Access Denied:</strong> ${res.reason || 'Invalid pass key.'}<br><span style="font-size:11.5px; opacity:0.9;">Please contact Saurav directly on Telegram or Email to receive an authorized pass.</span>`;
+              errorEl.style.display = "block";
+            }
+          }
+        } else {
+          this.isFriend = true;
+          this.friendName = name;
+          this.render();
+        }
       });
     }
 
-    if (quickUnlockBtn) {
-      quickUnlockBtn.addEventListener("click", () => {
-        const name = (friendNameInput ? friendNameInput.value.trim() : "") || "Friend";
-        this.isFriend = true;
-        this.friendName = name;
-        localStorage.setItem("portfolio_friend_pass", "true");
-        localStorage.setItem("portfolio_friend_name", name);
+    // Revoke / Switch Pass
+    const revokeBtns = document.querySelectorAll("#btn-revoke-pass");
+    revokeBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (window.PORTFOLIO_DB) {
+          window.PORTFOLIO_DB.revokeCurrentSession();
+        }
+        this.isFriend = false;
+        this.friendName = "";
+        this.activePassKey = "";
+        localStorage.removeItem("portfolio_friend_pass");
+        localStorage.removeItem("portfolio_friend_name");
+        localStorage.removeItem("portfolio_access_pass");
         this.render();
       });
-    }
+    });
 
     // Share Pass Buttons
     const sharePassBtn = document.getElementById("btn-share-friend-pass");
@@ -843,10 +931,30 @@ window.PORTFOLIO_PLAYGROUND = {
       shareUrl += `&from=${encodeURIComponent(this.friendName)}`;
     }
 
+    const activePass = window.PORTFOLIO_DB ? window.PORTFOLIO_DB.getActivePass() : null;
+    if (activePass && activePass.key) {
+      shareUrl += `&pass=${encodeURIComponent(activePass.key)}`;
+    }
+
     if (this.audioMode === "ambient") {
       shareUrl += `&sound=${this.soundscape}`;
     } else if (this.audioMode === "youtube") {
       shareUrl += `&yt=${this.youtubePreset}`;
+    }
+
+    // Persist active room session to database
+    if (window.PORTFOLIO_DB) {
+      window.PORTFOLIO_DB.saveRoomSession({
+        roomId: this.activeRoomId,
+        hostName: this.friendName || "Host",
+        hostPass: activePass ? activePass.key : "",
+        audioMode: this.audioMode,
+        soundscape: this.soundscape,
+        youtubePreset: this.youtubePreset,
+        sprintMins: sprintMins,
+        timerStart: t,
+        participants: [this.friendName || "Host"]
+      });
     }
 
     const codeBadge = document.getElementById("invite-room-code-badge");

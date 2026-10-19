@@ -225,7 +225,7 @@ window.PORTFOLIO_GAMES = {
         <div class="snake-leaderboard-card">
           <div class="snake-lb-head">
             <span>🏆 Friends Hall of Fame (Top 5)</span>
-            <span style="font-size: 11px; color: var(--muted); font-family: var(--mono);">Local &amp; Friend Invites</span>
+            <span class="db-sync-badge" title="Persisted in SauravPortfolioDB (Transactional IndexedDB)">💾 Database Synced</span>
           </div>
           <div class="snake-lb-table">
             <div class="snake-lb-row header">
@@ -268,6 +268,7 @@ window.PORTFOLIO_GAMES = {
     this.snakeGameOver = false;
     this.spawnSnakeFood();
     this.drawSnake(ctx, canvas);
+    this.loadLeaderboardFromDb();
 
     const startBtn = document.getElementById("btn-snake-start");
     const resetBtn = document.getElementById("btn-snake-reset");
@@ -308,11 +309,12 @@ window.PORTFOLIO_GAMES = {
     });
 
     if (saveScoreBtn && nameInput) {
-      saveScoreBtn.addEventListener("click", () => {
+      saveScoreBtn.addEventListener("click", async () => {
         const name = nameInput.value.trim() || "Friend";
-        this.saveSnakeScore(name, this.snakeScore);
-        saveScoreBtn.textContent = "Saved ✓";
+        saveScoreBtn.textContent = "Saving...";
         saveScoreBtn.disabled = true;
+        await this.saveSnakeScore(name, this.snakeScore);
+        saveScoreBtn.textContent = "Saved ✓";
       });
     }
 
@@ -603,35 +605,55 @@ window.PORTFOLIO_GAMES = {
     if (overlay) overlay.style.display = "flex";
   },
 
-  saveSnakeScore(name, score) {
+  async loadLeaderboardFromDb() {
+    try {
+      const top5 = window.PORTFOLIO_DB 
+        ? await window.PORTFOLIO_DB.getLeaderboard("snake", 5) 
+        : this.getSnakeLeaderboard();
+      const friendName = localStorage.getItem("portfolio_friend_name") || "Friend";
+      const rowsEl = document.getElementById("snake-lb-rows");
+      if (rowsEl && top5 && top5.length > 0) {
+        rowsEl.innerHTML = top5.map((item, idx) => {
+          const pName = item.playerName || item.name || "Anonymous";
+          const isHighlight = pName.toLowerCase().includes(friendName.toLowerCase());
+          return `
+            <div class="snake-lb-row ${isHighlight ? 'highlight' : ''}">
+              <span>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}</span>
+              <strong>${pName}</strong>
+              <span class="lb-score">${item.score}</span>
+              <span class="lb-speed">${item.speed || 'Normal'}</span>
+              <span class="lb-date">${item.date || ''}</span>
+            </div>
+          `;
+        }).join('');
+      }
+    } catch (e) {}
+  },
+
+  async saveSnakeScore(name, score) {
     if (!name || score <= 0) return;
     try {
-      const list = this.getSnakeLeaderboard();
       const speedLabel = this.snakeSpeedName.charAt(0).toUpperCase() + this.snakeSpeedName.slice(1);
-      const today = new Date().toISOString().slice(0, 10);
-      list.push({
-        name,
-        score,
-        speed: speedLabel,
-        date: today
-      });
-      list.sort((a, b) => b.score - a.score);
-      const top5 = list.slice(0, 5);
-      localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(top5));
-      localStorage.setItem("portfolio_friend_name", name);
+      const passKey = window.PORTFOLIO_DB ? (window.PORTFOLIO_DB.getActivePass()?.key || localStorage.getItem("portfolio_access_pass") || "") : "";
 
-      const rowsEl = document.getElementById("snake-lb-rows");
-      if (rowsEl) {
-        rowsEl.innerHTML = top5.map((item, idx) => `
-          <div class="snake-lb-row ${item.name.toLowerCase().includes(name.toLowerCase()) ? 'highlight' : ''}">
-            <span>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}</span>
-            <strong>${item.name}</strong>
-            <span class="lb-score">${item.score}</span>
-            <span class="lb-speed">${item.speed || 'Normal'}</span>
-            <span class="lb-date">${item.date || ''}</span>
-          </div>
-        `).join('');
+      if (window.PORTFOLIO_DB) {
+        await window.PORTFOLIO_DB.saveScore("snake", name, score, speedLabel, passKey);
+      } else {
+        const list = this.getSnakeLeaderboard();
+        const today = new Date().toISOString().slice(0, 10);
+        list.push({
+          name,
+          score,
+          speed: speedLabel,
+          date: today,
+          passKey
+        });
+        list.sort((a, b) => b.score - a.score);
+        localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(list.slice(0, 5)));
       }
+
+      localStorage.setItem("portfolio_friend_name", name);
+      await this.loadLeaderboardFromDb();
     } catch (e) {}
   },
 
@@ -809,8 +831,16 @@ window.PORTFOLIO_GAMES = {
         this.tttScore.ties++;
         this.updateTttStatus("🤝 It's a draw!");
       } else {
-        if (winner === "X") this.tttScore.p1++;
-        else this.tttScore.p2++;
+        if (winner === "X") {
+          this.tttScore.p1++;
+          if (window.PORTFOLIO_DB) {
+            const pName = localStorage.getItem("portfolio_friend_name") || "Player 1";
+            const pPass = window.PORTFOLIO_DB.getActivePass()?.key || "";
+            window.PORTFOLIO_DB.saveScore("tictactoe", pName, this.tttScore.p1 * 10, this.tttMode === "ai" ? "vs-AI" : "PvP", pPass);
+          }
+        } else {
+          this.tttScore.p2++;
+        }
         this.updateTttStatus(`🏆 Player ${winner === "X" ? "1 (⚡)" : (this.tttMode === "ai" ? "HAL AI (🛡️)" : "2 (🛡️)")} wins!`);
         this.playTone(880, 0.2, "triangle");
       }
@@ -1123,6 +1153,11 @@ window.PORTFOLIO_GAMES = {
       const status = document.getElementById("chess-status");
       if (status) status.innerHTML = `🏆 Checkmate! ${winner} Wins!`;
       this.playTone(880, 0.25, "triangle");
+      if (window.PORTFOLIO_DB && winner === "White") {
+        const pName = localStorage.getItem("portfolio_friend_name") || "Grandmaster";
+        const pPass = window.PORTFOLIO_DB.getActivePass()?.key || "";
+        window.PORTFOLIO_DB.saveScore("chess", pName, 100, this.chessMode === "ai" ? "vs-DeepCode" : "PvP", pPass);
+      }
       this.updateCapturedTrays();
       this.renderChessBoard();
       return;

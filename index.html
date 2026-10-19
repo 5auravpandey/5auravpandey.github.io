@@ -218,7 +218,6 @@
           <div class="hero-actions">
             <a href="#projects" class="btn-hero-primary">🚀 Explore Projects</a>
             <a href="#playground" class="btn-hero-secondary">⚡ Dev Lab &amp; Audio</a>
-            <button type="button" id="btn-print-cv" class="btn-hero-ambient" title="AI Tailor &amp; Print ATS-friendly CV">🤖 AI Tailor &amp; Print CV</button>
             <a href="#contact" class="btn-hero-ambient">📬 Contact Me</a>
           </div>
 
@@ -516,74 +515,6 @@
     </div>
   </dialog>
 
-  <!-- Local AI Resume Architect Dialog -->
-  <dialog id="resume-ai-dialog" class="resume-ai-dialog" closedby="any" aria-labelledby="resume-ai-title">
-    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-      <div>
-        <span class="ai-badge">🤖 Client-Side Local AI</span>
-        <h3 id="resume-ai-title" style="margin: 4px 0 0; font-size: 21px;">AI Resume Architect &amp; ATS Tailor</h3>
-      </div>
-      <button type="button" class="dialog-close" id="resume-ai-close" aria-label="Close">×</button>
-    </div>
-    <p style="font-size: 14.5px; color: var(--ink-secondary); margin: 0 0 16px; line-height: 1.5;">
-      Uses a deterministic client-side AI rules engine to prune web widgets, strip non-technical elements, and tailor Saurav's profile into an optimal ATS-ready 1-2 page print resume.
-    </p>
-
-    <!-- AI Target Role Profile -->
-    <div class="ai-config-section">
-      <label class="ai-section-label">Select Target Role Focus:</label>
-      <div class="ai-role-chips" id="ai-role-chips">
-        <button type="button" class="ai-role-chip active" data-role="fullstack">💻 Full-Stack &amp; Systems</button>
-        <button type="button" class="ai-role-chip" data-role="avionics">🛩️ Avionics &amp; Embedded (HAL)</button>
-        <button type="button" class="ai-role-chip" data-role="frontend">🌐 Frontend &amp; Web3 UI</button>
-        <button type="button" class="ai-role-chip" data-role="academic">🎓 Academic &amp; Research</button>
-      </div>
-    </div>
-
-    <!-- AI Smart Pruning Toggles -->
-    <div class="ai-config-section" style="margin-top: 14px;">
-      <label class="ai-section-label">Local AI Smart Pruning &amp; Cleaning:</label>
-      <div class="ai-toggles-list">
-        <label class="ai-toggle-row">
-          <input type="checkbox" id="ai-opt-widgets" checked>
-          <span>Strip all interactive widgets, audio players, terminal &amp; arcade games</span>
-        </label>
-        <label class="ai-toggle-row">
-          <input type="checkbox" id="ai-opt-shelf" checked>
-          <span>Remove non-technical media, books &amp; curations (Keep research notes only)</span>
-        </label>
-        <label class="ai-toggle-row">
-          <input type="checkbox" id="ai-opt-badges" checked>
-          <span>Normalize decorative colored badges to clean ATS monochrome text</span>
-        </label>
-        <label class="ai-toggle-row">
-          <input type="checkbox" id="ai-opt-condense" checked>
-          <span>Enforce strict 2-page print margins with zero awkward page breaks</span>
-        </label>
-      </div>
-    </div>
-
-    <!-- AI ATS Compatibility Meter -->
-    <div class="ai-ats-meter-box" style="margin-top: 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <span style="font-family: var(--mono); font-size: 12.5px; font-weight: 600;">ATS Compatibility Score</span>
-        <span id="ai-ats-score" style="font-family: var(--mono); font-size: 13.5px; font-weight: 700; color: #16a34a;">98% • Excellent</span>
-      </div>
-      <div class="ai-meter-track" style="height: 6px; background: var(--rule); border-radius: 999px; overflow: hidden;">
-        <div class="ai-meter-fill" id="ai-meter-fill" style="height: 100%; width: 98%; background: #22c55e; border-radius: 999px; transition: width 0.3s ease;"></div>
-      </div>
-      <p id="ai-recommendation-text" class="ai-recommendation" style="font-size: 12.5px; color: var(--muted); margin: 8px 0 0;">
-        ✓ 14 interactive UI elements pruned. Headings formatted to ATS standard. Contact links converted to text URLs.
-      </p>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="ai-dialog-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
-      <button type="button" id="btn-ai-preview" class="btn-secondary-action">Preview Layout</button>
-      <button type="button" id="btn-ai-print-now" class="btn-primary-action">🖨️ Print / Save Clean PDF</button>
-    </div>
-  </dialog>
-
   <!-- Global Command Palette Modal (Cmd+K / Ctrl+K) -->
   <dialog id="command-palette-dialog" class="command-palette-dialog" aria-label="Command Palette">
     <div class="cmd-palette-box">
@@ -620,9 +551,9 @@
   <script src="js/components/perspective.js" defer></script>
   <script src="js/components/case-study.js" defer></script>
   <script src="js/components/stack-explorer.js" defer></script>
+  <script src="js/data/database.js" defer></script>
   <script src="js/components/playground.js" defer></script>
   <script src="js/components/games.js" defer></script>
-  <script src="js/components/resume-ai.js" defer></script>
   <script src="js/components/command-palette.js" defer></script>
   <script src="js/app.js" defer></script>
 </body>

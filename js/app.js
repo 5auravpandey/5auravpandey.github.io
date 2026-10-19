@@ -595,13 +595,6 @@ function initUtilities() {
         setTimeout(() => { copyInviteBtn.textContent = "Copy Link"; }, 2000);
       });
     });
-  }
-
-  // Print CV trigger
-  const printBtn = document.getElementById("btn-print-cv");
-  if (printBtn) {
-    printBtn.addEventListener("click", () => window.print());
-  }
 }
 
 /**

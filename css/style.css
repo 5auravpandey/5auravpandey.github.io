@@ -4166,26 +4166,91 @@ dialog#invite-dialog {
   margin-bottom: 4px;
 }
 
-.friend-gate-quick-hint {
-  margin-top: 16px;
-  font-size: 12px;
-  color: var(--muted);
+.friend-gate-contact-box {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  background: var(--tint);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.gate-contact-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  margin-bottom: 10px;
+}
+
+.gate-contact-buttons {
   display: flex;
-  align-items: center;
+  gap: 10px;
   justify-content: center;
-  gap: 6px;
   flex-wrap: wrap;
 }
 
-.btn-text-link {
-  background: none;
-  border: none;
+.btn-gate-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.btn-gate-contact.telegram {
+  background: rgba(36, 161, 222, 0.12);
+  color: #0088cc;
+  border: 1px solid rgba(36, 161, 222, 0.3);
+}
+
+.btn-gate-contact.telegram:hover {
+  background: #0088cc;
+  color: #ffffff;
+  border-color: #0088cc;
+  transform: translateY(-1px);
+}
+
+.btn-gate-contact.email {
+  background: rgba(37, 99, 235, 0.1);
   color: var(--accent);
-  text-decoration: underline;
-  cursor: pointer;
-  font-size: 12px;
-  padding: 0;
-  font-family: inherit;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+}
+
+.btn-gate-contact.email:hover {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.friend-gate-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #dc2626;
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+:root[data-theme="dark"] .friend-gate-error {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+}
+
+.friend-gate-footer-note {
+  margin-top: 16px;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+  line-height: 1.4;
 }
 
 .friend-active-banner {
@@ -4193,7 +4258,7 @@ dialog#invite-dialog {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   padding: 8px 14px;
   border-radius: var(--radius-sm);
   background: rgba(34, 197, 94, 0.08);
@@ -4201,6 +4266,30 @@ dialog#invite-dialog {
   font-size: 13px;
   color: var(--ink);
   margin-bottom: 14px;
+}
+
+.friend-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.friend-pass-code-pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--tint);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+}
+
+.friend-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-invite-pill {
@@ -4219,6 +4308,34 @@ dialog#invite-dialog {
   background: var(--accent);
   color: var(--accent-contrast);
   border-color: var(--accent);
+}
+
+.btn-revoke-pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-revoke-pill:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.db-sync-badge {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(37, 99, 235, 0.25);
 }
 
 /* ==========================================================================
@@ -4363,118 +4480,6 @@ dialog#invite-dialog {
   font-size: 11px;
 }
 
-/* ==========================================================================
-   Local AI Resume Architect Dialog
-   ========================================================================== */
-.resume-ai-dialog {
-  max-width: 620px;
-  width: 92vw;
-  padding: 0;
-  border-radius: var(--radius);
-  border: 1px solid var(--rule);
-  background: var(--bg);
-  color: var(--ink);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-}
-
-.resume-ai-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-}
-
-.resume-ai-content {
-  padding: 24px;
-}
-
-.resume-ai-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--rule-light);
-  padding-bottom: 12px;
-}
-
-.ai-role-chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 10px 0 16px;
-}
-
-.ai-role-chip {
-  font-family: var(--mono);
-  font-size: 12px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: var(--tint);
-  border: 1px solid var(--rule);
-  color: var(--ink);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.ai-role-chip.active {
-  background: var(--accent);
-  color: var(--accent-contrast);
-  border-color: var(--accent);
-  font-weight: 600;
-}
-
-.ai-ats-meter-box {
-  background: var(--paper);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  margin-bottom: 16px;
-}
-
-.ai-ats-meter-head {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  font-family: var(--mono);
-  margin-bottom: 6px;
-}
-
-.ai-ats-progress-track {
-  width: 100%;
-  height: 8px;
-  background: rgba(0, 0, 0, 0.08);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.ai-ats-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #10b981, #059669);
-  border-radius: 999px;
-  transition: width 0.3s ease;
-}
-
-.ai-prune-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.ai-checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.resume-ai-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  border-top: 1px solid var(--rule-light);
-  padding-top: 16px;
-}
 
 @media (max-width: 768px) {
   #btn-cmd-palette-mobile,
