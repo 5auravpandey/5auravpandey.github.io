@@ -592,18 +592,34 @@ window.PORTFOLIO_DB = {
       }
     }
 
-    // 3. Synchronize to LocalStorage Top 5 Cache
+    // 3. Synchronize to LocalStorage Cache
     try {
-      const topList = await this.getLeaderboard(game, 5);
-      localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(topList.map(s => ({
-        name: s.playerName,
-        telegramId: s.telegramId,
-        score: s.score,
-        speed: s.speed,
-        date: s.date,
-        verifiedAt: s.verifiedAt,
-        expiresAt: s.expiresAt
-      }))));
+      if (this.db) {
+        const topList = await this.getLeaderboard(game, 5);
+        localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(topList.map(s => ({
+          name: s.playerName,
+          telegramId: s.telegramId,
+          score: s.score,
+          speed: s.speed,
+          date: s.date,
+          verifiedAt: s.verifiedAt,
+          expiresAt: s.expiresAt
+        }))));
+      } else {
+        const raw = localStorage.getItem("portfolio_snake_leaderboard") || "[]";
+        const list = JSON.parse(raw);
+        list.push({
+          name: entry.playerName,
+          telegramId: entry.telegramId,
+          score: entry.score,
+          speed: entry.speed,
+          date: entry.date,
+          verifiedAt: entry.verifiedAt,
+          expiresAt: entry.expiresAt
+        });
+        list.sort((a, b) => b.score - a.score);
+        localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(list.slice(0, 20)));
+      }
     } catch (e) {}
 
     return entry;

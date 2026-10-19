@@ -104,8 +104,9 @@ window.PORTFOLIO_PLAYGROUND = {
       if (params.has("room")) {
         this.activeRoomId = params.get("room");
         this.currentTab = "focus";
-        if (window.PORTFOLIO_DB && this.isFriend) {
-          window.PORTFOLIO_DB.joinRoomSession(this.activeRoomId, this.friendName || "Participant", this.friendUsername || this.activePassKey || "");
+        if (window.PORTFOLIO_DB) {
+          const participantName = this.friendName || fromName || "Guest Scholar";
+          window.PORTFOLIO_DB.joinRoomSession(this.activeRoomId, participantName, this.friendUsername || this.activePassKey || "");
         }
       }
 
@@ -478,6 +479,9 @@ window.PORTFOLIO_PLAYGROUND = {
           <button type="button" id="btn-unlock-friend" class="btn-primary-action" style="padding: 10px 20px; font-weight: 600; width: 100%;">
             🔓 Verify Admin Whitelist &amp; Unlock YouTube Stream
           </button>
+          <button type="button" id="btn-gate-switch-ambient" class="btn-secondary-action" style="margin-top: 8px; width: 100%; font-size: 13px;">
+            ✨ Switch to Melodic Soundscapes (Free for Everyone, No Login)
+          </button>
         </div>
         <div class="friend-gate-footer-note">
           <span>✨ Native melodic soundscapes (Genshin, Sky, Krishna flute) remain 100% free and open for everyone with zero login required.</span>
@@ -595,6 +599,14 @@ window.PORTFOLIO_PLAYGROUND = {
           e.preventDefault();
           doWhitelistCheck();
         }
+      });
+    }
+
+    const gateSwitchAmbientBtn = document.getElementById("btn-gate-switch-ambient");
+    if (gateSwitchAmbientBtn) {
+      gateSwitchAmbientBtn.addEventListener("click", () => {
+        this.audioMode = "ambient";
+        this.render();
       });
     }
 
@@ -949,6 +961,15 @@ window.PORTFOLIO_PLAYGROUND = {
       this.roomStartTime = Date.now() - (this.timerDuration - this.timeLeft) * 1000;
     }
 
+    // Gate YouTube room creation to whitelisted friends only; native ambient is 100% open to everyone
+    if (this.audioMode === "youtube" && !this.isFriend) {
+      this.audioMode = "ambient";
+      if (typeof showToast === "function") {
+        showToast("YouTube rooms require whitelist access. Switched to open Melodic Soundscapes!");
+      }
+      this.render();
+    }
+
     const liveOrigin = window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.protocol === "file:"
       ? "https://sauravpandey.me"
       : window.location.origin;
@@ -971,7 +992,7 @@ window.PORTFOLIO_PLAYGROUND = {
       window.PORTFOLIO_DB.saveRoomSession({
         roomId: this.activeRoomId,
         hostName: this.friendName || "Host",
-        hostPass: activePass ? activePass.key : "",
+        hostPass: this.activePassKey || "",
         audioMode: this.audioMode,
         soundscape: this.soundscape,
         youtubePreset: this.youtubePreset,

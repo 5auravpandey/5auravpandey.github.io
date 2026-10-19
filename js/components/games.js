@@ -5,12 +5,77 @@
  * 3. Interactive Chess / Grandmaster Dev (8x8 board, legal move rules, captures, vs DeepCode AI)
  * Fully responsive for mobile touch and desktop keyboards.
  */
+// Global callback for Telegram Login Widget (@SauravPandeyBot)
+window.onTelegramAuth = async function(user) {
+  if (!user) return;
+  const rawUsername = user.username ? user.username.replace(/^@/, "") : "";
+  const handle = rawUsername ? `@${rawUsername}` : `@id_${user.id}`;
+  const displayName = [user.first_name, user.last_name].filter(Boolean).join(" ") || handle;
+
+  if (window.PORTFOLIO_DB) {
+    const res = window.PORTFOLIO_DB.loginTelegramUser(handle, displayName);
+    if (res && res.success) {
+      // Auto-unlock whitelisted YouTube stream if handle is whitelisted
+      const wlCheck = await window.PORTFOLIO_DB.isWhitelistedForYouTube(handle);
+      if (wlCheck && wlCheck.whitelisted) {
+        window.PORTFOLIO_DB.activateFriendSession(wlCheck.entry.name || displayName, wlCheck.entry.handle, wlCheck.entry.role);
+        if (window.PORTFOLIO_PLAYGROUND) {
+          window.PORTFOLIO_PLAYGROUND.isFriend = true;
+          window.PORTFOLIO_PLAYGROUND.friendName = wlCheck.entry.name || displayName;
+          window.PORTFOLIO_PLAYGROUND.friendUsername = wlCheck.entry.handle;
+          window.PORTFOLIO_PLAYGROUND.friendRole = wlCheck.entry.role;
+        }
+      }
+
+      const tgModal = document.getElementById("tg-login-modal");
+      if (tgModal) tgModal.style.display = "none";
+
+      if (typeof showToast === "function") {
+        showToast(`Connected via Telegram: ${handle} • 7-day retention active!`);
+      }
+
+      if (window.PORTFOLIO_GAMES) {
+        window.PORTFOLIO_GAMES.render();
+      }
+    }
+  }
+};
+
 window.PORTFOLIO_GAMES = {
   activeGame: "snake", // 'snake' | 'tictactoe' | 'chess'
   audioCtx: null,
 
   init() {
     this.render();
+  },
+
+  openTelegramLoginModal() {
+    const tgModal = document.getElementById("tg-login-modal");
+    if (tgModal) {
+      tgModal.style.display = "flex";
+      this.renderTelegramWidget();
+      const input = document.getElementById("tg-input-handle");
+      if (input) input.focus();
+    }
+  },
+
+  renderTelegramWidget() {
+    const container = document.getElementById("tg-official-widget-box");
+    if (!container) return;
+    container.innerHTML = "";
+    try {
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = "https://telegram.org/js/telegram-widget.js?22";
+      script.setAttribute("data-telegram-login", "SauravPandeyBot");
+      script.setAttribute("data-size", "large");
+      script.setAttribute("data-radius", "8");
+      script.setAttribute("data-onauth", "onTelegramAuth(user)");
+      script.setAttribute("data-request-access", "write");
+      container.appendChild(script);
+    } catch (e) {
+      container.innerHTML = '<span style="font-size: 12px; color: var(--muted);">Use manual input below</span>';
+    }
   },
 
   getAudioContext() {
@@ -140,6 +205,22 @@ window.PORTFOLIO_GAMES = {
               Scores and player records are retained for exactly <strong>7 days</strong>. To maintain your score sustainability, you must log in or renew at least once every 7 days. If you are inactive for 7 days, your scores and profile will be <strong>automatically cleaned from the database without prior notification</strong>.
             </div>
 
+            <!-- Official Telegram Login Widget (@SauravPandeyBot) -->
+            <div style="text-align: center; margin: 10px 0 12px; background: rgba(0,0,0,0.03); padding: 10px; border-radius: 6px;">
+              <div style="font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; margin-bottom: 8px;">
+                Instant 1-Click Login via @SauravPandeyBot:
+              </div>
+              <div id="tg-official-widget-box" style="display: flex; justify-content: center; align-items: center; min-height: 40px;">
+                <span style="font-size: 12px; color: var(--muted);">Initializing Telegram Login...</span>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; margin: 12px 0; gap: 8px;">
+              <hr style="flex: 1; border: none; border-top: 1px solid var(--rule);">
+              <span style="font-size: 11px; font-family: var(--mono); color: var(--muted);">OR CONNECT MANUALLY</span>
+              <hr style="flex: 1; border: none; border-top: 1px solid var(--rule);">
+            </div>
+
             <form id="tg-login-form" style="display: flex; flex-direction: column; gap: 10px;">
               <div>
                 <label for="tg-input-handle" style="font-size: 11px; font-family: var(--mono); color: var(--muted); display: block; margin-bottom: 4px; text-transform: uppercase;">
@@ -199,9 +280,7 @@ window.PORTFOLIO_GAMES = {
 
     if (openTgModalBtn && tgModal) {
       openTgModalBtn.addEventListener("click", () => {
-        tgModal.style.display = "flex";
-        const input = document.getElementById("tg-input-handle");
-        if (input) input.focus();
+        this.openTelegramLoginModal();
       });
     }
 
@@ -236,6 +315,18 @@ window.PORTFOLIO_GAMES = {
         if (window.PORTFOLIO_DB) {
           const res = window.PORTFOLIO_DB.loginTelegramUser(handle, name);
           if (res.success) {
+            // Auto-unlock whitelisted YouTube stream if handle is whitelisted
+            const wlCheck = await window.PORTFOLIO_DB.isWhitelistedForYouTube(res.user.telegramId);
+            if (wlCheck && wlCheck.whitelisted) {
+              window.PORTFOLIO_DB.activateFriendSession(wlCheck.entry.name || res.user.displayName, wlCheck.entry.handle, wlCheck.entry.role);
+              if (window.PORTFOLIO_PLAYGROUND) {
+                window.PORTFOLIO_PLAYGROUND.isFriend = true;
+                window.PORTFOLIO_PLAYGROUND.friendName = wlCheck.entry.name || res.user.displayName;
+                window.PORTFOLIO_PLAYGROUND.friendUsername = wlCheck.entry.handle;
+                window.PORTFOLIO_PLAYGROUND.friendRole = wlCheck.entry.role;
+              }
+            }
+
             if (tgModal) tgModal.style.display = "none";
             if (typeof showToast === "function") {
               showToast(`Connected Telegram: ${res.user.telegramId} • 7-day retention active!`);
@@ -630,8 +721,7 @@ window.PORTFOLIO_GAMES = {
       saveScoreBtn.addEventListener("click", async () => {
         const tgUser = window.PORTFOLIO_DB ? window.PORTFOLIO_DB.getTelegramUser() : null;
         if (!tgUser) {
-          const modal = document.getElementById("tg-login-modal");
-          if (modal) modal.style.display = "flex";
+          this.openTelegramLoginModal();
           return;
         }
         saveScoreBtn.textContent = "Saving...";
@@ -644,8 +734,7 @@ window.PORTFOLIO_GAMES = {
     const loginToSaveBtn = document.getElementById("btn-login-to-save");
     if (loginToSaveBtn) {
       loginToSaveBtn.addEventListener("click", () => {
-        const modal = document.getElementById("tg-login-modal");
-        if (modal) modal.style.display = "flex";
+        this.openTelegramLoginModal();
       });
     }
 
