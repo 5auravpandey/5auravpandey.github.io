@@ -27,6 +27,12 @@ function sanitizeURL(url) {
 window.sanitizeURL = sanitizeURL;
 
 document.addEventListener("DOMContentLoaded", () => {
+  // 0. Activate Asynchronous Web Fonts (Strict CSP Compliant, Non-Render-Blocking)
+  const fontLink = document.getElementById("google-fonts-css");
+  if (fontLink && fontLink.media === "print") {
+    fontLink.media = "all";
+  }
+
   // 1. Initialize Theme
   initTheme();
 
@@ -51,23 +57,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // 8. Initialize Interactive Components
   if (window.PORTFOLIO_CASE_STUDY) window.PORTFOLIO_CASE_STUDY.init();
   if (window.PORTFOLIO_STACK_EXPLORER) window.PORTFOLIO_STACK_EXPLORER.init();
-  if (window.PORTFOLIO_PLAYGROUND) window.PORTFOLIO_PLAYGROUND.init();
+  initPlaygroundDeferred();
   initAdminLazyLoader();
 
-  // 8. Initialize Clipboard, Print CV & Utility Actions
+  // 9. Initialize Clipboard, Print CV & Utility Actions
   initUtilities();
 
-  // 9. Initialize Interactive Card Spotlight
+  // 10. Initialize Interactive Card Spotlight
   initCardSpotlight();
 
-  // 10. Initialize Mobile Navigation Dropdown Menu
+  // 11. Initialize Mobile Navigation Dropdown Menu
   initMobileNav();
 
-  // 11. Initialize Desktop Navigation & Scroll Spy
+  // 12. Initialize Desktop Navigation & Scroll Spy
   initDesktopNav();
 
-  // 12. Initialize Global Unified Auth UI (Navbar Pills & Status)
+  // 13. Initialize Global Unified Auth UI (Navbar Pills & Status)
   initGlobalAuthUI();
+
+  // 14. Initialize PWA Service Worker for Instant Subsequent Loads
+  initServiceWorker();
 });
 
 /**
@@ -929,5 +938,62 @@ function initGlobalAuthUI() {
     updateAuthUI(e.detail);
   });
 }
+
+/**
+ * Defer heavy playground initialization until idle or when approaching viewport
+ * Eliminates main-thread blocking during critical mobile First Contentful Paint (FCP)
+ */
+let playgroundInitialized = false;
+function initPlaygroundDeferred() {
+  if (!window.PORTFOLIO_PLAYGROUND || playgroundInitialized) return;
+
+  const runInit = () => {
+    if (playgroundInitialized) return;
+    playgroundInitialized = true;
+    window.PORTFOLIO_PLAYGROUND.init();
+  };
+
+  // Immediate init if direct link / query parameter to playground is requested
+  const hash = window.location.hash;
+  const search = window.location.search;
+  if (hash === "#playground" || search.includes("room=") || search.includes("game=") || search.includes("tab=")) {
+    runInit();
+    return;
+  }
+
+  // Otherwise, use IntersectionObserver when section approaches viewport, with idle fallback
+  const target = document.getElementById("playground");
+  if (target && "IntersectionObserver" in window) {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) {
+        observer.disconnect();
+        runInit();
+      }
+    }, { rootMargin: "400px 0px" });
+    observer.observe(target);
+  }
+
+  // Fallback to idle callback / timeout so it's always ready without blocking initial paint
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(() => runInit(), { timeout: 2000 });
+  } else {
+    setTimeout(runInit, 800);
+  }
+}
+
+/**
+ * PWA Service Worker Registration
+ * Enables instant repeat page loads from cache and offline resilience
+ */
+function initServiceWorker() {
+  if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch((err) => {
+        console.warn("ServiceWorker registration skipped:", err);
+      });
+    });
+  }
+}
+
 
 

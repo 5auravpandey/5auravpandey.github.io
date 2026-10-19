@@ -865,6 +865,17 @@ section {
   margin-top: 56px;
 }
 
+/* Modern Web Performance: Defer rendering off-screen sections until scrolled near viewport */
+#projects,
+#playground,
+#curations,
+#skills,
+#education,
+#contact {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 600px;
+}
+
 .section-head {
   display: flex;
   justify-content: space-between;

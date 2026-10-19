@@ -59,6 +59,25 @@ window.PORTFOLIO_PLAYGROUND = {
       .replace(/'/g, "&#39;");
   },
 
+  // On-demand lazy loader for 64KB Dev Arcade engine (saves ~64KB on initial mobile load)
+  _gamesPromise: null,
+  ensureGamesLoaded() {
+    if (window.PORTFOLIO_GAMES) return Promise.resolve(window.PORTFOLIO_GAMES);
+    if (this._gamesPromise) return this._gamesPromise;
+    this._gamesPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "js/components/games.js?v=20261020_v5";
+      script.defer = true;
+      script.onload = () => resolve(window.PORTFOLIO_GAMES);
+      script.onerror = (err) => {
+        console.error("Failed to load games engine:", err);
+        reject(err);
+      };
+      document.body.appendChild(script);
+    });
+    return this._gamesPromise;
+  },
+
   async init() {
     this.sprintsCompleted = parseInt(localStorage.getItem("portfolio_sprints") || "0", 10);
     
@@ -192,11 +211,16 @@ window.PORTFOLIO_PLAYGROUND = {
         }
       }
 
-      if (params.has("game") && window.PORTFOLIO_GAMES) {
+      if (params.has("game")) {
         const g = params.get("game");
         if (["snake", "tictactoe", "chess"].includes(g)) {
           this.currentTab = "games";
-          window.PORTFOLIO_GAMES.activeGame = g;
+          this.ensureGamesLoaded().then((games) => {
+            if (games) {
+              games.activeGame = g;
+              games.render();
+            }
+          });
         }
       }
     } catch (e) {}
@@ -236,6 +260,19 @@ window.PORTFOLIO_PLAYGROUND = {
 
   renderActiveTab() {
     if (this.currentTab === "games") {
+      if (!window.PORTFOLIO_GAMES) {
+        this.ensureGamesLoaded().then((games) => {
+          if (games && typeof games.init === "function") {
+            games.init();
+          }
+        });
+        return `
+          <div id="dev-games-container" style="text-align: center; padding: 48px 20px; color: var(--ink-secondary);">
+            <div style="font-size: 32px; margin-bottom: 12px; animation: pulse 1.5s infinite ease-in-out;">🎮</div>
+            <div style="font-family: var(--font-mono); font-size: 14px;">Loading Dev Arcade Engines...</div>
+          </div>
+        `;
+      }
       return `
         <div id="dev-games-container"></div>
       `;
@@ -870,9 +907,11 @@ window.PORTFOLIO_PLAYGROUND = {
 
     // --- Tab 4: Games Arcade Events ---
     if (this.currentTab === "games") {
-      if (window.PORTFOLIO_GAMES && typeof window.PORTFOLIO_GAMES.init === "function") {
-        window.PORTFOLIO_GAMES.init();
-      }
+      this.ensureGamesLoaded().then((games) => {
+        if (games && typeof games.init === "function") {
+          games.init();
+        }
+      });
     }
   },
 
@@ -1716,20 +1755,24 @@ window.PORTFOLIO_PLAYGROUND = {
       case "snake":
         this.currentTab = "games";
         this.render();
-        if (window.PORTFOLIO_GAMES) {
-          window.PORTFOLIO_GAMES.activeGame = "snake";
-          window.PORTFOLIO_GAMES.render();
-        }
+        this.ensureGamesLoaded().then((games) => {
+          if (games) {
+            games.activeGame = "snake";
+            games.render();
+          }
+        });
         reply = "🐍 Launching Retro Matrix Snake!";
         break;
 
       case "chess":
         this.currentTab = "games";
         this.render();
-        if (window.PORTFOLIO_GAMES) {
-          window.PORTFOLIO_GAMES.activeGame = "chess";
-          window.PORTFOLIO_GAMES.render();
-        }
+        this.ensureGamesLoaded().then((games) => {
+          if (games) {
+            games.activeGame = "chess";
+            games.render();
+          }
+        });
         reply = "♟️ Launching Grandmaster Dev Chess!";
         break;
 
@@ -1737,10 +1780,12 @@ window.PORTFOLIO_PLAYGROUND = {
       case "ttt":
         this.currentTab = "games";
         this.render();
-        if (window.PORTFOLIO_GAMES) {
-          window.PORTFOLIO_GAMES.activeGame = "tictactoe";
-          window.PORTFOLIO_GAMES.render();
-        }
+        this.ensureGamesLoaded().then((games) => {
+          if (games) {
+            games.activeGame = "tictactoe";
+            games.render();
+          }
+        });
         reply = "⚔️ Launching Tic-Tac-Toe / Dev Duel!";
         break;
 
