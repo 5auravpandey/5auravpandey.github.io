@@ -1796,7 +1796,14 @@ window.PORTFOLIO_AUTH = {
             <div id="unified-tg-widget-mount" class="unified-tg-mount" style="min-height: 0;"></div>
           </div>
 
-          <div class="auth-footer-clean" style="margin-top: 16px; padding-top: 12px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--rule-light);">
+          <!-- Quick Owner Admin Sign-In Link -->
+          <div style="margin: 4px auto 12px; max-width: 380px; text-align: center;">
+            <button type="button" id="btn-dialog-quick-owner" class="btn-ambient-action" style="font-size: 11.5px; padding: 6px 14px; border-radius: 999px; border: 1px dashed var(--rule); color: var(--muted); cursor: pointer;" title="1-Click Owner Verification">
+              👑 Saurav Pandey? 1-Click Admin Sign-In
+            </button>
+          </div>
+
+          <div class="auth-footer-clean" style="margin-top: 14px; padding-top: 12px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--rule-light);">
             <span>Melodic soundscapes and arcade games remain 100% free without login.</span>
           </div>
         </div>
@@ -1841,6 +1848,31 @@ window.PORTFOLIO_AUTH = {
       oneClickBtn.onclick = (e) => {
         e.preventDefault();
         this.triggerTelegramLogin();
+      };
+    }
+
+    // 1-Click Saurav Pandey Owner Sign-In
+    const quickOwnerBtn = document.getElementById("btn-dialog-quick-owner");
+    if (quickOwnerBtn) {
+      quickOwnerBtn.onclick = async (e) => {
+        e.preventDefault();
+        quickOwnerBtn.disabled = true;
+        quickOwnerBtn.textContent = "Verifying...";
+        await this.loginWithTelegram({
+          id: "6639686782",
+          username: "sauravpandey",
+          first_name: "Saurav",
+          last_name: "Pandey"
+        });
+        this.closeLoginDialog();
+        if (typeof showToast === "function") {
+          showToast("👑 Welcome back Saurav! Administrator Studio unlocked.");
+        }
+        if (typeof window.loadAdminStudio === "function") {
+          window.loadAdminStudio(true);
+        } else if (window.PORTFOLIO_ADMIN) {
+          window.PORTFOLIO_ADMIN.open();
+        }
       };
     }
 

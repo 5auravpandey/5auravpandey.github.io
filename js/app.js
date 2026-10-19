@@ -75,6 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let adminLoadPromise = null;
 function loadAdminStudio(autoOpen = true) {
   if (window.PORTFOLIO_ADMIN) {
+    if (!window.PORTFOLIO_ADMIN.dialog) window.PORTFOLIO_ADMIN.init();
     if (autoOpen) window.PORTFOLIO_ADMIN.open();
     return Promise.resolve(window.PORTFOLIO_ADMIN);
   }
@@ -100,7 +101,10 @@ function loadAdminStudio(autoOpen = true) {
     });
   } else {
     adminLoadPromise.then(() => {
-      if (autoOpen && window.PORTFOLIO_ADMIN) window.PORTFOLIO_ADMIN.open();
+      if (window.PORTFOLIO_ADMIN) {
+        if (!window.PORTFOLIO_ADMIN.dialog) window.PORTFOLIO_ADMIN.init();
+        if (autoOpen) window.PORTFOLIO_ADMIN.open();
+      }
     });
   }
   return adminLoadPromise;
@@ -816,10 +820,26 @@ function initGlobalAuthUI() {
     const isOwner = Boolean(session && session.isOwner);
 
     if (desktopAdminBtn) {
-      desktopAdminBtn.style.display = isOwner ? "inline-flex" : "none";
+      desktopAdminBtn.style.display = "inline-flex";
+      if (isOwner) {
+        desktopAdminBtn.innerHTML = `<span>● Admin Studio</span>`;
+        desktopAdminBtn.classList.add("is-owner");
+        desktopAdminBtn.title = "👑 Logged in as Saurav Pandey • Open Admin Studio";
+      } else {
+        desktopAdminBtn.innerHTML = `<span>⚙️ Admin</span>`;
+        desktopAdminBtn.classList.remove("is-owner");
+        desktopAdminBtn.title = "Admin Studio & Content Manager";
+      }
     }
     if (mobileAdminBtn) {
-      mobileAdminBtn.style.display = isOwner ? "block" : "none";
+      mobileAdminBtn.style.display = "block";
+      if (isOwner) {
+        mobileAdminBtn.innerHTML = `<span>● Open Admin Studio (Owner)</span>`;
+        mobileAdminBtn.classList.add("is-owner");
+      } else {
+        mobileAdminBtn.innerHTML = `<span>⚙️ Open Admin Studio</span>`;
+        mobileAdminBtn.classList.remove("is-owner");
+      }
     }
 
     if (session) {

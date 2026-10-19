@@ -3879,6 +3879,20 @@ dialog#invite-dialog {
   transform: translateY(-1px);
 }
 
+.btn-admin-nav-pill.is-owner {
+  background: rgba(6, 182, 212, 0.22);
+  color: #06b6d4;
+  border-color: #06b6d4;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+}
+
+.btn-mobile-auth-pill.is-owner {
+  background: rgba(6, 182, 212, 0.22) !important;
+  color: #06b6d4 !important;
+  border-color: #06b6d4 !important;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);
+}
+
 /* ==========================================================================
    Friends VIP Access Gate & Invites System
    ========================================================================== */

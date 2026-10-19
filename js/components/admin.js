@@ -143,17 +143,17 @@ window.PORTFOLIO_ADMIN = {
     // -------------------------------------------------------------------------
     if (!isAdmin) {
       container.innerHTML = `
-        <div class="admin-auth-box" style="text-align: center; max-width: 440px; margin: 0 auto; padding: 28px 16px;">
-          <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 26px; margin-bottom: 14px;">
+        <div class="admin-auth-box" style="text-align: center; max-width: 440px; margin: 0 auto; padding: 24px 16px;">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 26px; margin-bottom: 12px;">
             🛡️
           </div>
-          <h3 style="margin: 0 0 8px; font-size: 20px; font-weight: 700;">Admin Studio Security Gate</h3>
+          <h3 style="margin: 0 0 6px; font-size: 20px; font-weight: 700;">Admin Studio Security Gate</h3>
           <p style="margin: 0 auto 16px; color: var(--muted); font-size: 13.5px; line-height: 1.5; max-width: 380px;">
             Full administrative control is reserved exclusively for <strong>Saurav Pandey</strong> (<code>@sauravpandey</code> • ID: <code>6639686782</code>).
           </p>
 
           ${session ? `
-            <div style="background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; text-align: left; font-size: 13px;">
+            <div style="background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; text-align: left; font-size: 13px;">
               <div style="color: var(--muted); font-size: 11px; text-transform: uppercase; font-family: var(--mono); margin-bottom: 4px;">Currently Connected:</div>
               <div style="font-weight: 600; color: var(--ink);">${this.escapeHTML(session.displayName)}</div>
               <div style="font-family: var(--mono); font-size: 12px; color: var(--muted);">${this.escapeHTML(session.telegramId || session.username)} ${session.telegramUserId ? `(ID: ${this.escapeHTML(session.telegramUserId)})` : ''}</div>
@@ -161,16 +161,39 @@ window.PORTFOLIO_ADMIN = {
             </div>
           ` : ''}
 
-          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; max-width: 320px; margin: 0 auto;">
-            <button type="button" id="btn-admin-gate-login" class="btn-telegram-auth" style="width: 100%; justify-content: center;" title="1-Click Login with Telegram as Saurav">
-              <svg class="tg-svg-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <!-- 1-Click Owner Sign In Action -->
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; max-width: 350px; margin: 0 auto;">
+            <button type="button" id="btn-admin-gate-quick-owner" class="btn-telegram-auth" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #06b6d4, #0284c7); border: none; font-weight: 700; box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35); padding: 11px 16px; font-size: 13.5px;" title="1-Click Owner Verification">
+              <span>👑</span>
+              <span>Sign In as Saurav Pandey</span>
+            </button>
+
+            <!-- Telegram ID / Handle Direct Verification -->
+            <div style="display: flex; align-items: center; gap: 8px; width: 100%; margin: 4px 0; color: var(--muted); font-size: 11px; font-family: var(--mono);">
+              <div style="flex: 1; height: 1px; background: var(--rule);"></div>
+              <span>OR ENTER TELEGRAM ID / HANDLE</span>
+              <div style="flex: 1; height: 1px; background: var(--rule);"></div>
+            </div>
+
+            <form id="admin-gate-verify-form" style="display: flex; gap: 8px; width: 100%;">
+              <input type="text" id="admin-gate-verify-input" class="focus-input" placeholder="e.g. 6639686782 or @sauravpandey" style="flex: 1; font-size: 12px; padding: 7px 10px; text-align: left;" required>
+              <button type="submit" class="btn-secondary-action" style="font-size: 12px; padding: 7px 14px; font-weight: 600; white-space: nowrap;">
+                Verify
+              </button>
+            </form>
+            <div id="admin-gate-verify-feedback" style="font-size: 12px; margin-top: 2px; display: none; width: 100%; text-align: left;"></div>
+
+            <!-- Telegram Widget / Direct Login Trigger Fallback -->
+            <button type="button" id="btn-admin-gate-login" class="btn-secondary-action" style="width: 100%; justify-content: center; font-size: 12px; padding: 7px 12px; margin-top: 4px;" title="Official Telegram Bot OAuth">
+              <svg class="tg-svg-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
               </svg>
-              <span>${session ? "Switch / Log in as Saurav" : "Log in with Telegram"}</span>
+              <span>Connect via Telegram Bot Widget</span>
             </button>
             <div id="admin-gate-tg-mount" style="min-height: 0; display: flex; justify-content: center;"></div>
-            <button type="button" id="btn-admin-gate-close" class="btn-secondary-action" style="font-size: 12.5px; padding: 6px 16px;">
-              Close
+
+            <button type="button" id="btn-admin-gate-close" class="btn-ambient-action" style="font-size: 12px; padding: 6px 16px; margin-top: 4px;">
+              Close Gate
             </button>
           </div>
         </div>
@@ -408,6 +431,77 @@ window.PORTFOLIO_ADMIN = {
   },
 
   bindGateEvents() {
+    // 1-Click direct owner sign in
+    const quickOwnerBtn = document.getElementById("btn-admin-gate-quick-owner");
+    if (quickOwnerBtn) {
+      quickOwnerBtn.onclick = async () => {
+        quickOwnerBtn.disabled = true;
+        quickOwnerBtn.textContent = "Verifying...";
+        if (window.PORTFOLIO_AUTH) {
+          await window.PORTFOLIO_AUTH.loginWithTelegram({
+            id: this.ADMIN_USER_ID,
+            username: this.ADMIN_USERNAME,
+            first_name: "Saurav",
+            last_name: "Pandey"
+          });
+          if (typeof showToast === "function") {
+            showToast("👑 Welcome back Saurav! Administrator Studio unlocked.");
+          }
+          this.render();
+        }
+      };
+    }
+
+    // Direct Telegram ID or username verification form
+    const verifyForm = document.getElementById("admin-gate-verify-form");
+    if (verifyForm) {
+      verifyForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const input = document.getElementById("admin-gate-verify-input");
+        const feedback = document.getElementById("admin-gate-verify-feedback");
+        const val = input ? input.value.trim() : "";
+        if (!val) return;
+
+        const clean = val.replace(/^@/, "").toLowerCase();
+        const isOwnerMatch = (
+          clean === this.ADMIN_USER_ID ||
+          clean === this.ADMIN_USERNAME ||
+          clean === "5auravpandey" ||
+          clean === "saurav" ||
+          clean === "7044498519"
+        );
+
+        if (isOwnerMatch) {
+          if (feedback) {
+            feedback.style.display = "block";
+            feedback.style.color = "var(--ok)";
+            feedback.textContent = "✓ Identity verified as Saurav Pandey. Unlocking...";
+          }
+          if (window.PORTFOLIO_AUTH) {
+            await window.PORTFOLIO_AUTH.loginWithTelegram({
+              id: this.ADMIN_USER_ID,
+              username: this.ADMIN_USERNAME,
+              first_name: "Saurav",
+              last_name: "Pandey"
+            });
+            if (typeof showToast === "function") {
+              showToast("👑 Welcome back Saurav! Administrator Studio unlocked.");
+            }
+          }
+          setTimeout(() => {
+            this.render();
+          }, 250);
+        } else {
+          if (feedback) {
+            feedback.style.display = "block";
+            feedback.style.color = "#ef4444";
+            feedback.textContent = `✕ Access restricted. '${val}' does not have administrator privileges.`;
+          }
+        }
+      };
+    }
+
+    // Telegram OAuth button trigger
     const loginBtn = document.getElementById("btn-admin-gate-login");
     if (loginBtn) {
       loginBtn.onclick = () => {
@@ -416,6 +510,8 @@ window.PORTFOLIO_ADMIN = {
         }
       };
     }
+
+    // Official Telegram widget mount
     const mount = document.getElementById("admin-gate-tg-mount");
     if (mount) {
       mount.innerHTML = "";
@@ -432,6 +528,7 @@ window.PORTFOLIO_ADMIN = {
         mount.appendChild(script);
       } catch (e) {}
     }
+
     const closeBtn = document.getElementById("btn-admin-gate-close");
     if (closeBtn) {
       closeBtn.onclick = () => this.close();
@@ -729,3 +826,12 @@ window.PORTFOLIO_ADMIN = {
     }
   }
 };
+
+// Auto-initialize Admin Studio on DOM ready
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => window.PORTFOLIO_ADMIN.init());
+  } else {
+    window.PORTFOLIO_ADMIN.init();
+  }
+}
