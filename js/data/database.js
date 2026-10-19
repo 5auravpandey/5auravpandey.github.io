@@ -15,10 +15,21 @@ window.PORTFOLIO_DB = {
   // Authorized Master Pass Catalog (Pre-seeded passes issued by Saurav)
   AUTHORIZED_PASSES: [
     { key: "SP-HAL-2026", label: "HAL Avionics Department Pass", issuedTo: "HAL Colleagues" },
+    { key: "HAL2026", label: "HAL Avionics Department Pass", issuedTo: "HAL Colleagues" },
+    { key: "HAL", label: "HAL Avionics Department Pass", issuedTo: "HAL Colleagues" },
     { key: "SP-IIIT-IITP", label: "IIIT Ranchi & IIT Patna Pass", issuedTo: "MCA Classmates" },
+    { key: "IIIT", label: "IIIT Ranchi Pass", issuedTo: "MCA Classmates" },
+    { key: "IITP", label: "IIT Patna Pass", issuedTo: "MCA Classmates" },
     { key: "SP-VIP-FRIENDS", label: "VIP Friends Circle Pass", issuedTo: "Close Friends" },
+    { key: "FRIENDS", label: "VIP Friends Circle Pass", issuedTo: "Close Friends" },
+    { key: "FRIEND", label: "VIP Friends Circle Pass", issuedTo: "Close Friends" },
+    { key: "VIP", label: "VIP Friends Circle Pass", issuedTo: "Close Friends" },
     { key: "SP-GOPALGANJ", label: "Gopalganj Bihar Study Pass", issuedTo: "Hometown Peers" },
+    { key: "GOPALGANJ", label: "Gopalganj Bihar Study Pass", issuedTo: "Hometown Peers" },
     { key: "SP-AVIONICS-DEV", label: "Avionics Dev Lab Pass", issuedTo: "Dev Collaborators" },
+    { key: "DEV", label: "Avionics Dev Lab Pass", issuedTo: "Dev Collaborators" },
+    { key: "STUDY", label: "Synchronized Study Group Pass", issuedTo: "Study Group" },
+    { key: "SAURAV", label: "Master Administrator Pass", issuedTo: "Saurav Pandey" },
     { key: "SP-MASTER-ACCESS", label: "Master Administrator Pass", issuedTo: "Saurav Pandey" }
   ],
 
@@ -145,10 +156,13 @@ window.PORTFOLIO_DB = {
     if (!inputKey) return { valid: false, reason: "Key is required" };
     await this.init();
 
-    const cleanKey = inputKey.trim().toUpperCase();
+    const cleanKey = inputKey.trim().toUpperCase().replace(/\s+/g, "");
 
-    // Check pre-seeded master passes
-    const matchedMaster = this.AUTHORIZED_PASSES.find(p => p.key === cleanKey);
+    // Check pre-seeded master passes (exact or hyphen-flexible)
+    const matchedMaster = this.AUTHORIZED_PASSES.find(p => 
+      p.key === cleanKey || 
+      p.key.replace(/-/g, "") === cleanKey.replace(/-/g, "")
+    );
     if (matchedMaster) {
       return { valid: true, pass: matchedMaster };
     }

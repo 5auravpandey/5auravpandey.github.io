@@ -3180,6 +3180,12 @@ dialog#invite-dialog {
     min-width: 0;
   }
 
+  /* Remove brand SVG logo from navbar on mobile devices */
+  .brand-logo-s,
+  .nav-brand .brand-logo-s {
+    display: none !important;
+  }
+
   .brand-name {
     font-size: 14.5px;
     line-height: 1.15;

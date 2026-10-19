@@ -595,6 +595,7 @@ function initUtilities() {
         setTimeout(() => { copyInviteBtn.textContent = "Copy Link"; }, 2000);
       });
     });
+  }
 }
 
 /**
