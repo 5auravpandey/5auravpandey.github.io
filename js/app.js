@@ -33,20 +33,22 @@ document.addEventListener("DOMContentLoaded", () => {
   // 2. Initialize Live Telemetry (Local Clock in Amethi / India Standard Time)
   initTelemetry();
 
-  // 3. Render HAL Avionics Department Spotlight
+  // 3. Initialize Perspective Switcher (Systems & Code vs Quick Story)
+  if (window.PORTFOLIO_PERSPECTIVE) window.PORTFOLIO_PERSPECTIVE.init();
+
+  // 4. Render HAL Avionics Department Spotlight
   renderSpotlight();
 
-  // 4. Initialize Projects Filtering, Delegation and Rendering
+  // 5. Initialize Projects Filtering, Delegation and Rendering
   initProjects();
 
-  // 5. Initialize Shelf & Notebook (Research, Notes, Books & Games)
+  // 6. Initialize Shelf & Notebook (Research, Notes, Books & Games)
   initShelf();
 
-  // 6. Initialize Education Timeline
+  // 7. Initialize Education Timeline
   renderEducation();
 
-  // 7. Initialize Interactive Components
-  if (window.PORTFOLIO_PERSPECTIVE) window.PORTFOLIO_PERSPECTIVE.init();
+  // 8. Initialize Interactive Components
   if (window.PORTFOLIO_CASE_STUDY) window.PORTFOLIO_CASE_STUDY.init();
   if (window.PORTFOLIO_STACK_EXPLORER) window.PORTFOLIO_STACK_EXPLORER.init();
   if (window.PORTFOLIO_PLAYGROUND) window.PORTFOLIO_PLAYGROUND.init();
@@ -284,16 +286,35 @@ function initProjects() {
   const grid = document.getElementById("projects-grid");
 
   if (tabsContainer) {
-    const tabs = tabsContainer.querySelectorAll(".filter-tab");
-    tabs.forEach(tab => {
-      tab.addEventListener("click", () => {
-        const filter = tab.dataset.filter;
-        if (currentCategoryFilter === filter) return;
+    const filters = [
+      { id: "all", label: "All Projects" },
+      { id: "systems", label: "⚡ Systems & Low-Level" },
+      { id: "fullstack", label: "🌐 Full-Stack & Web" },
+      { id: "web3", label: "⛓️ Web3 & DApps" },
+      { id: "database", label: "🗄️ Database & SQL" }
+    ];
 
-        currentCategoryFilter = filter;
-        tabs.forEach(t => t.setAttribute("aria-pressed", t.dataset.filter === filter));
-        renderProjectsGrid();
+    tabsContainer.innerHTML = filters.map(f => `
+      <button 
+        type="button" 
+        class="filter-tab" 
+        data-filter="${f.id}" 
+        aria-pressed="${f.id === currentCategoryFilter}">
+        ${f.label}
+      </button>
+    `).join("");
+
+    tabsContainer.addEventListener("click", (e) => {
+      const tab = e.target.closest(".filter-tab");
+      if (!tab) return;
+      const filter = tab.dataset.filter;
+      if (currentCategoryFilter === filter) return;
+
+      currentCategoryFilter = filter;
+      Array.from(tabsContainer.children).forEach(t => {
+        t.setAttribute("aria-pressed", t.dataset.filter === filter);
       });
+      renderProjectsGrid();
     });
   }
 
@@ -658,6 +679,7 @@ function initMobileNav() {
     triggerBtn.classList.add("active");
     if (btnText) btnText.textContent = "Close";
     if (navBar) navBar.classList.add("dropdown-open");
+    document.body.classList.add("dropdown-locked");
   };
 
   triggerBtn.addEventListener("click", (e) => {
@@ -699,9 +721,9 @@ function initMobileNav() {
     }
   });
 
-  // Close if window resizes to desktop width (> 960px)
+  // Close if window resizes to desktop width (> 1040px)
   window.addEventListener("resize", () => {
-    if (window.innerWidth > 960 && !dropdown.hasAttribute("hidden")) {
+    if (window.innerWidth > 1040 && !dropdown.hasAttribute("hidden")) {
       closeDropdown();
     }
   });
