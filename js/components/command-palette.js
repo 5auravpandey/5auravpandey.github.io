@@ -21,6 +21,17 @@ window.PORTFOLIO_COMMAND_PALETTE = {
   getAllActions() {
     const actions = [
       // Quick Actions
+      { id: "act-auth", type: "action", icon: "✈️", title: "Account Center & Telegram Login", desc: "Manage Telegram connection, 7-day score sustainability & whitelist", handler: () => {
+        if (window.PORTFOLIO_AUTH) window.PORTFOLIO_AUTH.openLoginDialog();
+      }},
+      { id: "act-renew-session", type: "action", icon: "🔄", title: "Renew 7-Day Score Sustainability", desc: "Extend arcade high score retention for another 7 days", handler: async () => {
+        if (window.PORTFOLIO_AUTH) {
+          const res = await window.PORTFOLIO_AUTH.renewSession();
+          if (res.success && typeof showToast === "function") {
+            showToast("Score sustainability renewed for 7 days!");
+          }
+        }
+      }},
       { id: "act-theme", type: "action", icon: "🌓", title: "Toggle Dark / Light Theme", desc: "Switch visual theme between light and dark mode", handler: () => {
         const btn = document.getElementById("theme-toggle-btn");
         if (btn) btn.click();

@@ -61,33 +61,70 @@ window.PORTFOLIO_PLAYGROUND = {
 
   async init() {
     this.sprintsCompleted = parseInt(localStorage.getItem("portfolio_sprints") || "0", 10);
-    const friendSession = window.PORTFOLIO_DB ? window.PORTFOLIO_DB.getActiveFriendSession() : null;
-    if (friendSession) {
+    
+    // Check Unified Auth Session first
+    const authSession = (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function") 
+      ? window.PORTFOLIO_AUTH.getSession() 
+      : null;
+      
+    if (authSession && authSession.isWhitelistedYouTube) {
       this.isFriend = true;
-      this.friendName = friendSession.name;
-      this.friendUsername = friendSession.username;
-      this.friendRole = friendSession.role;
-      this.activePassKey = friendSession.username.toUpperCase();
+      this.friendName = authSession.displayName;
+      this.friendUsername = authSession.telegramId || authSession.username;
+      this.friendRole = authSession.role || "Whitelisted Friend";
+      this.activePassKey = (authSession.username || authSession.telegramId).toUpperCase();
     } else {
-      this.isFriend = false;
-      this.friendName = "";
-      this.friendUsername = "";
-      this.friendRole = "";
-      this.activePassKey = "";
+      const friendSession = window.PORTFOLIO_DB ? window.PORTFOLIO_DB.getActiveFriendSession() : null;
+      if (friendSession) {
+        this.isFriend = true;
+        this.friendName = friendSession.name;
+        this.friendUsername = friendSession.username;
+        this.friendRole = friendSession.role;
+        this.activePassKey = friendSession.username.toUpperCase();
+      } else {
+        this.isFriend = false;
+        this.friendName = "";
+        this.friendUsername = "";
+        this.friendRole = "";
+        this.activePassKey = "";
 
-      // Check if logged-in Telegram user is already whitelisted
-      const tgUser = window.PORTFOLIO_DB ? window.PORTFOLIO_DB.getTelegramUser() : null;
-      if (tgUser && window.PORTFOLIO_DB) {
-        const check = await window.PORTFOLIO_DB.isWhitelistedForYouTube(tgUser.telegramId);
-        if (check.whitelisted) {
-          this.isFriend = true;
-          this.friendName = check.entry.name || tgUser.displayName;
-          this.friendUsername = check.entry.handle;
-          this.friendRole = check.entry.role || "Whitelisted Friend";
-          this.activePassKey = check.entry.handle.toUpperCase();
+        // Check if logged-in Telegram user is already whitelisted
+        const tgUser = window.PORTFOLIO_DB ? window.PORTFOLIO_DB.getTelegramUser() : null;
+        if (tgUser && window.PORTFOLIO_DB) {
+          const check = await window.PORTFOLIO_DB.isWhitelistedForYouTube(tgUser.telegramId);
+          if (check.whitelisted) {
+            this.isFriend = true;
+            this.friendName = check.entry.name || tgUser.displayName;
+            this.friendUsername = check.entry.handle;
+            this.friendRole = check.entry.role || "Whitelisted Friend";
+            this.activePassKey = check.entry.handle.toUpperCase();
+          }
         }
       }
     }
+
+    // Bind real-time unified auth listener
+    if (!this._authBound) {
+      this._authBound = true;
+      window.addEventListener("portfolio:auth-changed", (e) => {
+        const session = e.detail;
+        if (session && session.isWhitelistedYouTube) {
+          this.isFriend = true;
+          this.friendName = session.displayName;
+          this.friendUsername = session.telegramId || session.username;
+          this.friendRole = session.role || "Whitelisted Friend";
+          this.activePassKey = (session.username || session.telegramId).toUpperCase();
+        } else if (!session) {
+          this.isFriend = false;
+          this.friendName = "";
+          this.friendUsername = "";
+          this.friendRole = "";
+          this.activePassKey = "";
+        }
+        this.render();
+      });
+    }
+
     this.checkUrlParams();
     this.render();
   },
@@ -470,6 +507,20 @@ window.PORTFOLIO_PLAYGROUND = {
           </div>
         </div>
 
+        <!-- Unified Auth & Telegram 1-Click Login -->
+        <div style="margin: 14px 0 16px;">
+          <button type="button" id="btn-open-unified-login-yt" class="btn-primary-action" style="padding: 12px 18px; font-weight: 600; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13.5px;">
+            <span>✈️</span>
+            <span>Log In with Telegram (@SauravPandeyBot) / Account</span>
+          </button>
+        </div>
+
+        <div style="display: flex; align-items: center; margin: 12px 0 16px; gap: 8px;">
+          <hr style="flex: 1; border: none; border-top: 1px solid var(--rule);">
+          <span style="font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase;">Or Verify Whitelisted Handle Directly</span>
+          <hr style="flex: 1; border: none; border-top: 1px solid var(--rule);">
+        </div>
+
         <div class="friend-gate-form">
           <div class="friend-gate-field">
             <label for="input-friend-id">Telegram Handle / Whitelisted Username:</label>
@@ -530,6 +581,15 @@ window.PORTFOLIO_PLAYGROUND = {
     });
 
     // Friend Gate Actions (Admin Whitelist Verification)
+    const openUnifiedYtBtn = document.getElementById("btn-open-unified-login-yt");
+    if (openUnifiedYtBtn) {
+      openUnifiedYtBtn.addEventListener("click", () => {
+        if (window.PORTFOLIO_AUTH) {
+          window.PORTFOLIO_AUTH.openLoginDialog("youtube");
+        }
+      });
+    }
+
     const unlockBtn = document.getElementById("btn-unlock-friend");
     const quickCheckBtn = document.getElementById("btn-quick-check-whitelist");
     const friendIdInput = document.getElementById("input-friend-id");

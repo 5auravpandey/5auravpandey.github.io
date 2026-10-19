@@ -61,6 +61,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 10. Initialize Mobile Navigation Dropdown Menu
   initMobileNav();
+
+  // 11. Initialize Global Unified Auth UI (Navbar Pills & Status)
+  initGlobalAuthUI();
 });
 
 /**
@@ -464,7 +467,15 @@ function renderShelfGrid() {
   });
 
   if (items.length === 0) {
-    grid.innerHTML = `<p style="grid-column: 1/-1; color: var(--muted); font-style: italic;">No items found in this category.</p>`;
+    grid.innerHTML = `
+      <div class="empty-shelf-state" style="grid-column: 1 / -1; padding: 48px 24px; text-align: center; border: 1px dashed var(--rule); border-radius: var(--radius-md); background: var(--surface);">
+        <span style="font-size: 32px; display: block; margin-bottom: 10px;">📚</span>
+        <h3 style="font-size: 17px; margin: 0 0 8px; font-weight: 600;">Archive Entries Coming Soon</h3>
+        <p style="color: var(--muted); font-size: 13.5px; max-width: 440px; margin: 0 auto; line-height: 1.55;">
+          Curations, research findings, reading notes, and personal playlists will be published here upon website completion.
+        </p>
+      </div>
+    `;
     return;
   }
 
@@ -672,4 +683,60 @@ function initMobileNav() {
     }
   });
 }
+
+/**
+ * Global Unified Auth & Account Center Controller
+ */
+function initGlobalAuthUI() {
+  const desktopAuthBtn = document.getElementById("btn-global-auth");
+  const mobileAuthBtn = document.getElementById("btn-mobile-auth");
+  const globalLabel = document.getElementById("global-auth-label");
+  const mobileLabel = document.getElementById("mobile-auth-label");
+
+  function updateAuthUI(session) {
+    if (session) {
+      const handle = session.telegramId || session.username || "Account";
+      const displayShort = handle.length > 14 ? handle.slice(0, 12) + "…" : handle;
+      if (globalLabel) globalLabel.textContent = displayShort;
+      if (mobileLabel) mobileLabel.textContent = `✈️ ${handle} (${session.daysRemaining !== undefined ? session.daysRemaining : 7}d left)`;
+      if (desktopAuthBtn) {
+        desktopAuthBtn.title = `Connected: ${handle} (${session.displayName}) • Click for Account Center`;
+        desktopAuthBtn.classList.add("authenticated");
+      }
+      if (mobileAuthBtn) {
+        mobileAuthBtn.classList.add("authenticated");
+      }
+    } else {
+      if (globalLabel) globalLabel.textContent = "Login";
+      if (mobileLabel) mobileLabel.textContent = "✈️ Connect Telegram / Account";
+      if (desktopAuthBtn) {
+        desktopAuthBtn.title = "Unified Account Center & Telegram Login";
+        desktopAuthBtn.classList.remove("authenticated");
+      }
+      if (mobileAuthBtn) {
+        mobileAuthBtn.classList.remove("authenticated");
+      }
+    }
+  }
+
+  const openAuth = () => {
+    if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.openLoginDialog === "function") {
+      window.PORTFOLIO_AUTH.openLoginDialog();
+    }
+  };
+
+  if (desktopAuthBtn) desktopAuthBtn.addEventListener("click", openAuth);
+  if (mobileAuthBtn) mobileAuthBtn.addEventListener("click", openAuth);
+
+  // Initial state check
+  if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function") {
+    updateAuthUI(window.PORTFOLIO_AUTH.getSession());
+  }
+
+  // Real-time listener
+  window.addEventListener("portfolio:auth-changed", (e) => {
+    updateAuthUI(e.detail);
+  });
+}
+
 

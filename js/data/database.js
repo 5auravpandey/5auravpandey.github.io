@@ -213,25 +213,25 @@ window.PORTFOLIO_DB = {
         }
       }
 
-      // Seed default scores if store is empty
+      // Clean slate for production scores (no prefilled mock scores)
       if (this.db.objectStoreNames.contains("game_scores")) {
         const scoreTx = this.db.transaction("game_scores", "readwrite");
         const scoreStore = scoreTx.objectStore("game_scores");
-        const countReq = scoreStore.count();
-
-        countReq.onsuccess = () => {
-          if (countReq.result === 0) {
-            const now = Date.now();
-            const initialScores = [
-              { game: "snake", playerName: "Saurav (HAL)", telegramId: "@5auravpandey", score: 240, speed: "Turbo", date: "2026-10-18", verifiedAt: now, expiresAt: now + 7 * 86400000, timestamp: now - 86400000 },
-              { game: "snake", playerName: "Aman K. (IITP)", telegramId: "@aman_iitp", score: 180, speed: "Normal", date: "2026-10-17", verifiedAt: now - 86400000, expiresAt: now + 6 * 86400000, timestamp: now - 172800000 },
-              { game: "snake", playerName: "Rohan V.", telegramId: "@rohan_v", score: 140, speed: "Normal", date: "2026-10-16", verifiedAt: now - 2 * 86400000, expiresAt: now + 5 * 86400000, timestamp: now - 259200000 },
-              { game: "snake", playerName: "Priya S.", telegramId: "@priya_gopalganj", score: 110, speed: "Chill", date: "2026-10-15", verifiedAt: now - 3 * 86400000, expiresAt: now + 4 * 86400000, timestamp: now - 345600000 },
-              { game: "snake", playerName: "Dev Cadet", telegramId: "@dev_cadet", score: 80, speed: "Normal", date: "2026-10-14", verifiedAt: now - 4 * 86400000, expiresAt: now + 3 * 86400000, timestamp: now - 432000000 }
-            ];
-            initialScores.forEach(s => {
-              try { scoreStore.add(s); } catch (e) {}
-            });
+        const req = scoreStore.openCursor();
+        req.onsuccess = (e) => {
+          const cursor = e.target.result;
+          if (cursor) {
+            const rec = cursor.value;
+            const isLegacyMock = rec.playerName === "Dev Cadet" || 
+                                 rec.telegramId === "@dev_cadet" || 
+                                 rec.telegramId === "@priya_gopalganj" ||
+                                 rec.telegramId === "@rohan_v" ||
+                                 (rec.playerName === "Saurav (HAL)" && rec.score === 240) ||
+                                 (rec.playerName === "Aman K. (IITP)" && rec.score === 180);
+            if (isLegacyMock) {
+              cursor.delete();
+            }
+            cursor.continue();
           }
         };
       }
@@ -242,7 +242,6 @@ window.PORTFOLIO_DB = {
 
   seedLocalStorage() {
     try {
-      const now = Date.now();
       if (!localStorage.getItem("portfolio_db_friend_accounts")) {
         localStorage.setItem("portfolio_db_friend_accounts", JSON.stringify(this.AUTHORIZED_FRIENDS.map(f => ({
           username: f.username.toLowerCase(),
@@ -269,14 +268,24 @@ window.PORTFOLIO_DB = {
           status: "active"
         }))));
       }
-      if (!localStorage.getItem("portfolio_snake_leaderboard")) {
-        localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify([
-          { name: "Saurav (HAL)", telegramId: "@5auravpandey", score: 240, speed: "Turbo", date: "2026-10-18", verifiedAt: now, expiresAt: now + 7 * 86400000 },
-          { name: "Aman K. (IITP)", telegramId: "@aman_iitp", score: 180, speed: "Normal", date: "2026-10-17", verifiedAt: now - 86400000, expiresAt: now + 6 * 86400000 },
-          { name: "Rohan V.", telegramId: "@rohan_v", score: 140, speed: "Normal", date: "2026-10-16", verifiedAt: now - 2 * 86400000, expiresAt: now + 5 * 86400000 },
-          { name: "Priya S.", telegramId: "@priya_gopalganj", score: 110, speed: "Chill", date: "2026-10-15", verifiedAt: now - 3 * 86400000, expiresAt: now + 4 * 86400000 },
-          { name: "Dev Cadet", telegramId: "@dev_cadet", score: 80, speed: "Normal", date: "2026-10-14", verifiedAt: now - 4 * 86400000, expiresAt: now + 3 * 86400000 }
-        ]));
+      // Sanitize localStorage leaderboard to ensure no mock scores remain
+      const rawLb = localStorage.getItem("portfolio_snake_leaderboard");
+      if (rawLb) {
+        try {
+          const parsed = JSON.parse(rawLb);
+          if (Array.isArray(parsed)) {
+            const cleaned = parsed.filter(s => s && 
+              s.telegramId !== "@dev_cadet" && 
+              s.telegramId !== "@priya_gopalganj" && 
+              s.telegramId !== "@rohan_v" && 
+              !(s.name === "Saurav (HAL)" && s.score === 240) &&
+              !(s.name === "Aman K. (IITP)" && s.score === 180)
+            );
+            localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(cleaned));
+          }
+        } catch (e) {}
+      } else {
+        localStorage.setItem("portfolio_snake_leaderboard", "[]");
       }
     } catch (e) {}
   },
@@ -946,6 +955,9 @@ window.PORTFOLIO_DB = {
   // TELEGRAM LOGIN & 7-DAY SUSTAINABILITY SESSION ENGINE
   // =========================================================================
   loginTelegramUser(telegramId, displayName) {
+    if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.loginWithTelegram === "function") {
+      return window.PORTFOLIO_AUTH.loginWithTelegram(telegramId, displayName);
+    }
     if (!telegramId || typeof telegramId !== "string") {
       return { success: false, reason: "Telegram ID required" };
     }
@@ -991,6 +1003,20 @@ window.PORTFOLIO_DB = {
   },
 
   getTelegramUser() {
+    if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function") {
+      const s = window.PORTFOLIO_AUTH.getSession();
+      if (s) {
+        return {
+          telegramId: s.telegramId,
+          displayName: s.displayName,
+          daysRemaining: s.daysRemaining,
+          expiresAt: s.expiresAt,
+          isWhitelistedYouTube: s.isWhitelistedYouTube,
+          role: s.role
+        };
+      }
+      return null;
+    }
     try {
       const raw = localStorage.getItem("portfolio_telegram_user");
       if (!raw) return null;
@@ -1014,6 +1040,9 @@ window.PORTFOLIO_DB = {
   },
 
   logoutTelegramUser() {
+    if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.logout === "function") {
+      return window.PORTFOLIO_AUTH.logout();
+    }
     try {
       localStorage.removeItem("portfolio_telegram_user");
       localStorage.removeItem("portfolio_user_telegram");
@@ -1248,6 +1277,704 @@ window.PORTFOLIO_DB = {
     return target;
   }
 };
+
+// =========================================================================
+// UNIFIED PORTFOLIO AUTHENTICATION & SUSTAINABILITY ENGINE
+// Integrates Telegram Login Widget (@SauravPandeyBot), Whitelisting, and 7-Day Sustainability
+// =========================================================================
+window.PORTFOLIO_AUTH = {
+  BOT_USERNAME: "SauravPandeyBot",
+  BOT_TOKEN: "7044498519:AAFC_b4HTDBmRMCfg-DBjzeyLbiWLAFSn00",
+  STORAGE_SESSION_KEY: "portfolio_unified_session",
+  RETENTION_MS: 7 * 24 * 60 * 60 * 1000,
+
+  // Cryptographically verify Telegram Widget HMAC-SHA256 signature using Web Crypto API
+  async verifyTelegramWidgetAuth(authData) {
+    if (!authData || !authData.hash || !this.BOT_TOKEN) return false;
+    try {
+      const { hash, ...fields } = authData;
+      const checkString = Object.keys(fields)
+        .sort()
+        .map(key => `${key}=${fields[key]}`)
+        .join("\n");
+
+      const enc = new TextEncoder();
+      const tokenHash = await window.crypto.subtle.digest("SHA-256", enc.encode(this.BOT_TOKEN));
+      const cryptoKey = await window.crypto.subtle.importKey(
+        "raw",
+        tokenHash,
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+      );
+      const signature = await window.crypto.subtle.sign("HMAC", cryptoKey, enc.encode(checkString));
+      const hexSignature = Array.from(new Uint8Array(signature))
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      if (hexSignature.length !== hash.length) return false;
+      let diff = 0;
+      for (let i = 0; i < hexSignature.length; i++) {
+        diff |= hexSignature.charCodeAt(i) ^ hash.charCodeAt(i);
+      }
+      return diff === 0;
+    } catch (e) {
+      console.warn("HMAC verification warning:", e);
+      return false;
+    }
+  },
+
+  getSession() {
+    try {
+      const raw = localStorage.getItem(this.STORAGE_SESSION_KEY);
+      if (!raw) {
+        // Backward-compatibility fallback
+        const tgRaw = localStorage.getItem("portfolio_telegram_user");
+        if (tgRaw) {
+          const parsed = JSON.parse(tgRaw);
+          if (parsed && parsed.telegramId) {
+            const now = Date.now();
+            if (parsed.expiresAt && parsed.expiresAt < now) {
+              this.logout();
+              return null;
+            }
+            const daysRemaining = Math.max(0, Math.ceil(((parsed.expiresAt || (now + this.RETENTION_MS)) - now) / (24 * 60 * 60 * 1000)));
+            return {
+              type: "telegram",
+              telegramId: parsed.telegramId,
+              username: parsed.telegramId.replace(/^@/, ""),
+              displayName: parsed.displayName || parsed.telegramId,
+              isVerifiedTelegram: true,
+              isWhitelistedYouTube: false,
+              role: "Community Member",
+              lastLogin: parsed.lastLogin || now,
+              expiresAt: parsed.expiresAt || (now + this.RETENTION_MS),
+              daysRemaining
+            };
+          }
+        }
+        return null;
+      }
+
+      const session = JSON.parse(raw);
+      const now = Date.now();
+
+      // Check strict 7-day sustainability expiration
+      if (session.expiresAt && session.expiresAt < now) {
+        this.logout();
+        if (window.PORTFOLIO_DB && typeof window.PORTFOLIO_DB.purgeInactiveTelegramData === "function") {
+          window.PORTFOLIO_DB.purgeInactiveTelegramData().catch(() => {});
+        }
+        return null;
+      }
+
+      const daysRemaining = Math.max(0, Math.ceil(((session.expiresAt || (now + this.RETENTION_MS)) - now) / (24 * 60 * 60 * 1000)));
+      return {
+        ...session,
+        daysRemaining
+      };
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async loginWithTelegram(telegramHandle, displayName = "", authData = null) {
+    if (!telegramHandle || typeof telegramHandle !== "string") {
+      return { success: false, reason: "Valid Telegram handle is required." };
+    }
+
+    const rawClean = telegramHandle.trim();
+    const cleanId = rawClean.startsWith("@") ? rawClean : "@" + rawClean;
+    const cleanName = (displayName && displayName.trim()) 
+      ? displayName.trim().slice(0, 32) 
+      : cleanId;
+
+    let isCryptographicallyVerified = false;
+    if (authData && authData.hash) {
+      isCryptographicallyVerified = await this.verifyTelegramWidgetAuth(authData);
+    }
+
+    const now = Date.now();
+    const expiresAt = now + this.RETENTION_MS;
+
+    // Check YouTube Whitelist
+    let isWhitelisted = false;
+    let whitelistRole = "Friend";
+    if (window.PORTFOLIO_DB) {
+      const wlCheck = await window.PORTFOLIO_DB.isWhitelistedForYouTube(cleanId);
+      if (wlCheck && wlCheck.whitelisted) {
+        isWhitelisted = true;
+        whitelistRole = wlCheck.entry.role || "Whitelisted Friend";
+      }
+    }
+
+    // Owner check (Saurav)
+    const isOwner = cleanId.toLowerCase() === "@5auravpandey" || cleanId.toLowerCase() === "saurav";
+    if (isOwner) {
+      isWhitelisted = true;
+      whitelistRole = "Owner / Host";
+    }
+
+    const session = {
+      type: "telegram",
+      telegramId: cleanId,
+      username: cleanId.replace(/^@/, ""),
+      displayName: cleanName,
+      isVerifiedTelegram: true,
+      isCryptographicallyVerified,
+      isWhitelistedYouTube: isWhitelisted,
+      isOwner,
+      role: whitelistRole,
+      lastLogin: now,
+      expiresAt: expiresAt,
+      daysRemaining: 7
+    };
+
+    this.saveSession(session);
+
+    // Refresh scores sustainability
+    if (window.PORTFOLIO_DB) {
+      window.PORTFOLIO_DB.reverifyTelegramScore(cleanId).catch(() => {});
+    }
+
+    this.emitAuthChanged(session);
+
+    return {
+      success: true,
+      session
+    };
+  },
+
+  async loginWithFriendCredentials(username, password, displayName = "") {
+    if (!window.PORTFOLIO_DB) {
+      return { success: false, reason: "Database initializing..." };
+    }
+    const check = await window.PORTFOLIO_DB.verifyFriendCredentials(username, password);
+    if (!check.valid) {
+      return { success: false, reason: check.reason || "Invalid Friend ID or Password." };
+    }
+
+    const friend = check.friend;
+    const finalName = (displayName && displayName.trim())
+      ? displayName.trim().slice(0, 32)
+      : (friend.name || friend.username);
+
+    const now = Date.now();
+    const expiresAt = now + this.RETENTION_MS;
+
+    // Check YouTube Whitelist
+    const wlCheck = await window.PORTFOLIO_DB.isWhitelistedForYouTube(friend.username);
+    const isWhitelisted = wlCheck.whitelisted || true;
+
+    const session = {
+      type: "friend",
+      telegramId: friend.username.startsWith("@") ? friend.username : `@${friend.username}`,
+      username: friend.username,
+      displayName: finalName,
+      isVerifiedTelegram: false,
+      isWhitelistedYouTube: isWhitelisted,
+      isOwner: friend.username.toLowerCase() === "saurav",
+      role: friend.role || "Friend",
+      lastLogin: now,
+      expiresAt: expiresAt,
+      daysRemaining: 7
+    };
+
+    this.saveSession(session);
+    this.emitAuthChanged(session);
+
+    return {
+      success: true,
+      session
+    };
+  },
+
+  async renewSession() {
+    const session = this.getSession();
+    if (!session) return { success: false, reason: "No active session to renew." };
+
+    const now = Date.now();
+    session.lastLogin = now;
+    session.expiresAt = now + this.RETENTION_MS;
+    session.daysRemaining = 7;
+
+    this.saveSession(session);
+
+    if (window.PORTFOLIO_DB && session.telegramId) {
+      await window.PORTFOLIO_DB.reverifyTelegramScore(session.telegramId);
+    }
+
+    this.emitAuthChanged(session);
+    return { success: true, session, daysRemaining: 7 };
+  },
+
+  logout() {
+    try {
+      localStorage.removeItem(this.STORAGE_SESSION_KEY);
+      localStorage.removeItem("portfolio_telegram_user");
+      localStorage.removeItem("portfolio_user_telegram");
+      localStorage.removeItem("portfolio_friend_authenticated");
+      localStorage.removeItem("portfolio_friend_username");
+      localStorage.removeItem("portfolio_friend_name");
+      localStorage.removeItem("portfolio_friend_role");
+    } catch (e) {}
+
+    this.emitAuthChanged(null);
+    return true;
+  },
+
+  saveSession(session) {
+    try {
+      localStorage.setItem(this.STORAGE_SESSION_KEY, JSON.stringify(session));
+      if (session.telegramId) {
+        localStorage.setItem("portfolio_telegram_user", JSON.stringify({
+          telegramId: session.telegramId,
+          displayName: session.displayName,
+          lastLogin: session.lastLogin,
+          expiresAt: session.expiresAt
+        }));
+        localStorage.setItem("portfolio_user_telegram", session.telegramId);
+      }
+      if (session.displayName) {
+        localStorage.setItem("portfolio_friend_name", session.displayName);
+      }
+      if (session.isWhitelistedYouTube) {
+        localStorage.setItem("portfolio_friend_authenticated", "true");
+        localStorage.setItem("portfolio_friend_username", session.username || session.telegramId);
+        localStorage.setItem("portfolio_friend_role", session.role || "Whitelisted Friend");
+      }
+    } catch (e) {}
+  },
+
+  emitAuthChanged(session) {
+    window.dispatchEvent(new CustomEvent("portfolio:auth-changed", { detail: session }));
+  },
+
+  openLoginDialog(context = "general") {
+    const dialog = document.getElementById("unified-login-dialog");
+    if (!dialog) return;
+
+    this.renderDialogContent(context);
+    try {
+      if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+      } else {
+        dialog.style.display = "block";
+      }
+    } catch (e) {
+      dialog.style.display = "block";
+    }
+
+    this.bindDialogEvents();
+  },
+
+  closeLoginDialog() {
+    const dialog = document.getElementById("unified-login-dialog");
+    if (!dialog) return;
+    try {
+      if (typeof dialog.close === "function") {
+        dialog.close();
+      } else {
+        dialog.style.display = "none";
+      }
+    } catch (e) {
+      dialog.style.display = "none";
+    }
+  },
+
+  renderDialogContent(context = "general") {
+    const body = document.getElementById("unified-auth-body");
+    if (!body) return;
+
+    const session = this.getSession();
+    const escape = (str) => {
+      if (!str) return "";
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    };
+
+    if (session) {
+      // User is LOGGED IN -> Show Profile, Sustainability Timer, and Whitelist Status
+      body.innerHTML = `
+        <div class="auth-session-view">
+          <div class="auth-profile-card">
+            <div class="auth-profile-avatar">✈️</div>
+            <div class="auth-profile-meta">
+              <h4 class="auth-profile-name">${escape(session.displayName)}</h4>
+              <span class="auth-profile-handle">${escape(session.telegramId || session.username)}</span>
+              <span class="auth-role-tag">${escape(session.role || "Community Member")}</span>
+            </div>
+          </div>
+
+          <!-- 7-Day Sustainability Gauge -->
+          <div class="auth-status-card sustainability">
+            <div class="auth-status-head">
+              <span class="status-icon">⏳</span>
+              <strong>7-Day Data Sustainability</strong>
+              <span class="status-badge ${session.daysRemaining <= 2 ? 'warning' : 'ok'}">${session.daysRemaining} Days Left</span>
+            </div>
+            <p class="auth-status-desc">
+              Your Dev Arcade high scores are sustained for 7 days. Re-verify before the timer hits 0 to prevent unnotified automatic purging.
+            </p>
+            <div class="auth-status-actions">
+              <button type="button" id="btn-dialog-renew-session" class="btn-primary-action" style="font-size: 13px; padding: 7px 14px;">
+                🔄 Renew 7-Day Window
+              </button>
+            </div>
+          </div>
+
+          <!-- YouTube Whitelist Status -->
+          <div class="auth-status-card ${session.isWhitelistedYouTube ? 'unlocked' : 'locked'}">
+            <div class="auth-status-head">
+              <span class="status-icon">${session.isWhitelistedYouTube ? '🎧' : '🔒'}</span>
+              <strong>YouTube Focus Audio &amp; Study Rooms</strong>
+              <span class="status-badge ${session.isWhitelistedYouTube ? 'ok' : 'muted'}">
+                ${session.isWhitelistedYouTube ? 'Whitelisted (Permanent)' : 'Whitelist Required'}
+              </span>
+            </div>
+            <p class="auth-status-desc">
+              ${session.isWhitelistedYouTube 
+                ? 'Your handle is whitelisted by Saurav! You have permanent unlocked access to synchronized YouTube audio streams and private study rooms with zero expiration time.' 
+                : 'Synchronized YouTube streams and collaborative rooms are reserved for whitelisted handles. Request Saurav to whitelist your handle from his Admin Studio (<code>myspace</code>).'}
+            </p>
+            ${!session.isWhitelistedYouTube ? `
+              <div class="auth-status-actions" style="gap: 8px;">
+                <a href="https://t.me/sauravpandey" target="_blank" rel="noopener noreferrer" class="btn-secondary-action" style="font-size: 12.5px; padding: 6px 12px; text-decoration: none;">
+                  ✈️ Request on Telegram (@sauravpandey)
+                </a>
+                <button type="button" id="btn-dialog-recheck-whitelist" class="btn-primary-action" style="font-size: 12.5px; padding: 6px 12px;">
+                  ⚡ Re-Check Whitelist
+                </button>
+              </div>
+            ` : ''}
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule);">
+            <button type="button" id="btn-dialog-logout" class="btn-danger-outline" style="font-size: 12.5px; padding: 6px 12px;">
+              🚪 Log Out
+            </button>
+            <button type="button" id="btn-dialog-done" class="btn-secondary-action" style="font-size: 12.5px; padding: 6px 14px;">
+              Close
+            </button>
+          </div>
+        </div>
+      `;
+    } else {
+      // User is LOGGED OUT -> Show Unified Login Interface
+      const isYoutubeContext = context === "youtube";
+      body.innerHTML = `
+        <div class="auth-login-view">
+          <p class="auth-lead-text">
+            ${isYoutubeContext 
+              ? 'Connect your Telegram account to verify your YouTube whitelist status. Whitelisted access has NO expiration time.' 
+              : 'Log in with Telegram to record your arcade high scores for 7 days and unlock whitelisted YouTube focus features.'}
+          </p>
+
+          <!-- Sustainability & Whitelist Notice -->
+          <div class="auth-tos-box">
+            <strong style="color: #d97706; display: block; margin-bottom: 2px;">⚠️ 7-Day Sustainability &amp; Whitelist Notice:</strong>
+            <span>Arcade scores are retained for <strong>7 days</strong> and will be purged without notice if inactive for 7 days. YouTube streams require handle whitelisting by Saurav (permanent, no expiry). Melodic audio is 100% free with zero login!</span>
+          </div>
+
+          <!-- Auth Tabs -->
+          <div class="auth-tabs-row" role="tablist">
+            <button type="button" id="tab-btn-telegram" class="auth-tab-btn active" role="tab" aria-selected="true">
+              ✈️ Telegram Login (Recommended)
+            </button>
+            <button type="button" id="tab-btn-credentials" class="auth-tab-btn" role="tab" aria-selected="false">
+              🔑 Friend Passcode / ID
+            </button>
+          </div>
+
+          <!-- Tab Content: Telegram -->
+          <div id="tab-content-telegram" class="auth-tab-panel active">
+            <div class="auth-widget-container">
+              <div style="font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; margin-bottom: 8px;">
+                Official 1-Click Login via @SauravPandeyBot:
+              </div>
+              <div id="unified-tg-widget-mount" style="display: flex; justify-content: center; align-items: center; min-height: 42px;">
+                <span style="font-size: 12px; color: var(--muted);">Loading Telegram Widget...</span>
+              </div>
+            </div>
+
+            <div class="auth-divider">
+              <span>OR ENTER TELEGRAM HANDLE</span>
+            </div>
+
+            <form id="unified-tg-form" class="auth-form">
+              <div>
+                <label for="unified-input-handle">Telegram Handle (@username):</label>
+                <input type="text" id="unified-input-handle" class="focus-input" placeholder="@your_handle" required style="font-family: var(--mono);" maxlength="32" autocomplete="username">
+              </div>
+              <div>
+                <label for="unified-input-name">Display Name (Optional):</label>
+                <input type="text" id="unified-input-name" class="focus-input" placeholder="e.g. Aman K. or Saurav" maxlength="32">
+              </div>
+              <label class="auth-checkbox-label">
+                <input type="checkbox" id="unified-tg-tos" required>
+                <span>I accept the 7-day sustainability policy &amp; unnotified score purge after 7 days of inactivity.</span>
+              </label>
+              <div id="unified-tg-error" class="auth-error-msg" style="display: none;"></div>
+              <button type="submit" id="btn-submit-unified-tg" class="btn-primary-action" style="padding: 10px; width: 100%; font-weight: 600;">
+                ✈️ Connect &amp; Verify Access
+              </button>
+            </form>
+          </div>
+
+          <!-- Tab Content: Friend Passcode -->
+          <div id="tab-content-credentials" class="auth-tab-panel" style="display: none;">
+            <p style="font-size: 13px; color: var(--muted); margin: 0 0 12px;">
+              For friends issued a direct Friend ID + Password or Master Pass from Saurav:
+            </p>
+            <form id="unified-friend-form" class="auth-form">
+              <div>
+                <label for="unified-friend-id">Friend Username / ID:</label>
+                <input type="text" id="unified-friend-id" class="focus-input" placeholder="e.g. aman, hal-friend, rohan..." required style="font-family: var(--mono);" maxlength="32">
+              </div>
+              <div>
+                <label for="unified-friend-pass">Passcode / Password:</label>
+                <input type="password" id="unified-friend-pass" class="focus-input" placeholder="Enter issued pass" required style="font-family: var(--mono);" maxlength="32">
+              </div>
+              <div>
+                <label for="unified-friend-name">Display Name (Optional):</label>
+                <input type="text" id="unified-friend-name" class="focus-input" placeholder="Your name or nickname" maxlength="32">
+              </div>
+              <div id="unified-friend-error" class="auth-error-msg" style="display: none;"></div>
+              <button type="submit" id="btn-submit-unified-friend" class="btn-primary-action" style="padding: 10px; width: 100%; font-weight: 600;">
+                🔓 Authenticate Friend Pass
+              </button>
+            </form>
+          </div>
+        </div>
+      `;
+
+      this.injectTelegramWidget();
+    }
+  },
+
+  injectTelegramWidget() {
+    const mount = document.getElementById("unified-tg-widget-mount");
+    if (!mount) return;
+    mount.innerHTML = "";
+    try {
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = "https://telegram.org/js/telegram-widget.js?22";
+      script.setAttribute("data-telegram-login", this.BOT_USERNAME);
+      script.setAttribute("data-size", "large");
+      script.setAttribute("data-radius", "8");
+      script.setAttribute("data-onauth", "onTelegramAuth(user)");
+      script.setAttribute("data-request-access", "write");
+      mount.appendChild(script);
+    } catch (e) {
+      mount.innerHTML = '<span style="font-size: 12px; color: var(--muted);">Use manual handle entry below</span>';
+    }
+  },
+
+  bindDialogEvents() {
+    const dialog = document.getElementById("unified-login-dialog");
+    const closeBtn = document.getElementById("unified-dialog-close");
+    const doneBtn = document.getElementById("btn-dialog-done");
+
+    const doClose = () => this.closeLoginDialog();
+    if (closeBtn) closeBtn.onclick = doClose;
+    if (doneBtn) doneBtn.onclick = doClose;
+
+    // Tabs switching
+    const tabTg = document.getElementById("tab-btn-telegram");
+    const tabCred = document.getElementById("tab-btn-credentials");
+    const panelTg = document.getElementById("tab-content-telegram");
+    const panelCred = document.getElementById("tab-content-credentials");
+
+    if (tabTg && tabCred && panelTg && panelCred) {
+      tabTg.onclick = () => {
+        tabTg.classList.add("active");
+        tabTg.setAttribute("aria-selected", "true");
+        tabCred.classList.remove("active");
+        tabCred.setAttribute("aria-selected", "false");
+        panelTg.style.display = "block";
+        panelCred.style.display = "none";
+      };
+      tabCred.onclick = () => {
+        tabCred.classList.add("active");
+        tabCred.setAttribute("aria-selected", "true");
+        tabTg.classList.remove("active");
+        tabTg.setAttribute("aria-selected", "false");
+        panelCred.style.display = "block";
+        panelTg.style.display = "none";
+      };
+    }
+
+    // Manual Telegram Form Submit
+    const tgForm = document.getElementById("unified-tg-form");
+    if (tgForm) {
+      tgForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const handleInput = document.getElementById("unified-input-handle");
+        const nameInput = document.getElementById("unified-input-name");
+        const errEl = document.getElementById("unified-tg-error");
+        const submitBtn = document.getElementById("btn-submit-unified-tg");
+
+        const handle = handleInput ? handleInput.value.trim() : "";
+        const name = nameInput ? nameInput.value.trim() : "";
+
+        if (!handle) {
+          if (errEl) {
+            errEl.textContent = "Please enter your Telegram handle.";
+            errEl.style.display = "block";
+          }
+          return;
+        }
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Connecting...";
+        }
+
+        const res = await this.loginWithTelegram(handle, name);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "✈️ Connect & Verify Access";
+        }
+
+        if (res.success) {
+          if (typeof showToast === "function") {
+            const wlText = res.session.isWhitelistedYouTube ? " • YouTube Unlocked!" : "";
+            showToast(`Connected as ${res.session.telegramId} (7-day retention active${wlText})`);
+          }
+          this.renderDialogContent();
+          this.bindDialogEvents();
+        } else {
+          if (errEl) {
+            errEl.textContent = res.reason || "Login failed.";
+            errEl.style.display = "block";
+          }
+        }
+      };
+    }
+
+    // Friend Credentials Form Submit
+    const friendForm = document.getElementById("unified-friend-form");
+    if (friendForm) {
+      friendForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const idInput = document.getElementById("unified-friend-id");
+        const passInput = document.getElementById("unified-friend-pass");
+        const nameInput = document.getElementById("unified-friend-name");
+        const errEl = document.getElementById("unified-friend-error");
+        const submitBtn = document.getElementById("btn-submit-unified-friend");
+
+        const id = idInput ? idInput.value.trim() : "";
+        const pass = passInput ? passInput.value.trim() : "";
+        const name = nameInput ? nameInput.value.trim() : "";
+
+        if (!id || !pass) {
+          if (errEl) {
+            errEl.textContent = "Please enter both Friend ID and Passcode.";
+            errEl.style.display = "block";
+          }
+          return;
+        }
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Authenticating...";
+        }
+
+        const res = await this.loginWithFriendCredentials(id, pass, name);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "🔓 Authenticate Friend Pass";
+        }
+
+        if (res.success) {
+          if (typeof showToast === "function") {
+            showToast(`Welcome ${res.session.displayName}! Friend pass verified.`);
+          }
+          this.renderDialogContent();
+          this.bindDialogEvents();
+        } else {
+          if (errEl) {
+            errEl.textContent = res.reason || "Invalid credentials.";
+            errEl.style.display = "block";
+          }
+        }
+      };
+    }
+
+    // Logged-in actions
+    const renewBtn = document.getElementById("btn-dialog-renew-session");
+    if (renewBtn) {
+      renewBtn.onclick = async () => {
+        const res = await this.renewSession();
+        if (res.success) {
+          if (typeof showToast === "function") {
+            showToast("Sustainability timer renewed! 7 full days restored.");
+          }
+          this.renderDialogContent();
+          this.bindDialogEvents();
+        }
+      };
+    }
+
+    const recheckWlBtn = document.getElementById("btn-dialog-recheck-whitelist");
+    if (recheckWlBtn) {
+      recheckWlBtn.onclick = async () => {
+        const session = this.getSession();
+        if (session && window.PORTFOLIO_DB) {
+          const wl = await window.PORTFOLIO_DB.isWhitelistedForYouTube(session.telegramId);
+          if (wl.whitelisted) {
+            session.isWhitelistedYouTube = true;
+            session.role = wl.entry.role || "Whitelisted Friend";
+            this.saveSession(session);
+            this.emitAuthChanged(session);
+            if (typeof showToast === "function") {
+              showToast("🎉 Congratulations! Your handle is whitelisted for YouTube.");
+            }
+          } else {
+            if (typeof showToast === "function") {
+              showToast("Not whitelisted yet. Please ask Saurav to whitelist your handle.");
+            }
+          }
+          this.renderDialogContent();
+          this.bindDialogEvents();
+        }
+      };
+    }
+
+    const logoutBtn = document.getElementById("btn-dialog-logout");
+    if (logoutBtn) {
+      logoutBtn.onclick = () => {
+        this.logout();
+        if (typeof showToast === "function") {
+          showToast("Logged out successfully.");
+        }
+        this.renderDialogContent();
+        this.bindDialogEvents();
+      };
+    }
+  }
+};
+
+// Global callback for Telegram Login Widget (@SauravPandeyBot)
+window.onTelegramAuth = async function(user) {
+  if (!user) return;
+  const rawUsername = user.username ? user.username.replace(/^@/, "") : "";
+  const handle = rawUsername ? `@${rawUsername}` : `@id_${user.id}`;
+  const displayName = [user.first_name, user.last_name].filter(Boolean).join(" ") || handle;
+
+  if (window.PORTFOLIO_AUTH) {
+    const res = await window.PORTFOLIO_AUTH.loginWithTelegram(handle, displayName, user);
+    if (res && res.success) {
+      window.PORTFOLIO_AUTH.closeLoginDialog();
+      if (typeof showToast === "function") {
+        const wl = res.session.isWhitelistedYouTube ? " • YouTube Unlocked!" : "";
+        showToast(`Connected via Telegram: ${handle} (7-day retention active${wl})`);
+      }
+    }
+  }
+};
+
+window.PORTFOLIO_DB.auth = window.PORTFOLIO_AUTH;
 
 // Auto-initialize database on document load
 if (typeof document !== "undefined") {

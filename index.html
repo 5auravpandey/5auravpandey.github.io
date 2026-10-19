@@ -101,6 +101,11 @@
           <span class="cmd-label">K</span>
         </button>
 
+        <button id="btn-global-auth" class="btn-auth-pill" type="button" aria-label="Account Login" title="Unified Account Center & Telegram Login">
+          <span class="auth-icon">✈️</span>
+          <span class="auth-label" id="global-auth-label">Login</span>
+        </button>
+
         <button id="theme-toggle-btn" class="btn-theme-toggle" type="button" aria-pressed="false" title="Toggle color theme">
           <span class="theme-icon">🌙</span>
           <span class="theme-text">Dark</span>
@@ -187,6 +192,13 @@
           <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
       </nav>
+
+      <!-- Unified Account & Telegram Auth Strip -->
+      <div style="padding: 12px 16px 4px;">
+        <button type="button" id="btn-mobile-auth" class="btn-mobile-auth-pill">
+          <span id="mobile-auth-label">✈️ Connect Telegram / Account</span>
+        </button>
+      </div>
 
       <!-- Direct Social / Action Bar -->
       <div class="dropdown-social-strip">
@@ -472,6 +484,25 @@
       <a href="#" target="_blank" rel="noopener noreferrer" class="btn-social-share twitter">
         Twitter / X
       </a>
+    </div>
+  </dialog>
+
+  <!-- Unified Portfolio Account & Sustainability Dialog -->
+  <dialog id="unified-login-dialog" class="unified-auth-dialog" closedby="any" aria-labelledby="unified-auth-title">
+    <div class="dialog-inner unified-auth-inner">
+      <header class="dialog-header">
+        <div class="dialog-header-info">
+          <span class="dialog-badge" style="background-color: var(--accent-soft); color: var(--accent);">
+            Unified Auth &bull; @SauravPandeyBot
+          </span>
+          <h3 class="dialog-title" id="unified-auth-title">Portfolio Account &amp; Access</h3>
+        </div>
+        <button type="button" class="dialog-close" id="unified-dialog-close" aria-label="Close dialog">✕</button>
+      </header>
+
+      <div class="dialog-content" id="unified-auth-body">
+        <!-- Dynamically populated via PORTFOLIO_AUTH -->
+      </div>
     </div>
   </dialog>
 
