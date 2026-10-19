@@ -203,14 +203,14 @@ function initTheme() {
     root.setAttribute("data-theme", theme);
     const isDark = theme === "dark";
     if (themeBtn) {
-      themeBtn.innerHTML = `<span class="theme-icon">${isDark ? "☀️" : "🌙"}</span><span class="theme-text">${isDark ? "Light" : "Dark"}</span>`;
+      themeBtn.innerHTML = `<span class="theme-icon">${isDark ? "🛡️" : "⚔️"}</span><span class="theme-text">${isDark ? "Wall Rose" : "Survey Corps"}</span>`;
       themeBtn.setAttribute("aria-pressed", isDark);
-      themeBtn.setAttribute("title", isDark ? "Switch to Light mode" : "Switch to Dark mode");
+      themeBtn.setAttribute("title", isDark ? "Switch to Wall Rose (Expedition Day)" : "Switch to Survey Corps (Night Raid)");
     }
     if (mobileThemeBtn) {
-      mobileThemeBtn.innerHTML = `<span class="mobile-theme-icon">${isDark ? "☀️" : "🌙"}</span>`;
-      mobileThemeBtn.setAttribute("aria-label", isDark ? "Switch to Light mode" : "Switch to Dark mode");
-      mobileThemeBtn.setAttribute("title", isDark ? "Switch to Light mode" : "Switch to Dark mode");
+      mobileThemeBtn.innerHTML = `<span class="mobile-theme-icon">${isDark ? "🛡️" : "⚔️"}</span>`;
+      mobileThemeBtn.setAttribute("aria-label", isDark ? "Switch to Wall Rose mode" : "Switch to Survey Corps mode");
+      mobileThemeBtn.setAttribute("title", isDark ? "Switch to Wall Rose mode" : "Switch to Survey Corps mode");
     }
     if (metaTheme) {
       metaTheme.setAttribute("content", isDark ? "#121214" : "#ffffff");

@@ -169,7 +169,7 @@ window.PORTFOLIO_PLAYGROUND = {
 
       if (params.has("sound")) {
         const s = params.get("sound");
-        if (["genshin", "sky", "krishna"].includes(s)) {
+        if (["genshin", "sky", "krishna", "aot"].includes(s)) {
           this.soundscape = s;
         }
       }
@@ -320,6 +320,7 @@ window.PORTFOLIO_PLAYGROUND = {
                 <div class="soundscape-selector">
                   <label for="soundscape-select" style="font-family: var(--mono); font-size: 12.5px; color: var(--muted);">Soundscape:</label>
                   <select id="soundscape-select" class="focus-input" style="padding: 4px 8px; font-size: 13.5px; width: auto;">
+                    <option value="aot" ${this.soundscape === 'aot' ? 'selected' : ''}>⚔️ Attack on Titan (Survey Corps Forest &amp; Distant Thunder)</option>
                     <option value="genshin" ${this.soundscape === 'genshin' ? 'selected' : ''}>🍃 Genshin Impact Melodies (Peaceful Mondstadt &amp; Liyue Breeze)</option>
                     <option value="sky" ${this.soundscape === 'sky' ? 'selected' : ''}>🕊️ Sky: Children of the Light Ambience (Celestial Cloud Echo)</option>
                     <option value="krishna" ${this.soundscape === 'krishna' ? 'selected' : ''}>🪈 Little Krishna Divine Flute (Vrindavan Bansuri &amp; River Murmur)</option>
@@ -345,6 +346,7 @@ window.PORTFOLIO_PLAYGROUND = {
                   </div>
                 </div>
                 <div class="youtube-presets">
+                  <button type="button" class="youtube-pill ${this.youtubePreset === 'aot-epic' ? 'active' : ''}" data-youtube="aot-epic">⚔️ AoT Symphonic OST</button>
                   <button type="button" class="youtube-pill ${this.youtubePreset === 'genshin-ost' ? 'active' : ''}" data-youtube="genshin-ost">🍃 Genshin Relaxing OST</button>
                   <button type="button" class="youtube-pill ${this.youtubePreset === 'sky-ost' ? 'active' : ''}" data-youtube="sky-ost">🕊️ Sky Children OST</button>
                   <button type="button" class="youtube-pill ${this.youtubePreset === 'krishna-flute' ? 'active' : ''}" data-youtube="krishna-flute">🪈 Little Krishna Divine Flute</button>
@@ -460,11 +462,11 @@ window.PORTFOLIO_PLAYGROUND = {
           </div>
 
           <div class="terminal-shortcuts">
+            <button type="button" class="term-pill" data-cmd="aot" style="border-color: rgba(16, 185, 129, 0.4); color: var(--accent);">⚔️ aot (scout)</button>
+            <button type="button" class="term-pill" data-cmd="sasageyo">心臓を捧げよ</button>
             <button type="button" class="term-pill" data-cmd="about">about</button>
             <button type="button" class="term-pill" data-cmd="hal">hal</button>
-            <button type="button" class="term-pill" data-cmd="research">research 🔬</button>
             <button type="button" class="term-pill" data-cmd="projects">projects</button>
-            <button type="button" class="term-pill" data-cmd="books">books</button>
             <button type="button" class="term-pill" data-cmd="games">games</button>
             <button type="button" class="term-pill" data-cmd="matrix">matrix 🌧️</button>
             <button type="button" class="term-pill" data-cmd="sudo hire">sudo hire 🚀</button>
@@ -532,6 +534,7 @@ window.PORTFOLIO_PLAYGROUND = {
 
   getYoutubeEmbedUrl() {
     const defaultIds = {
+      "aot-epic": "l9wZ0vMfZdE",
       "genshin-ost": "SO_B339kZ9k",
       "sky-ost": "P_Fv8_632e8",
       "krishna-flute": "0_Xv_uXz5m0",
@@ -1093,14 +1096,16 @@ window.PORTFOLIO_PLAYGROUND = {
       this.masterGain.connect(this.analyser);
       this.analyser.connect(this.audioCtx.destination);
 
-      if (this.soundscape === "genshin") {
+      if (this.soundscape === "aot") {
+        this.createSurveyCorpsSoundscape();
+      } else if (this.soundscape === "genshin") {
         this.createGenshinMelody();
       } else if (this.soundscape === "sky") {
         this.createSkyGameAmbience();
       } else if (this.soundscape === "krishna") {
         this.createLittleKrishnaFlute();
       } else {
-        this.createGenshinMelody();
+        this.createSurveyCorpsSoundscape();
       }
     } catch (e) {
       console.error("Audio error:", e);
@@ -1501,6 +1506,82 @@ window.PORTFOLIO_PLAYGROUND = {
     this.activeNodes.push(riverNoise, riverFilter, riverGain, fluteOsc, fluteOvertone, vibrato, vibratoGain, fluteFilter, fluteGain, fluteInterval);
   },
 
+  /**
+   * 4. ⚔️ Attack on Titan: Survey Corps Forest & Distant Thunder
+   * Giant forest wind, rhythmic galloping hooves cadence, and resonant epic minor chord pad
+   */
+  createSurveyCorpsSoundscape() {
+    if (!this.audioCtx) return;
+    const ctx = this.audioCtx;
+
+    // Giant Forest Canopy Wind (Deep filtered pink noise)
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      data[i] = (b0 + b1 + b2) * 0.12;
+    }
+    const windSource = ctx.createBufferSource();
+    windSource.buffer = buffer;
+    windSource.loop = true;
+
+    const windFilter = ctx.createBiquadFilter();
+    windFilter.type = "lowpass";
+    windFilter.frequency.value = 350;
+    windFilter.Q.value = 1.8;
+
+    // Gentle wind sweep LFO
+    const windLFO = ctx.createOscillator();
+    windLFO.frequency.value = 0.15;
+    const windLFOGain = ctx.createGain();
+    windLFOGain.gain.value = 180;
+    windLFO.connect(windLFOGain);
+    windLFOGain.connect(windFilter.frequency);
+    windLFO.start();
+
+    const windGain = ctx.createGain();
+    windGain.gain.value = 0.07;
+
+    windSource.connect(windFilter);
+    windFilter.connect(windGain);
+    windGain.connect(this.masterGain);
+    windSource.start();
+
+    // Epic Survey Corps Cinematic String Chord Pad (D minor / D - F - A - C)
+    const chordFreqs = [146.83, 174.61, 220.00, 261.63, 293.66]; // D3, F3, A3, C4, D4
+    const padNodes = [];
+
+    chordFreqs.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = 420 + idx * 80;
+      filter.Q.value = 3.0;
+
+      const gain = ctx.createGain();
+      gain.gain.value = 0.012;
+
+      // Detune for rich orchestral warmth
+      osc.detune.setValueAtTime((idx % 2 === 0 ? 1 : -1) * 6, ctx.currentTime);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start();
+      padNodes.push(osc, gain);
+    });
+
+    this.activeNodes.push(windSource, windGain, windLFO, ...padNodes);
+  },
+
   // --- CryptoLock Two-Way Encrypt & Decrypt ---
   runTwoWayCrypto(input, key) {
     const outEl = document.getElementById("crypto-output");
@@ -1695,6 +1776,47 @@ window.PORTFOLIO_PLAYGROUND = {
         } else {
           reply = "Usage: crypto [enc | dec] <key> <message>";
         }
+        break;
+
+      case "aot":
+      case "scout":
+      case "wings":
+      case "survey":
+        reply = 
+`╔══════════════════════════════════════════════════════════════╗
+║        ⚔️ SURVEY CORPS • SPECIAL OPERATIONS SQUAD (調査兵団)    ║
+║        Motto: 心臓を捧げよ (Shinzo wo Sasageyo!)             ║
+╚══════════════════════════════════════════════════════════════╝
+  \\  /    [WINGS OF FREEDOM • TACTICAL DOSSIER]
+   \\/     Regiment Cadet: Saurav Pandey (@5auravpandey)
+  /\\     Active Division: Avionics & Flight Systems (HAL Korwa)
+ /  \\    Base Location: Wall Rose (Gopalganj / Amethi)
+          Core Weapons: C++ Bitwise Engine, Java Servlets, Web3
+          Defense Architecture:
+           • Wall Maria: Distributed Databases & Bitwise Encryption
+           • Wall Rose: High-Performance Backend APIs & Node.js
+           • Wall Sina: Semantic UI & Decentralized Canisters
+          Command: Type 'sasageyo' or 'walls' to inspect readiness.`;
+        break;
+
+      case "sasageyo":
+      case "shinzowosasageyo":
+        reply = "⚔️ 心臓を捧げよ! (Dedicate Your Heart!)\nBeyond these walls lies freedom. Systems running at peak tactical combat readiness with zero runtime vulnerabilities.";
+        break;
+
+      case "walls":
+        reply = "🛡️ DEFENSE ARCHITECTURE OF HUMANITY:\n" +
+                "1. Wall Maria (Outer Layer): Low-level C++ CryptoLock, raw bitwise streams & binary persistence.\n" +
+                "2. Wall Rose (Middle Layer): Native Java Servlets, Node.js Express, and robust SQL databases.\n" +
+                "3. Wall Sina (Inner Sanctum): Modern responsive interfaces, Web3 smart contracts & cryptographic security.";
+        break;
+
+      case "levi":
+        reply = "⚔️ Captain Levi Ackerman: 'The only thing we're allowed to do is believe that we won't regret the choice we made.'\nKeep writing clean, uncompromising code.";
+        break;
+
+      case "eren":
+        reply = "⚡ Eren Yeager: 'If you win, you live. If you lose, you die. If you don't fight, you can't win. Tatakae (Fight)!'";
         break;
 
       case "about":
