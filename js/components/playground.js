@@ -274,9 +274,18 @@ window.PORTFOLIO_PLAYGROUND = {
             <button type="button" class="focus-mode-btn ${this.timerDuration === 15 * 60 ? 'active' : ''}" data-duration="900">15m Long Rest</button>
           </div>
 
-          <!-- Digital Clock Display -->
-          <div class="focus-clock-display" id="focus-clock">
-            ${minutes}:${seconds}
+          <!-- Digital Clock Card Display -->
+          <div class="focus-clock-card ${this.isRunning ? 'is-running' : ''}">
+            <div class="focus-clock-badge">
+              <span class="focus-clock-dot"></span>
+              <span>${this.timerDuration >= 1500 ? 'Deep Work Sprint' : 'Recovery Break'}</span>
+            </div>
+            <div class="focus-clock-display" id="focus-clock">
+              ${minutes}:${seconds}
+            </div>
+            <div class="focus-clock-progress-bar">
+              <div id="focus-clock-fill" class="focus-clock-progress-fill" style="width: ${Math.min(100, Math.max(0, Math.round(((this.timerDuration - this.timeLeft) / this.timerDuration) * 100)))}%;"></div>
+            </div>
           </div>
 
           <!-- Task Goal Row -->
@@ -286,10 +295,12 @@ window.PORTFOLIO_PLAYGROUND = {
 
           <!-- Controls -->
           <div class="focus-controls">
-            <button type="button" id="btn-timer-toggle" class="btn-primary-action">
-              ${this.isRunning ? "Pause" : "Start Sprint"}
+            <button type="button" id="btn-timer-toggle" class="btn-primary-action ${this.isRunning ? 'running' : ''}">
+              ${this.isRunning ? "⏸️ Pause Sprint" : "▶️ Start Sprint"}
             </button>
-            <button type="button" id="btn-timer-reset" class="btn-secondary-action">Reset</button>
+            <button type="button" id="btn-timer-reset" class="btn-secondary-action">
+              🔄 Reset
+            </button>
             <button type="button" id="btn-invite-friend" class="btn-ambient-action" title="Invite friends to study and sync audio together">
               👥 Invite Friends &amp; Sync
             </button>
@@ -1009,6 +1020,12 @@ window.PORTFOLIO_PLAYGROUND = {
     const minutes = Math.floor(this.timeLeft / 60).toString().padStart(2, "0");
     const seconds = (this.timeLeft % 60).toString().padStart(2, "0");
     el.textContent = `${minutes}:${seconds}`;
+
+    const fill = document.getElementById("focus-clock-fill");
+    if (fill && this.timerDuration > 0) {
+      const pct = Math.min(100, Math.max(0, Math.round(((this.timerDuration - this.timeLeft) / this.timerDuration) * 100)));
+      fill.style.width = `${pct}%`;
+    }
   },
 
   // Synchronized Study Room Invite Modal
