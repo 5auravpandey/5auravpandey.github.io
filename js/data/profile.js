@@ -17,24 +17,24 @@ window.PORTFOLIO_PROFILE = {
   perspectives: {
     engineer: {
       label: "⚡ Systems & Code",
-      role: "Full-Stack, Systems & Web3 Developer • 進撃のエンジニア",
-      tagline: "Building resilient web applications, low-level utilities, and decentralized Web3 systems beyond the walls.",
+      role: "Full-Stack, Systems & Web3 Developer",
+      tagline: "I like building practical web apps, low-level utilities, and experimenting with Web3.",
       bio: "Hey, I'm Saurav! I'm an MCA student at IIIT Ranchi and IIT Patna, and working as a Programming Assistant in the Avionics Department at HAL. I like understanding how software works from scratch — whether that's managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized apps on the Internet Computer.",
       keyPillars: [
-        { title: "Wall Maria: Systems & C++", desc: "Bitwise encryption engines, binary file streams, and memory handling." },
-        { title: "Wall Rose: Backend & Web", desc: "Native Java Servlets/JSP, Node.js, Express, and SQL databases." },
-        { title: "Wall Sina: Web3 & DApps", desc: "Smart contracts and decentralized canisters on the Internet Computer." }
+        { title: "Systems & C++", desc: "Bitwise encryption, binary file streams, and memory handling." },
+        { title: "Backend & Web", desc: "Java Servlets/JSP, Node.js, Express, and SQL databases." },
+        { title: "Web3 & DApps", desc: "Smart contracts and decentralized canisters on the Internet Computer." }
       ]
     },
     overview: {
-      label: "📜 Scout Story & Journey",
-      role: "MCA Student & Software Builder • 調査兵団",
-      tagline: "Studying computer science at IIIT Ranchi & IIT Patna, and writing software at HAL.",
+      label: "💡 Quick Overview",
+      role: "MCA Student & Software Builder",
+      tagline: "Learning computer science at IIIT Ranchi & IIT Patna, and writing code at HAL.",
       bio: "I'm a passionate computer science student from Gopalganj, Bihar. I enjoy building useful software, learning core engineering fundamentals, and solving practical problems with technology. Outside of programming, I love reading books, playing video games, and exploring tech.",
       keyPillars: [
-        { title: "HAL Avionics Experience", desc: "Programming Assistant in the Avionics Department at Hindustan Aeronautics Limited." },
-        { title: "MCA Scholar (IIIT & IIT)", desc: "Studying distributed systems and database architectures with IIIT Ranchi & IIT Patna." },
-        { title: "Personal Arsenal", desc: "Building hands-on projects across web systems, command tools, and Web3." }
+        { title: "HAL Experience", desc: "Programming Assistant at Hindustan Aeronautics Limited." },
+        { title: "MCA Student", desc: "Studying computer applications with IIIT Ranchi & IIT Patna." },
+        { title: "Personal Projects", desc: "Building hands-on projects across web, systems, and Web3." }
       ]
     }
   },

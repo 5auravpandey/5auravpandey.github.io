@@ -36,10 +36,10 @@
   <meta name="twitter:description" content="IT Intern at HAL • MCA student at IIIT Ranchi & IIT Patna. Building high-performance systems in Java, C++, and Web3.">
   <meta name="twitter:image" content="https://sauravpandey.me/assets/profile.jpg">
 
-  <!-- Typography: Cinzel (Epic AoT Roman Titles), Newsreader (Editorial Serif), IBM Plex Mono -->
+  <!-- Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
@@ -52,37 +52,21 @@
     <div class="nav-container">
       <div class="nav-brand-group">
         <a href="#top" class="nav-brand" aria-label="Saurav Pandey Home">
-          <!-- Survey Corps Wings of Freedom Emblem -->
-          <svg class="brand-logo-s aot-wings-nav" width="24" height="28" viewBox="0 0 48 56" aria-hidden="true" style="flex-shrink: 0; vertical-align: middle;">
-            <defs>
-              <linearGradient id="navShieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#1e293b"/>
-                <stop offset="100%" stop-color="#0f172a"/>
-              </linearGradient>
-              <linearGradient id="navBlueWing" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#3b82f6"/>
-                <stop offset="100%" stop-color="#1d4ed8"/>
-              </linearGradient>
-              <linearGradient id="navWhiteWing" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#ffffff"/>
-                <stop offset="100%" stop-color="#cbd5e1"/>
-              </linearGradient>
-            </defs>
-            <path d="M24 2 L45 7 L45 32 C45 44 24 53 24 53 C24 53 3 44 3 32 L3 7 Z" fill="url(#navShieldGrad)" stroke="#c5a059" stroke-width="2"/>
-            <path d="M24 5 L42 9.5 L42 31 C42 41.5 24 49.5 24 49.5 C24 49.5 6 41.5 6 31 L6 9.5 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="0.8"/>
-            <g fill="url(#navWhiteWing)" stroke="#334155" stroke-width="0.5">
-              <path d="M24 9 C19 11 11 14 8 21 C11 19 15 18 19 19 C16 21 13 25 10 28 C13 26 17 24 21 26 C17 28 14 33 12 37 C15 34 20 31 24 34 Z"/>
-            </g>
-            <g fill="url(#navBlueWing)" stroke="#1e293b" stroke-width="0.5">
-              <path d="M24 15 C29 17 37 20 40 27 C37 25 33 24 29 25 C32 27 35 31 38 34 C35 32 31 30 27 32 C31 34 34 39 36 43 C33 40 28 37 24 40 Z"/>
-            </g>
-            <circle cx="24" cy="7" r="1.5" fill="#eab308"/>
+          <svg class="brand-logo-s" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" style="flex-shrink: 0; vertical-align: middle;">
+            <rect width="32" height="32" rx="7" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-opacity="0.15" stroke-width="1.2" />
+            <path d="M21 11C21 8.5 18.8 7 16 7C13 7 11 8.5 11 11C11 14 14 15 16.2 15.8C18.8 16.8 21 17.8 21 21C21 23.8 18.8 25 16 25C12.8 25 10.8 23.2 10.8 20.5" 
+                  fill="none" 
+                  stroke="var(--accent)" 
+                  stroke-width="3.2" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" />
+            <circle cx="23" cy="9" r="2.2" fill="#22c55e" />
           </svg>
           <span class="brand-name">Saurav Pandey</span>
-          <span class="status-indicator aot-status-indicator" title="Survey Corps: Avionics Brigade (HAL) • Open to Work">
+          <span class="status-indicator" title="IT Intern at HAL • Open to Work">
             <span class="pulse-dot" aria-hidden="true"></span>
-            <span class="status-text-full">⚔️ Survey Corps • HAL Avionics • Open to Work</span>
-            <span class="status-text-compact">⚔️ HAL Avionics • Open to Work</span>
+            <span class="status-text-full">IT Intern at HAL • Open to Work</span>
+            <span class="status-text-compact">HAL Intern • Open to Work</span>
             <span class="status-text-short">HAL • Open to Work</span>
           </span>
         </a>
@@ -122,16 +106,16 @@
           <span class="auth-label" id="global-auth-label">Login</span>
         </button>
 
-        <button id="theme-toggle-btn" class="btn-theme-toggle" type="button" aria-pressed="false" title="Switch to Survey Corps (Night Raid)">
-          <span class="theme-icon">⚔️</span>
-          <span class="theme-text">Survey Corps</span>
+        <button id="theme-toggle-btn" class="btn-theme-toggle" type="button" aria-pressed="false" title="Toggle color theme">
+          <span class="theme-icon">🌙</span>
+          <span class="theme-text">Dark</span>
         </button>
       </div>
 
       <!-- Mobile Controls (Visible on mobile/tablet) -->
       <div class="mobile-controls">
-        <button id="mobile-theme-btn" class="btn-theme-toggle mobile-theme-icon-btn" type="button" aria-label="Toggle Survey Corps theme" title="Toggle Survey Corps theme">
-          <span class="mobile-theme-icon">⚔️</span>
+        <button id="mobile-theme-btn" class="btn-theme-toggle mobile-theme-icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+          <span class="mobile-theme-icon">🌙</span>
         </button>
 
         <button id="nav-dropdown-trigger" class="nav-dropdown-btn" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-dropdown">
@@ -236,57 +220,10 @@
     <header class="hero-section" id="about">
       <div class="hero-header">
         <div class="hero-main">
-          <div class="hero-tag aot-hero-badge">
-            <span class="aot-badge-crest">⚔️</span>
-            <span class="aot-badge-regiment">SURVEY CORPS • SPECIAL OPERATIONS SQUAD</span>
-            <span class="aot-badge-kanji">調査兵団</span>
-            <span class="aot-badge-sep">•</span>
-            <span style="color: var(--ok); font-weight: 600;">🟢 Open to Work</span>
-            <span class="aot-badge-sep">•</span>
-            <span>HAL Avionics Brigade</span>
-          </div>
-
-          <div class="aot-kanji-sub">進撃のエンジニア • THE ADVANCING ENGINEER</div>
+          <div class="hero-tag"><span style="color: var(--ok); font-weight: 600;">🟢 Open to Work</span> • Gopalganj, Bihar, India • MCA @ IIIT Ranchi & IIT Patna • IT Intern at HAL (Korwa, Amethi)</div>
           <h1 class="hero-title">Saurav Pandey</h1>
           <div class="hero-role" id="hero-role">Full-Stack, Systems & Web3 Developer</div>
           <div class="hero-subtitle" id="hero-subtitle">I like building practical web apps, low-level utilities, and experimenting with Web3.</div>
-
-          <!-- AoT Dedicate Your Heart Motto Banner -->
-          <div class="aot-motto-callout">
-            <div class="aot-motto-crest">
-              <svg width="42" height="48" viewBox="0 0 48 56" aria-hidden="true">
-                <defs>
-                  <linearGradient id="heroShieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#1e293b"/>
-                    <stop offset="100%" stop-color="#0f172a"/>
-                  </linearGradient>
-                  <linearGradient id="heroBlueWing" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#3b82f6"/>
-                    <stop offset="100%" stop-color="#1d4ed8"/>
-                  </linearGradient>
-                  <linearGradient id="heroWhiteWing" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#ffffff"/>
-                    <stop offset="100%" stop-color="#cbd5e1"/>
-                  </linearGradient>
-                </defs>
-                <path d="M24 2 L45 7 L45 32 C45 44 24 53 24 53 C24 53 3 44 3 32 L3 7 Z" fill="url(#heroShieldGrad)" stroke="#c5a059" stroke-width="2"/>
-                <path d="M24 5 L42 9.5 L42 31 C42 41.5 24 49.5 24 49.5 C24 49.5 6 41.5 6 31 L6 9.5 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="0.8"/>
-                <g fill="url(#heroWhiteWing)" stroke="#334155" stroke-width="0.6">
-                  <path d="M24 8 C19 10 11 13 8 20 C10 18 14 17 18 18 C15 20 12 24 9 27 C12 25 16 23 20 25 C16 27 13 32 11 36 C14 33 19 30 24 33 Z" />
-                </g>
-                <g fill="url(#heroBlueWing)" stroke="#1e293b" stroke-width="0.6">
-                  <path d="M24 14 C29 16 37 19 40 26 C38 24 34 23 30 24 C33 26 36 30 39 33 C36 31 32 29 28 31 C32 33 35 38 37 42 C34 39 29 36 24 39 Z" />
-                </g>
-                <line x1="24" y1="6" x2="24" y2="50" stroke="#c5a059" stroke-width="1.2" stroke-dasharray="2 1"/>
-                <circle cx="24" cy="7" r="1.6" fill="#eab308"/>
-              </svg>
-            </div>
-            <div class="aot-motto-text">
-              <span class="aot-motto-phrase">心臓を捧げよ • Dedicate Your Heart to Resilient Systems</span>
-              <span class="aot-motto-detail">MCA @ IIIT Ranchi &amp; IIT Patna • Avionics Department at HAL (Korwa, Amethi)</span>
-            </div>
-          </div>
-
           <p class="hero-lede" id="hero-bio">
             Hey, I'm Saurav! I'm an MCA student at IIIT Ranchi and IIT Patna, and working as a Programming Assistant in the Avionics Department at HAL. I like understanding how software works from scratch — whether that's managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized apps on the Internet Computer.
           </p>
@@ -303,8 +240,7 @@
     <section id="experience">
       <div class="section-head">
         <div>
-          <span class="aot-regiment-pill">⚔️ REGIMENT DIVISION: AVIONICS</span>
-          <h2 class="section-title">Work Experience (HAL Korwa)</h2>
+          <h2 class="section-title">Work Experience</h2>
           <p class="section-sub">Programming Assistant in the Avionics Department at Hindustan Aeronautics Limited (HAL).</p>
         </div>
       </div>
@@ -317,7 +253,6 @@
     <section id="projects">
       <div class="section-head">
         <div>
-          <span class="aot-regiment-pill">🗡️ SCOUT ARSENAL & SYSTEMS</span>
           <h2 class="section-title">Projects I've Built</h2>
           <p class="section-sub">Practical software from low-level C++ tools to Web3 DApps.</p>
         </div>
@@ -338,9 +273,8 @@
     <section id="playground">
       <div class="section-head">
         <div>
-          <span class="aot-regiment-pill">⚡ TITAN FORGE & LABORATORY</span>
           <h2 class="section-title">Interactive Dev Playground</h2>
-          <p class="section-sub">ODM Gear simulators, ambient tactical soundscapes, live cipher, terminal shell, and arcade games.</p>
+          <p class="section-sub">Focus timer, ambient audio soundscapes, live cipher, terminal shell, and arcade games.</p>
         </div>
       </div>
 
@@ -354,7 +288,6 @@
       <a id="shelf" style="position: absolute; pointer-events: none; opacity: 0;"></a>
       <div class="section-head">
         <div>
-          <span class="aot-regiment-pill">📜 THE WALL ARCHIVES</span>
           <h2 class="section-title">Archive & Curations</h2>
           <p class="section-sub">A personal collection of research papers, study notes, books, games, watched shows, and music playlists.</p>
         </div>
@@ -373,7 +306,6 @@
     <section id="skills">
       <div class="section-head">
         <div>
-          <span class="aot-regiment-pill">🛡️ THREE WALLS DEFENSE ARCHITECTURE</span>
           <h2 class="section-title">Technical Competencies & Stack Matrix</h2>
           <p class="section-sub">Select any technology below to inspect practical implementations and real project connections.</p>
         </div>
@@ -390,9 +322,8 @@
     <section id="education">
       <div class="section-head">
         <div>
-          <span class="aot-regiment-pill">🏛️ CADET CORPS ACADEMY</span>
           <h2 class="section-title">Academic Background</h2>
-          <p class="section-sub">Formal computer science education and coursework.</p>
+          <p class="section-sub">Formal education and coursework.</p>
         </div>
       </div>
 
@@ -409,7 +340,6 @@
     <section id="contact">
       <div class="section-head">
         <div>
-          <span class="aot-regiment-pill">🕊️ SCOUT DISPATCH SIGNAL</span>
           <h2 class="section-title">Contact & Say Hello</h2>
           <p class="section-sub">Feel free to reach out anytime for roles, ideas, or tech discussions.</p>
         </div>
@@ -463,9 +393,6 @@
 
     <!-- Footer -->
     <footer>
-      <p style="font-family: var(--font-title, serif); letter-spacing: 0.05em; font-size: 14px; margin-bottom: 6px;">
-        心臓を捧げよ • DEDICATE YOUR HEART • SURVEY CORPS ENGINEERING BRIGADE
-      </p>
       <p>Saurav Pandey • Handcrafted with Semantic HTML, CSS & Modern Vanilla JavaScript • Gopalganj, Bihar, India</p>
       <p style="font-size: 12px; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
         <span>Zero dependencies • Open source on <a href="https://github.com/5auravpandey/5auravpandey.github.io" target="_blank" rel="noopener noreferrer">GitHub</a></span>

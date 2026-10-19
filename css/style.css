@@ -5,29 +5,27 @@
  */
 
 :root {
-  /* Attack on Titan: Wall Rose / Expedition Day Theme (Parchment, Scout Emerald & Leather) */
-  --paper: #f4efe4;
-  --card: #fbf7ee;
+  --paper: #f6f3eb;
+  --card: #fcfaf4;
   --card-hover: #ffffff;
-  --ink: #1a1714;
-  --ink-secondary: #4a4135;
-  --muted: #6e6252;
-  --rule: #d8cdb7;
-  --rule-light: #e8e0cd;
-  --accent: #1b4332; /* Survey Corps Cloak Emerald */
-  --accent-soft: rgba(27, 67, 50, 0.09);
+  --ink: #1c1a17;
+  --ink-secondary: #5a544a;
+  --muted: #736c61;
+  --rule: #ded7c6;
+  --rule-light: #eae4d6;
+  --accent: #1d4ed8;
+  --accent-soft: rgba(29, 78, 216, 0.08);
   --accent-contrast: #ffffff;
-  --tint: #eae2d0;
-  --badge-bg: #ece4d4;
-  --hal-gold: #b45309; /* Eldian Military Gold */
-  --hal-bg: rgba(180, 83, 9, 0.1);
-  --ok: #1e6b37;
-  --ok-bg: rgba(30, 107, 55, 0.1);
-  --code-bg: #eae2d0;
-  --dialog-backdrop: rgba(20, 18, 14, 0.72);
+  --tint: #ebe5d5;
+  --badge-bg: #ece6d8;
+  --hal-gold: #92640e;
+  --hal-bg: rgba(146, 100, 14, 0.09);
+  --ok: #20723a;
+  --ok-bg: rgba(32, 114, 58, 0.1);
+  --code-bg: #ece6d8;
+  --dialog-backdrop: rgba(20, 18, 15, 0.65);
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 14px rgba(0,0,0,0.09);
-  --font-title: "Cinzel", "Newsreader", Georgia, serif;
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.08);
   --serif: "Newsreader", Georgia, "Times New Roman", serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -36,41 +34,30 @@
   --radius-lg: 12px;
   --transition-fast: 0.18s ease;
   --nav-height: 60px;
-  --scout-blue: #1d4ed8;
-  --scout-green: #1b4332;
-  --scout-white: #ffffff;
-  --titan-crimson: #991b1b;
-  --blade-steel: #64748b;
 }
 
 :root[data-theme="dark"] {
-  /* Attack on Titan: Survey Corps Night Raid / Wall Sina Theme (Obsidian, Titan Flare & Steel) */
-  --paper: #090e0c;
-  --card: #0f1814;
-  --card-hover: #16241d;
-  --ink: #eef4ed;
-  --ink-secondary: #9cb5a5;
-  --muted: #688072;
-  --rule: #1b2c22;
-  --rule-light: #14221a;
-  --accent: #10b981; /* Titan Flare Emerald Glow */
-  --accent-soft: rgba(16, 185, 129, 0.13);
-  --accent-contrast: #090e0c;
-  --tint: #142018;
-  --badge-bg: #15221b;
-  --hal-gold: #f59e0b; /* Titan Lightning / Founding Aura */
-  --hal-bg: rgba(245, 158, 11, 0.12);
-  --ok: #10b981;
-  --ok-bg: rgba(16, 185, 129, 0.13);
-  --code-bg: #131e18;
-  --dialog-backdrop: rgba(4, 8, 6, 0.88);
-  --shadow-sm: 0 1px 4px rgba(0,0,0,0.4);
-  --shadow-md: 0 6px 20px rgba(0,0,0,0.5);
-  --scout-blue: #3b82f6;
-  --scout-green: #10b981;
-  --scout-white: #f8fafc;
-  --titan-crimson: #ef4444;
-  --blade-steel: #94a3b8;
+  --paper: #0e131a;
+  --card: #151c26;
+  --card-hover: #1a2330;
+  --ink: #e6ebf2;
+  --ink-secondary: #9aa5b6;
+  --muted: #758397;
+  --rule: #253142;
+  --rule-light: #1b2432;
+  --accent: #58a6ff;
+  --accent-soft: rgba(88, 166, 255, 0.12);
+  --accent-contrast: #0e131a;
+  --tint: #1c2635;
+  --badge-bg: #1c2738;
+  --hal-gold: #e3b341;
+  --hal-bg: rgba(227, 179, 65, 0.12);
+  --ok: #56d364;
+  --ok-bg: rgba(86, 211, 100, 0.12);
+  --code-bg: #1b2533;
+  --dialog-backdrop: rgba(4, 7, 11, 0.82);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 6px 20px rgba(0,0,0,0.4);
 }
 
 /* Reset & Base */
@@ -174,25 +161,14 @@ input:focus-visible {
 }
 
 .nav-brand:hover {
-  opacity: 0.9;
-}
-
-.aot-wings-nav {
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease;
-}
-
-.nav-brand:hover .aot-wings-nav {
-  transform: scale(1.1) rotate(-3deg);
-  filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.45));
+  opacity: 0.85;
 }
 
 .brand-name {
-  font-family: var(--font-title, var(--sans));
-  font-size: 14.5px;
+  font-family: var(--sans);
+  font-size: 15.5px;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: -0.02em;
   color: var(--ink);
   white-space: nowrap;
 }
@@ -204,16 +180,16 @@ input:focus-visible {
   font-family: var(--mono);
   font-size: 10.5px;
   font-weight: 500;
-  padding: 2px 8px;
+  padding: 2px 7.5px;
   border-radius: 999px;
   background-color: var(--ok-bg);
   color: var(--ok);
-  border: 1px solid rgba(30, 107, 55, 0.25);
+  border: 1px solid rgba(32, 114, 58, 0.25);
   white-space: nowrap;
 }
 
 :root[data-theme="dark"] .status-indicator {
-  border-color: rgba(16, 185, 129, 0.35);
+  border-color: rgba(86, 211, 100, 0.3);
 }
 
 .pulse-dot {
@@ -722,116 +698,12 @@ input:focus-visible {
   margin-bottom: 12px;
 }
 
-/* Attack on Titan Hero Badges & Japanese Typography */
-.aot-hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--ink);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  background: var(--card);
-  border: 1px solid var(--rule);
-  padding: 5px 12px;
-  border-radius: 999px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-
-:root[data-theme="dark"] .aot-hero-badge {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: rgba(16, 185, 129, 0.25);
-  box-shadow: 0 1px 6px rgba(0,0,0,0.4);
-}
-
-.aot-badge-kanji {
-  font-family: var(--font-title);
-  font-size: 11px;
-  opacity: 0.85;
-  padding: 1px 5px;
-  background: rgba(0,0,0,0.06);
-  border-radius: 3px;
-}
-
-:root[data-theme="dark"] .aot-badge-kanji {
-  background: rgba(255,255,255,0.08);
-}
-
-.aot-badge-sep {
-  opacity: 0.35;
-}
-
-.aot-kanji-sub {
-  font-family: var(--font-title);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  color: var(--accent);
-  text-transform: uppercase;
-  margin-bottom: 6px;
-  opacity: 0.9;
-}
-
 h1.hero-title {
-  font-family: var(--font-title, var(--serif));
-  font-size: clamp(34px, 5.2vw, 56px);
-  line-height: 1.06;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: clamp(34px, 5.2vw, 54px);
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -0.02em;
   margin: 0 0 6px;
-}
-
-/* AoT Dedicate Your Heart Callout */
-.aot-motto-callout {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 16px 0 24px;
-  padding: 14px 18px;
-  background: var(--card);
-  border: 1px solid var(--rule);
-  border-left: 4px solid var(--accent);
-  border-radius: var(--radius-sm);
-  position: relative;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-:root[data-theme="dark"] .aot-motto-callout {
-  border-left-color: var(--hal-gold);
-  box-shadow: 0 2px 14px rgba(0,0,0,0.4);
-}
-
-.aot-motto-crest {
-  flex: 0 0 auto;
-  filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
-  transition: transform 0.25s ease;
-}
-
-.aot-motto-callout:hover .aot-motto-crest {
-  transform: scale(1.08) rotate(-2deg);
-}
-
-.aot-motto-text {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.aot-motto-phrase {
-  font-family: var(--font-title);
-  font-size: 14.5px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--ink);
-}
-
-.aot-motto-detail {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--muted);
 }
 
 .hero-role {
@@ -880,10 +752,9 @@ h1.hero-title {
 }
 
 .pillar-card h3 {
-  font-family: var(--font-title, var(--serif));
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 500;
   margin: 0 0 4px;
   color: var(--ink);
 }
@@ -929,10 +800,8 @@ h1.hero-title {
 }
 
 .spotlight-title {
-  font-family: var(--font-title, var(--serif));
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 26px;
+  font-weight: 500;
   margin: 0;
 }
 
@@ -1002,31 +871,10 @@ section {
   gap: 12px;
 }
 
-.aot-regiment-pill {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent);
-  background: var(--accent-soft);
-  padding: 2.5px 8.5px;
-  border-radius: 4px;
-  border: 1px solid rgba(27, 67, 50, 0.2);
-  margin-bottom: 4px;
-}
-
-:root[data-theme="dark"] .aot-regiment-pill {
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
 h2.section-title {
-  font-family: var(--font-title, var(--serif));
-  font-size: clamp(23px, 3.2vw, 30px);
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
