@@ -162,7 +162,7 @@ window.PORTFOLIO_GAMES = {
             </div>
             <div class="arcade-tg-actions">
               <button type="button" id="btn-tg-renew-session" class="btn-tg-action renew" title="Renew your 7-day sustainability window now">
-                🔄 Renew (7 Days)
+                🔄 Renew
               </button>
               <button type="button" id="btn-tg-logout-session" class="btn-tg-action logout" title="Log out of Telegram account">
                 🚪 Log Out
@@ -172,12 +172,12 @@ window.PORTFOLIO_GAMES = {
             <div class="arcade-tg-info">
               <span class="tg-icon">✈️</span>
               <span class="tg-prompt-text">
-                <strong>Telegram Login for 7-Day Score Retention:</strong> Scores are sustained for 7 days. Log in with Telegram to retain your scores before the unnotified 7-day purge.
+                <strong>7-Day Retention:</strong> Log in with Telegram to record and retain your arcade scores.
               </span>
             </div>
             <div class="arcade-tg-actions">
               <button type="button" id="btn-open-tg-login" class="btn-tg-login-trigger">
-                ✈️ Log In with Telegram
+                ✈️ Log In
               </button>
             </div>
           `}

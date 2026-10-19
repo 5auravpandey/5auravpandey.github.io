@@ -90,12 +90,10 @@ window.PORTFOLIO_PERSPECTIVE = {
     const heroRole = document.getElementById("hero-role");
     const heroSubtitle = document.getElementById("hero-subtitle");
     const heroBio = document.getElementById("hero-bio");
-    const perspectivePill = document.getElementById("perspective-pill");
 
     if (heroRole) heroRole.textContent = config.role;
     if (heroSubtitle) heroSubtitle.textContent = config.tagline;
     if (heroBio) heroBio.textContent = config.bio;
-    if (perspectivePill) perspectivePill.textContent = config.label;
 
     // 3. Update Pillars
     const pillarsContainer = document.getElementById("hero-pillars");
