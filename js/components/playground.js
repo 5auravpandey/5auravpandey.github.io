@@ -68,13 +68,16 @@ window.PORTFOLIO_PLAYGROUND = {
       : null;
       
     if (authSession) {
-      if (!authSession.isWhitelistedYouTube && window.PORTFOLIO_DB) {
+      if (window.PORTFOLIO_DB) {
         const check = await window.PORTFOLIO_DB.isWhitelistedForYouTube(authSession.telegramId || authSession.username, authSession.telegramUserId);
-        if (authSession.isOwner || (check && check.whitelisted)) {
+        if (authSession.isOwner) {
           authSession.isWhitelistedYouTube = true;
-          authSession.role = authSession.isOwner ? "Owner / Administrator" : (check.entry?.role || "Whitelisted Friend");
-          if (window.PORTFOLIO_AUTH) window.PORTFOLIO_AUTH.saveSession(authSession);
+          authSession.role = "Owner / Administrator";
+        } else {
+          authSession.isWhitelistedYouTube = Boolean(check && check.whitelisted);
+          authSession.role = authSession.isWhitelistedYouTube ? (check.entry?.role || "Whitelisted Friend") : "Member";
         }
+        if (window.PORTFOLIO_AUTH) window.PORTFOLIO_AUTH.saveSession(authSession);
       }
 
       if (authSession.isWhitelistedYouTube) {
@@ -109,11 +112,11 @@ window.PORTFOLIO_PLAYGROUND = {
           this.friendUsername = session.telegramId || session.username;
           this.friendRole = session.role || "Whitelisted Friend";
           this.activePassKey = (session.username || session.telegramId).toUpperCase();
-        } else if (!session) {
+        } else {
           this.isFriend = false;
-          this.friendName = "";
-          this.friendUsername = "";
-          this.friendRole = "";
+          this.friendName = session ? session.displayName : "";
+          this.friendUsername = session ? (session.telegramId || session.username) : "";
+          this.friendRole = session ? (session.role || "Member") : "";
           this.activePassKey = "";
         }
         this.render();

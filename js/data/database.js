@@ -16,19 +16,11 @@ window.PORTFOLIO_DB = {
   // Initial YouTube Whitelist (Permanent access granted by Saurav - no expiry time)
   INITIAL_YOUTUBE_WHITELIST: [
     { handle: "@sauravpandey", userId: "6639686782", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
-    { handle: "sauravpandey", userId: "6639686782", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
-    { handle: "@5auravpandey", userId: "6639686782", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
-    { handle: "saurav", userId: "6639686782", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
     { handle: "@aman_iitp", name: "Aman K. (IITP)", role: "Study Buddy", addedAt: "2026-10-10", status: "active" },
-    { handle: "aman", name: "Aman K. (IITP)", role: "Study Buddy", addedAt: "2026-10-10", status: "active" },
     { handle: "@rohan_v", name: "Rohan V.", role: "Friend", addedAt: "2026-10-12", status: "active" },
-    { handle: "rohan", name: "Rohan V.", role: "Friend", addedAt: "2026-10-12", status: "active" },
     { handle: "@priya_gopalganj", name: "Priya S.", role: "Hometown Peer", addedAt: "2026-10-14", status: "active" },
-    { handle: "priya", name: "Priya S.", role: "Hometown Peer", addedAt: "2026-10-14", status: "active" },
     { handle: "@hal_avionics", name: "HAL Avionics Colleague", role: "HAL Colleague", addedAt: "2026-10-15", status: "active" },
-    { handle: "hal-friend", name: "HAL Avionics Colleague", role: "HAL Colleague", addedAt: "2026-10-15", status: "active" },
-    { handle: "@iitp_mate", name: "IIT Patna Classmate", role: "MCA Classmate", addedAt: "2026-10-15", status: "active" },
-    { handle: "iitp-mate", name: "IIT Patna Classmate", role: "MCA Classmate", addedAt: "2026-10-15", status: "active" }
+    { handle: "@iitp_mate", name: "IIT Patna Classmate", role: "MCA Classmate", addedAt: "2026-10-15", status: "active" }
   ],
 
   // Authorized Master Pass Catalog (Pre-seeded passes issued by Saurav)
@@ -153,19 +145,23 @@ window.PORTFOLIO_DB = {
     if (!this.db) return;
 
     try {
-      // Seed YouTube Whitelist (Permanent, No Expiry)
+      // Seed YouTube Whitelist (Permanent, No Expiry) - Only seed on initial run
       if (this.db.objectStoreNames.contains("youtube_whitelist")) {
-        const wlTx = this.db.transaction("youtube_whitelist", "readwrite");
-        const wlStore = wlTx.objectStore("youtube_whitelist");
-        for (const w of this.INITIAL_YOUTUBE_WHITELIST) {
-          wlStore.put({
-            handle: w.handle.toLowerCase(),
-            userId: w.userId || null,
-            name: w.name,
-            role: w.role,
-            status: w.status,
-            addedAt: w.addedAt
-          });
+        const isSeeded = localStorage.getItem("portfolio_wl_seeded");
+        if (!isSeeded) {
+          const wlTx = this.db.transaction("youtube_whitelist", "readwrite");
+          const wlStore = wlTx.objectStore("youtube_whitelist");
+          for (const w of this.INITIAL_YOUTUBE_WHITELIST) {
+            wlStore.put({
+              handle: w.handle.toLowerCase(),
+              userId: w.userId || null,
+              name: w.name,
+              role: w.role,
+              status: w.status,
+              addedAt: w.addedAt
+            });
+          }
+          localStorage.setItem("portfolio_wl_seeded", "true");
         }
       }
 
@@ -446,16 +442,29 @@ window.PORTFOLIO_DB = {
       const clean = (u.telegramId || "").toLowerCase();
       const noAt = clean.replace(/^@/, "");
       const uid = u.telegramUserId ? String(u.telegramUserId).trim() : "";
-      const isWl = (uid && wlMap.has(uid)) 
-        ? wlMap.get(uid) 
-        : (wlMap.has(clean) ? wlMap.get(clean) : (wlMap.has(noAt) ? wlMap.get(noAt) : false));
+      const isOwner = (
+        clean === "@sauravpandey" || clean === "sauravpandey" || 
+        clean === "@5auravpandey" || clean === "saurav" || 
+        uid === "6639686782" || uid === "7044498519"
+      );
+
+      let isWl = false;
+      if (isOwner) {
+        isWl = true;
+      } else if (uid && wlMap.has(uid)) {
+        isWl = Boolean(wlMap.get(uid));
+      } else if (clean && wlMap.has(clean)) {
+        isWl = Boolean(wlMap.get(clean));
+      } else if (noAt && wlMap.has(noAt)) {
+        isWl = Boolean(wlMap.get(noAt));
+      } else {
+        isWl = false;
+      }
+
       return {
         ...u,
-        isWhitelisted: isWl || u.isWhitelisted || (
-          clean === "@sauravpandey" || clean === "sauravpandey" || 
-          clean === "@5auravpandey" || clean === "saurav" || 
-          uid === "6639686782" || uid === "7044498519"
-        )
+        isWhitelisted: isWl,
+        role: isOwner ? "Owner / Administrator" : (isWl ? (u.role || "Whitelisted Friend") : "Friend")
       };
     });
 
@@ -1102,29 +1111,44 @@ window.PORTFOLIO_DB = {
       const raw = localStorage.getItem("portfolio_youtube_whitelist");
       if (raw) return JSON.parse(raw);
     } catch (e) {}
-    return this.INITIAL_YOUTUBE_WHITELIST;
+    return JSON.parse(JSON.stringify(this.INITIAL_YOUTUBE_WHITELIST));
   },
 
   async getYoutubeWhitelist() {
     await this.init();
+    let rawList = [];
     if (this.db && this.db.objectStoreNames.contains("youtube_whitelist")) {
-      return new Promise((resolve) => {
+      rawList = await new Promise((resolve) => {
         try {
           const tx = this.db.transaction("youtube_whitelist", "readonly");
           const store = tx.objectStore("youtube_whitelist");
           const req = store.getAll();
-          req.onsuccess = () => {
-            const list = req.result || [];
-            if (list.length > 0) resolve(list);
-            else resolve(this.getFallbackYoutubeWhitelist());
-          };
-          req.onerror = () => resolve(this.getFallbackYoutubeWhitelist());
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve([]);
         } catch (e) {
-          resolve(this.getFallbackYoutubeWhitelist());
+          resolve([]);
         }
       });
     }
-    return this.getFallbackYoutubeWhitelist();
+
+    if (!rawList || rawList.length === 0) {
+      rawList = this.getFallbackYoutubeWhitelist();
+    }
+
+    // Deduplicate entries by normalized handle or numeric user ID
+    const seen = new Set();
+    const deduped = [];
+    for (const item of rawList) {
+      if (!item) continue;
+      const cleanH = (item.handle || "").toLowerCase().replace(/^@/, "");
+      const cleanU = item.userId ? String(item.userId).trim() : "";
+      const key = cleanU ? `uid_${cleanU}` : cleanH;
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      deduped.push(item);
+    }
+
+    return deduped;
   },
 
   // Check if a handle or Telegram ID is whitelisted (Whitelisted data has NO expiry time)
@@ -1195,21 +1219,73 @@ window.PORTFOLIO_DB = {
       addedAt: new Date().toISOString().slice(0, 10)
     };
 
+    // 1. IndexedDB atomic commit
     if (this.db && this.db.objectStoreNames.contains("youtube_whitelist")) {
-      try {
-        const tx = this.db.transaction("youtube_whitelist", "readwrite");
-        tx.objectStore("youtube_whitelist").put(entry);
-      } catch (e) {}
+      await new Promise((resolve) => {
+        try {
+          const tx = this.db.transaction("youtube_whitelist", "readwrite");
+          const store = tx.objectStore("youtube_whitelist");
+          store.put(entry);
+          if (!isDigits && !cleanHandle.startsWith("ID:")) {
+            const noAt = cleanHandle.replace(/^@/, "").toLowerCase();
+            store.put({ ...entry, handle: noAt });
+          }
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        } catch (e) {
+          resolve();
+        }
+      });
     }
 
+    // 2. localStorage fallback list
     try {
       const list = this.getFallbackYoutubeWhitelist().filter(item => {
-        const hMatch = item.handle && item.handle.toLowerCase() === entry.handle.toLowerCase();
+        const hMatch = item.handle && (item.handle.toLowerCase() === entry.handle.toLowerCase() || item.handle.toLowerCase().replace(/^@/, "") === entry.handle.toLowerCase().replace(/^@/, ""));
         const uMatch = cleanUserId && item.userId && String(item.userId) === cleanUserId;
         return !hMatch && !uMatch;
       });
       list.unshift(entry);
       localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(list));
+    } catch (e) {}
+
+    // 3. Update registered telegram users in localStorage
+    try {
+      const rawAll = localStorage.getItem("portfolio_all_telegram_users");
+      if (rawAll) {
+        let allUsers = JSON.parse(rawAll);
+        if (Array.isArray(allUsers)) {
+          allUsers = allUsers.map(u => {
+            const uId = u.telegramUserId ? String(u.telegramUserId).trim() : "";
+            const uHandle = (u.telegramId || u.username || "").toLowerCase().replace(/^@/, "");
+            const entryHandle = entry.handle.toLowerCase().replace(/^@/, "");
+            const match = (cleanUserId && uId && uId === cleanUserId) || (uHandle && uHandle === entryHandle);
+            if (match) {
+              return { ...u, isWhitelisted: true, role: entry.role };
+            }
+            return u;
+          });
+          localStorage.setItem("portfolio_all_telegram_users", JSON.stringify(allUsers));
+        }
+      }
+    } catch (e) {}
+
+    // 4. Update active session if currently logged in user matches
+    try {
+      const authObj = window.PORTFOLIO_AUTH;
+      const curr = authObj ? authObj.getSession() : null;
+      if (curr) {
+        const cId = curr.telegramUserId ? String(curr.telegramUserId).trim() : "";
+        const cHandle = (curr.telegramId || curr.username || "").toLowerCase().replace(/^@/, "");
+        const entryHandle = entry.handle.toLowerCase().replace(/^@/, "");
+        const match = (cleanUserId && cId && cId === cleanUserId) || (cHandle && cHandle === entryHandle);
+        if (match) {
+          curr.isWhitelistedYouTube = true;
+          curr.role = entry.role;
+          authObj.saveSession(curr);
+          authObj.emitAuthChanged(curr);
+        }
+      }
     } catch (e) {}
 
     return entry;
@@ -1223,30 +1299,87 @@ window.PORTFOLIO_DB = {
     const withoutAt = raw ? (raw.startsWith("@") ? raw.slice(1) : raw) : "";
     const cleanUserId = userId ? String(userId).trim() : (raw.startsWith("id:") ? raw.replace(/^id:\s*/i, "").trim() : (/^\d+$/.test(raw) ? raw : null));
 
+    // 1. Remove matching from IndexedDB
     if (this.db && this.db.objectStoreNames.contains("youtube_whitelist")) {
-      try {
-        const tx = this.db.transaction("youtube_whitelist", "readwrite");
-        const store = tx.objectStore("youtube_whitelist");
-        if (withAt) store.delete(withAt);
-        if (withoutAt) store.delete(withoutAt);
-        if (cleanUserId) {
-          store.delete(`id: ${cleanUserId}`.toLowerCase());
-          store.delete(`id:${cleanUserId}`.toLowerCase());
+      await new Promise((resolve) => {
+        try {
+          const tx = this.db.transaction("youtube_whitelist", "readwrite");
+          const store = tx.objectStore("youtube_whitelist");
+          const req = store.getAll();
+          req.onsuccess = () => {
+            const all = req.result || [];
+            all.forEach(item => {
+              const h = (item.handle || "").toLowerCase();
+              const u = item.userId ? String(item.userId).trim() : "";
+              const match = (
+                (raw && h === raw) ||
+                (withAt && h === withAt) ||
+                (withoutAt && (h === withoutAt || h.replace(/^@/, "") === withoutAt)) ||
+                (cleanUserId && u && u === cleanUserId) ||
+                (cleanUserId && (h === `id: ${cleanUserId}` || h === `id:${cleanUserId}`))
+              );
+              if (match) {
+                store.delete(item.handle);
+              }
+            });
+          };
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        } catch (e) {
+          resolve();
         }
-      } catch (e) {}
+      });
     }
 
+    // 2. Remove matching from localStorage fallback
     try {
       const list = this.getFallbackYoutubeWhitelist().filter(item => {
         const h = (item.handle || "").toLowerCase();
         const u = item.userId ? String(item.userId).trim() : "";
         if (cleanUserId && u && u === cleanUserId) return false;
         if (withAt && h === withAt) return false;
-        if (withoutAt && h === withoutAt) return false;
+        if (withoutAt && (h === withoutAt || h.replace(/^@/, "") === withoutAt)) return false;
         if (cleanUserId && (h === `id: ${cleanUserId}`.toLowerCase() || h === `id:${cleanUserId}`.toLowerCase())) return false;
         return true;
       });
       localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(list));
+    } catch (e) {}
+
+    // 3. Update registered telegram users in localStorage
+    try {
+      const rawAll = localStorage.getItem("portfolio_all_telegram_users");
+      if (rawAll) {
+        let allUsers = JSON.parse(rawAll);
+        if (Array.isArray(allUsers)) {
+          allUsers = allUsers.map(u => {
+            const uId = u.telegramUserId ? String(u.telegramUserId).trim() : "";
+            const uHandle = (u.telegramId || u.username || "").toLowerCase().replace(/^@/, "");
+            const match = (cleanUserId && uId && uId === cleanUserId) || (withoutAt && uHandle && uHandle === withoutAt);
+            if (match) {
+              return { ...u, isWhitelisted: false, role: "Community Member" };
+            }
+            return u;
+          });
+          localStorage.setItem("portfolio_all_telegram_users", JSON.stringify(allUsers));
+        }
+      }
+    } catch (e) {}
+
+    // 4. Update active session if currently logged in user matches
+    try {
+      const authObj = window.PORTFOLIO_AUTH;
+      const curr = authObj ? authObj.getSession() : null;
+      if (curr && !curr.isOwner) {
+        const cId = curr.telegramUserId ? String(curr.telegramUserId).trim() : "";
+        const cHandle = (curr.telegramId || curr.username || "").toLowerCase().replace(/^@/, "");
+        const match = (cleanUserId && cId && cId === cleanUserId) || (withoutAt && cHandle && cHandle === withoutAt);
+        if (match) {
+          curr.isWhitelistedYouTube = false;
+          curr.role = "Community Member";
+          authObj.saveSession(curr);
+          authObj.emitAuthChanged(curr);
+        }
+      }
     } catch (e) {}
 
     return true;
@@ -1260,45 +1393,119 @@ window.PORTFOLIO_DB = {
     const withoutAt = raw ? (raw.startsWith("@") ? raw.slice(1) : raw) : "";
     const cleanUserId = userId ? String(userId).trim() : (raw.startsWith("id:") ? raw.replace(/^id:\s*/i, "").trim() : (/^\d+$/.test(raw) ? raw : null));
 
-    const list = await this.getYoutubeWhitelist();
-    const target = list.find(item => {
+    // Determine current status across existing entries to toggle accurately
+    const currentList = await this.getYoutubeWhitelist();
+    const currentMatch = currentList.find(item => {
       const h = (item.handle || "").toLowerCase();
       const u = item.userId ? String(item.userId).trim() : "";
-      if (cleanUserId && u && u === cleanUserId) return true;
-      if (withAt && h === withAt) return true;
-      if (withoutAt && h === withoutAt) return true;
-      if (cleanUserId && (h === `id: ${cleanUserId}`.toLowerCase() || h === `id:${cleanUserId}`.toLowerCase())) return true;
-      return false;
+      return (
+        (raw && h === raw) ||
+        (withAt && h === withAt) ||
+        (withoutAt && (h === withoutAt || h.replace(/^@/, "") === withoutAt)) ||
+        (cleanUserId && u && u === cleanUserId) ||
+        (cleanUserId && (h === `id: ${cleanUserId}`.toLowerCase() || h === `id:${cleanUserId}`.toLowerCase()))
+      );
     });
 
-    if (!target) return null;
-    target.status = target.status === "active" ? "revoked" : "active";
+    const isCurrentlyActive = currentMatch ? (currentMatch.status === "active") : false;
+    const newStatus = isCurrentlyActive ? "revoked" : "active";
+    let updatedTarget = null;
 
+    // 1. Update in IndexedDB
     if (this.db && this.db.objectStoreNames.contains("youtube_whitelist")) {
-      try {
-        const tx = this.db.transaction("youtube_whitelist", "readwrite");
-        tx.objectStore("youtube_whitelist").put(target);
-      } catch (e) {}
+      await new Promise((resolve) => {
+        try {
+          const tx = this.db.transaction("youtube_whitelist", "readwrite");
+          const store = tx.objectStore("youtube_whitelist");
+          const req = store.getAll();
+          req.onsuccess = () => {
+            const all = req.result || [];
+            all.forEach(item => {
+              const h = (item.handle || "").toLowerCase();
+              const u = item.userId ? String(item.userId).trim() : "";
+              const match = (
+                (raw && h === raw) ||
+                (withAt && h === withAt) ||
+                (withoutAt && (h === withoutAt || h.replace(/^@/, "") === withoutAt)) ||
+                (cleanUserId && u && u === cleanUserId) ||
+                (cleanUserId && (h === `id: ${cleanUserId}` || h === `id:${cleanUserId}`))
+              );
+              if (match) {
+                item.status = newStatus;
+                store.put(item);
+                updatedTarget = item;
+              }
+            });
+          };
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        } catch (e) {
+          resolve();
+        }
+      });
     }
 
+    // 2. Update in fallback localStorage
     try {
       const fallbackList = this.getFallbackYoutubeWhitelist();
-      const idx = fallbackList.findIndex(item => {
+      fallbackList.forEach(item => {
         const h = (item.handle || "").toLowerCase();
         const u = item.userId ? String(item.userId).trim() : "";
-        if (cleanUserId && u && u === cleanUserId) return true;
-        if (withAt && h === withAt) return true;
-        if (withoutAt && h === withoutAt) return true;
-        if (cleanUserId && (h === `id: ${cleanUserId}`.toLowerCase() || h === `id:${cleanUserId}`.toLowerCase())) return true;
-        return false;
+        const match = (
+          (raw && h === raw) ||
+          (withAt && h === withAt) ||
+          (withoutAt && (h === withoutAt || h.replace(/^@/, "") === withoutAt)) ||
+          (cleanUserId && u && u === cleanUserId) ||
+          (cleanUserId && (h === `id: ${cleanUserId}`.toLowerCase() || h === `id:${cleanUserId}`.toLowerCase()))
+        );
+        if (match) {
+          item.status = newStatus;
+          updatedTarget = item;
+        }
       });
-      if (idx !== -1) {
-        fallbackList[idx] = target;
-        localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(fallbackList));
+      localStorage.setItem("portfolio_youtube_whitelist", JSON.stringify(fallbackList));
+    } catch (e) {}
+
+    const isActive = newStatus === "active";
+
+    // 3. Update registered telegram users in localStorage
+    try {
+      const rawAll = localStorage.getItem("portfolio_all_telegram_users");
+      if (rawAll) {
+        let allUsers = JSON.parse(rawAll);
+        if (Array.isArray(allUsers)) {
+          allUsers = allUsers.map(u => {
+            const uId = u.telegramUserId ? String(u.telegramUserId).trim() : "";
+            const uHandle = (u.telegramId || u.username || "").toLowerCase().replace(/^@/, "");
+            const match = (cleanUserId && uId && uId === cleanUserId) || (withoutAt && uHandle && uHandle === withoutAt);
+            if (match) {
+              return { ...u, isWhitelisted: isActive, role: isActive ? (u.role || "Whitelisted Friend") : "Community Member" };
+            }
+            return u;
+          });
+          localStorage.setItem("portfolio_all_telegram_users", JSON.stringify(allUsers));
+        }
       }
     } catch (e) {}
 
-    return target;
+    // 4. Update active session if currently logged in user matches
+    try {
+      const authObj = window.PORTFOLIO_AUTH;
+      const curr = authObj ? authObj.getSession() : null;
+      if (curr && !curr.isOwner) {
+        const cId = curr.telegramUserId ? String(curr.telegramUserId).trim() : "";
+        const cHandle = (curr.telegramId || curr.username || "").toLowerCase().replace(/^@/, "");
+        const match = (cleanUserId && cId && cId === cleanUserId) || (withoutAt && cHandle && cHandle === withoutAt);
+        if (match) {
+          curr.isWhitelistedYouTube = isActive;
+          curr.role = isActive ? (curr.role || "Whitelisted Friend") : "Community Member";
+          authObj.saveSession(curr);
+          authObj.emitAuthChanged(curr);
+        }
+      }
+    } catch (e) {}
+
+    return updatedTarget || { handle, userId, status: newStatus };
   }
 };
 

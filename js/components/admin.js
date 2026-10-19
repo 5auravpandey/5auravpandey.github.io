@@ -375,7 +375,7 @@ window.PORTFOLIO_ADMIN = {
             </div>
             <div>
               <label for="adm-media">Paper / Repo / Media URL (Optional):</label>
-              <input type="url" id="adm-media" class="focus-input admin-field" placeholder="https://github.com/... or paper link" value="${this.escapeHTML(editingItem?.media || '')}">
+              <input type="text" id="adm-media" class="focus-input admin-field" placeholder="https://github.com/... or paper link" value="${this.escapeHTML(editingItem?.media || '')}">
             </div>
           </div>
 
@@ -599,10 +599,15 @@ window.PORTFOLIO_ADMIN = {
     if (form) {
       form.onsubmit = (e) => {
         e.preventDefault();
-        const mediaUrl = document.getElementById("adm-media").value.trim();
-        if (mediaUrl && !this.isSafeUrl(mediaUrl)) {
-          alert("Please enter a safe URL (starting with https://, http://, or mailto:).");
-          return;
+        let mediaUrl = document.getElementById("adm-media").value.trim();
+        if (mediaUrl) {
+          if (!/^https?:\/\//i.test(mediaUrl) && !/^mailto:/i.test(mediaUrl)) {
+            mediaUrl = "https://" + mediaUrl;
+          }
+          if (!this.isSafeUrl(mediaUrl)) {
+            alert("Please enter a safe URL (starting with https:// or http://).");
+            return;
+          }
         }
 
         const item = {
@@ -618,15 +623,22 @@ window.PORTFOLIO_ADMIN = {
 
         if (this.editingItemId) {
           item.id = this.editingItemId;
-          window.PORTFOLIO_SHELF_STORE.updateItem(item);
-          if (typeof showToast === "function") showToast("Entry updated successfully!");
+          if (window.PORTFOLIO_SHELF_STORE) {
+            window.PORTFOLIO_SHELF_STORE.updateItem(this.editingItemId, item);
+          }
+          if (typeof showToast === "function") showToast("✓ Entry updated successfully!");
         } else {
-          window.PORTFOLIO_SHELF_STORE.addItem(item);
-          if (typeof showToast === "function") showToast("Entry published to shelf!");
+          if (window.PORTFOLIO_SHELF_STORE) {
+            window.PORTFOLIO_SHELF_STORE.addItem(item);
+          }
+          if (typeof showToast === "function") showToast("✓ Entry published to archive shelf!");
         }
 
         this.editingItemId = null;
         this.render();
+        if (typeof window.renderShelfGrid === "function") {
+          window.renderShelfGrid();
+        }
       };
     }
 
@@ -645,8 +657,16 @@ window.PORTFOLIO_ADMIN = {
       btn.onclick = () => {
         const id = btn.dataset.id;
         if (confirm("Are you sure you want to delete this entry?")) {
-          window.PORTFOLIO_SHELF_STORE.deleteItem(id);
+          if (window.PORTFOLIO_SHELF_STORE) {
+            window.PORTFOLIO_SHELF_STORE.deleteItem(id);
+          }
           this.render();
+          if (typeof window.renderShelfGrid === "function") {
+            window.renderShelfGrid();
+          }
+          if (typeof showToast === "function") {
+            showToast("Entry removed from shelf.");
+          }
         }
       };
     });
@@ -725,7 +745,7 @@ window.PORTFOLIO_ADMIN = {
                   showToast(`Revoked YouTube access for '${handle || userId}'.`);
                 }
               }
-              this.loadAndRenderWhitelist();
+              await this.loadAndRenderWhitelist();
             });
           });
         }
@@ -776,8 +796,10 @@ window.PORTFOLIO_ADMIN = {
             btn.addEventListener("click", async () => {
               const handle = btn.dataset.handle;
               const userId = btn.dataset.userId;
+              btn.disabled = true;
+              btn.textContent = "Updating...";
               await window.PORTFOLIO_DB.toggleWhitelistStatus(handle, userId);
-              this.loadAndRenderWhitelist();
+              await this.loadAndRenderWhitelist();
             });
           });
 
@@ -788,8 +810,9 @@ window.PORTFOLIO_ADMIN = {
               const handle = btn.dataset.handle;
               const userId = btn.dataset.userId;
               if (confirm(`Remove '${handle || userId}' from the YouTube Whitelist?`)) {
+                btn.disabled = true;
                 await window.PORTFOLIO_DB.removeFromYoutubeWhitelist(handle, userId);
-                this.loadAndRenderWhitelist();
+                await this.loadAndRenderWhitelist();
               }
             });
           });
@@ -802,6 +825,7 @@ window.PORTFOLIO_ADMIN = {
         wlForm.dataset.bound = "true";
         wlForm.addEventListener("submit", async (e) => {
           e.preventDefault();
+          const submitBtn = document.getElementById("btn-adm-wl-submit");
           const handleInput = document.getElementById("adm-wl-handle");
           const nameInput = document.getElementById("adm-wl-name");
           const roleInput = document.getElementById("adm-wl-role");
@@ -810,15 +834,27 @@ window.PORTFOLIO_ADMIN = {
           const role = roleInput ? roleInput.value.trim() : "";
           if (!handle) return;
 
-          await window.PORTFOLIO_DB.addToYoutubeWhitelist(handle, name, role || "Whitelisted Friend");
-          if (handleInput) handleInput.value = "";
-          if (nameInput) nameInput.value = "";
-          if (roleInput) roleInput.value = "";
-
-          if (typeof showToast === "function") {
-            showToast(`Whitelisted '${handle}' with permanent YouTube access!`);
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Adding...";
           }
-          this.loadAndRenderWhitelist();
+
+          try {
+            await window.PORTFOLIO_DB.addToYoutubeWhitelist(handle, name, role || "Whitelisted Friend");
+            if (handleInput) handleInput.value = "";
+            if (nameInput) nameInput.value = "";
+            if (roleInput) roleInput.value = "";
+
+            if (typeof showToast === "function") {
+              showToast(`Whitelisted '${handle}' with permanent YouTube access!`);
+            }
+            await this.loadAndRenderWhitelist();
+          } finally {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = "+ Whitelist";
+            }
+          }
         });
       }
     } catch (e) {

@@ -32,27 +32,13 @@ window.PORTFOLIO_SHELF_STORE = {
   getAll() {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
+      if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Detect and purge legacy prefilled mock items
-          const hasLegacyMock = parsed.some(i => i && typeof i.id === "string" && (
-            i.id.startsWith("research-") ||
-            i.id.startsWith("note-") ||
-            i.id.startsWith("book-") ||
-            i.id.startsWith("game-") ||
-            i.id.startsWith("show-") ||
-            i.id.startsWith("music-")
-          ));
-          if (hasLegacyMock) {
-            localStorage.removeItem(this.STORAGE_KEY);
-            return [];
-          }
-
-          const validated = parsed.map(item => this.validateItem(item)).filter(Boolean);
-          if (validated.length > 0) {
-            return validated;
-          }
+        if (Array.isArray(parsed)) {
+          // Filter out specific legacy placeholder IDs if present
+          const legacyMocks = new Set(["research-hal-gnc", "book-deep-work", "game-chess", "show-silicon-valley", "music-lofi", "note-distributed"]);
+          const cleaned = parsed.filter(i => i && !legacyMocks.has(String(i.id)));
+          return cleaned.map(item => this.validateItem(item)).filter(Boolean);
         }
       }
     } catch (e) {
@@ -75,29 +61,44 @@ window.PORTFOLIO_SHELF_STORE = {
 
   addItem(item) {
     const items = this.getAll();
-    const newItem = {
+    const validated = this.validateItem({
       ...item,
       id: item.id || `custom-${Date.now()}`
-    };
-    items.unshift(newItem);
-    this.saveAll(items);
-    return newItem;
+    });
+    if (validated) {
+      items.unshift(validated);
+      this.saveAll(items);
+      return validated;
+    }
+    return null;
   },
 
-  updateItem(id, updatedFields) {
+  updateItem(idOrItem, updatedFields) {
     const items = this.getAll();
-    const idx = items.findIndex(i => i.id === id);
+    let targetId, fields;
+    if (typeof idOrItem === "object" && idOrItem !== null) {
+      targetId = String(idOrItem.id);
+      fields = idOrItem;
+    } else {
+      targetId = String(idOrItem);
+      fields = updatedFields || {};
+    }
+
+    const idx = items.findIndex(i => String(i.id) === targetId);
     if (idx !== -1) {
-      items[idx] = { ...items[idx], ...updatedFields };
-      this.saveAll(items);
-      return true;
+      const merged = this.validateItem({ ...items[idx], ...fields, id: targetId });
+      if (merged) {
+        items[idx] = merged;
+        this.saveAll(items);
+        return true;
+      }
     }
     return false;
   },
 
   deleteItem(id) {
     let items = this.getAll();
-    items = items.filter(i => i.id !== id);
+    items = items.filter(i => String(i.id) !== String(id));
     this.saveAll(items);
   },
 
