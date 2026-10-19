@@ -431,24 +431,7 @@ function renderShelfMedia(item) {
   if (!item.media) return "";
 
   if (item.category === "music") {
-    // Spotify playlist or track embed
-    const spotifyMatch = item.media.match(/^https:\/\/open\.spotify\.com\/(?:embed\/)?(playlist|album|track)\/([a-zA-Z0-9]+)/);
-    if (spotifyMatch) {
-      const embedUrl = `https://open.spotify.com/embed/${spotifyMatch[1]}/${spotifyMatch[2]}?utm_source=generator&theme=0`;
-      return `
-        <div class="shelf-media-box" style="margin: 10px 0;">
-          <iframe 
-            style="border-radius: 10px; width: 100%; border: none;" 
-            src="${embedUrl}" 
-            height="152" 
-            loading="lazy" 
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
-          </iframe>
-        </div>
-      `;
-    }
-
-    // YouTube music or video embed (strict 11-char video ID)
+    // YouTube music or focus video embed (strict 11-char video ID)
     const ytMatch = item.media.match(/^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     if (ytMatch) {
       const ytId = ytMatch[1];

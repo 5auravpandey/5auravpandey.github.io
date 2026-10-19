@@ -212,16 +212,16 @@ Decentralized applications on standard EVM networks encounter severe user experi
 
   // --- MUSIC & PLAYLISTS ---
   {
-    id: "music-indian-classical",
+    id: "music-genshin-sky",
     type: "music",
     category: "music",
-    badge: "Spotify Playlist",
-    title: "Indian Classical Focus: Sitar, Sarod & Flute",
-    meta: "Hindustani Classical • Meditative Flow",
-    rating: "Daily Coding Riyaz",
-    summary: "A hand-picked collection of soothing ragas, sitar recitals by Ustad Vilayat Khan & Pt. Nikhil Banerjee, and meditative bamboo flute.",
-    media: "https://open.spotify.com/playlist/37i9dQZF1DX8Uebhn9wzrS",
-    content: `Indian classical instrumental music is my favorite backdrop for deep coding and reading. The slow Alaap creates effortless mental focus without intrusive lyrics.`
+    badge: "Game Soundscapes",
+    title: "Genshin Impact & Sky: Children of the Light Ambience",
+    meta: "Yu-Peng Chen & Vincent Diamante • Acoustic Focus",
+    rating: "Daily Study Soundtrack",
+    summary: "Orchestral acoustic piano, celestial bells, harp arpeggios, and peaceful wind instruments from Teyvat and the skies of Aviary.",
+    media: "https://www.youtube.com/watch?v=1m73h_G6Y6g",
+    content: `The atmospheric melodies of Genshin Impact (Mondstadt & Liyue) and Sky: Children of the Light provide the ultimate flow state backdrop for programming and deep research without intrusive vocal distractions.`
   },
   {
     id: "music-cyberpunk-synth",

@@ -2711,7 +2711,7 @@ dialog#case-study-dialog::backdrop {
   max-width: 100%;
 }
 
-/* Audio Mode Switcher & Spotify Embed */
+/* Audio Mode Switcher & YouTube Focus Stream */
 .focus-audio-center {
   width: 100%;
   max-width: 540px;
@@ -2762,21 +2762,16 @@ dialog#case-study-dialog::backdrop {
   gap: 8px;
 }
 
-.spotify-controls {
-  display: flex;
-  flex-direction: column;
-}
-
-.spotify-presets {
+.youtube-presets {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
 
-.spotify-pill {
+.youtube-pill {
   font-family: var(--mono);
   font-size: 12px;
-  padding: 2px 10px;
+  padding: 3px 10px;
   border-radius: 999px;
   background-color: var(--tint);
   border: 1px solid var(--rule);
@@ -2785,10 +2780,10 @@ dialog#case-study-dialog::backdrop {
   transition: all var(--transition-fast);
 }
 
-.spotify-pill.active {
-  background-color: #1db954;
-  color: #ffffff;
-  border-color: #1db954;
+.youtube-pill.active {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
 }
 
 /* CryptoLock Two-Way Toggle */
@@ -3522,19 +3517,11 @@ dialog#invite-dialog {
     font-size: 15px;
   }
 
-  .spotify-presets {
+  .youtube-presets {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
     width: 100%;
-  }
-
-  .btn-spotify-load {
-    min-height: 38px;
-    width: 100%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .crypto-inputs {
@@ -3917,7 +3904,7 @@ dialog#invite-dialog {
     font-size: clamp(38px, 12vw, 54px);
   }
 
-  .spotify-presets {
+  .youtube-presets {
     grid-template-columns: 1fr;
   }
 
@@ -4118,6 +4105,382 @@ dialog#invite-dialog {
   text-align: center;
   color: var(--muted);
   font-size: 13px;
+}
+
+/* ==========================================================================
+   Friends VIP Access Gate & Invites System
+   ========================================================================== */
+.friend-gate-card {
+  background: var(--paper);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  text-align: center;
+  max-width: 520px;
+  margin: 16px auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.friend-gate-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.friend-gate-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.friend-gate-desc {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0 auto 18px;
+  max-width: 440px;
+}
+
+.friend-gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 360px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.friend-gate-field label {
+  display: block;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.friend-gate-quick-hint {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-text-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  font-family: inherit;
+}
+
+.friend-active-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  font-size: 13px;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+
+.btn-invite-pill {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-invite-pill:hover {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+
+/* ==========================================================================
+   Borderless Snake Engine, Speeds & Leaderboard
+   ========================================================================== */
+.snake-borderless-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  margin-left: 8px;
+}
+
+.snake-speed-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.snake-speed-group {
+  display: flex;
+  gap: 4px;
+  background: var(--tint);
+  padding: 2px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+}
+
+.snake-speed-btn {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.snake-speed-btn.active {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.snake-bonus-hud {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #b45309;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  margin-bottom: 10px;
+}
+
+[data-theme="dark"] .snake-bonus-hud {
+  color: #fbbf24;
+}
+
+.snake-bonus-progress-bar {
+  flex: 1;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-left: 6px;
+}
+
+#snake-bonus-progress-inner {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #f59e0b, #eab308);
+  transition: width 0.1s linear;
+}
+
+.snake-leaderboard-card {
+  margin-top: 18px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+.snake-lb-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule-light);
+}
+
+.snake-lb-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.snake-lb-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 60px 60px 80px;
+  align-items: center;
+  padding: 4px 8px;
+  font-size: 12.5px;
+  border-radius: 4px;
+  font-family: var(--mono);
+}
+
+.snake-lb-row.header {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--rule-light);
+  padding-bottom: 4px;
+}
+
+.snake-lb-row.highlight {
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.lb-score {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.lb-speed, .lb-date {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* ==========================================================================
+   Local AI Resume Architect Dialog
+   ========================================================================== */
+.resume-ai-dialog {
+  max-width: 620px;
+  width: 92vw;
+  padding: 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.resume-ai-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.resume-ai-content {
+  padding: 24px;
+}
+
+.resume-ai-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--rule-light);
+  padding-bottom: 12px;
+}
+
+.ai-role-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0 16px;
+}
+
+.ai-role-chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--tint);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ai-role-chip.active {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.ai-ats-meter-box {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.ai-ats-meter-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-family: var(--mono);
+  margin-bottom: 6px;
+}
+
+.ai-ats-progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ai-ats-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.ai-prune-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.ai-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.resume-ai-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid var(--rule-light);
+  padding-top: 16px;
+}
+
+@media (max-width: 768px) {
+  #btn-cmd-palette-mobile,
+  .mobile-controls .btn-cmd-trigger {
+    display: none !important;
+  }
 }
 
 /* ==========================================================================

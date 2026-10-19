@@ -8,7 +8,7 @@
   <meta name="author" content="Saurav Pandey">
 
   <!-- Security Hardening Headers -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; media-src 'self' data:; frame-src 'self' https://open.spotify.com https://www.youtube-nocookie.com https://www.youtube.com; connect-src 'self'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; media-src 'self' data:; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com; connect-src 'self'; base-uri 'self'; form-action 'self';">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
@@ -51,6 +51,16 @@
     <div class="nav-container">
       <div class="nav-brand-group">
         <a href="#top" class="nav-brand" aria-label="Saurav Pandey Home">
+          <svg class="brand-logo-s" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" style="flex-shrink: 0; vertical-align: middle;">
+            <rect width="32" height="32" rx="7" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-opacity="0.15" stroke-width="1.2" />
+            <path d="M21 11C21 8.5 18.8 7 16 7C13 7 11 8.5 11 11C11 14 14 15 16.2 15.8C18.8 16.8 21 17.8 21 21C21 23.8 18.8 25 16 25C12.8 25 10.8 23.2 10.8 20.5" 
+                  fill="none" 
+                  stroke="var(--accent)" 
+                  stroke-width="3.2" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" />
+            <circle cx="23" cy="9" r="2.2" fill="#22c55e" />
+          </svg>
           <span class="brand-name">Saurav Pandey</span>
           <span class="status-indicator" title="IT Intern at HAL • Open to Work">
             <span class="pulse-dot" aria-hidden="true"></span>
@@ -99,10 +109,6 @@
 
       <!-- Mobile Controls (Visible on mobile/tablet) -->
       <div class="mobile-controls">
-        <button id="btn-cmd-palette-mobile" class="btn-theme-toggle mobile-theme-icon-btn" type="button" aria-label="Search portfolio (Command Palette)" title="Search (Cmd+K)">
-          <span class="mobile-theme-icon">🔍</span>
-        </button>
-
         <button id="mobile-theme-btn" class="btn-theme-toggle mobile-theme-icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
           <span class="mobile-theme-icon">🌙</span>
         </button>
@@ -211,8 +217,8 @@
           <!-- Hero Action CTAs (Making the mobile body active & useful) -->
           <div class="hero-actions">
             <a href="#projects" class="btn-hero-primary">🚀 Explore Projects</a>
-            <a href="#playground" class="btn-hero-secondary">⚡ Dev Lab & Audio</a>
-            <button type="button" id="btn-print-cv" class="btn-hero-ambient" title="Print or Save ATS-friendly CV">📄 Print CV</button>
+            <a href="#playground" class="btn-hero-secondary">⚡ Dev Lab &amp; Audio</a>
+            <button type="button" id="btn-print-cv" class="btn-hero-ambient" title="AI Tailor &amp; Print ATS-friendly CV">🤖 AI Tailor &amp; Print CV</button>
             <a href="#contact" class="btn-hero-ambient">📬 Contact Me</a>
           </div>
 
@@ -294,7 +300,7 @@
       <div class="section-head">
         <div>
           <h2 class="section-title">Interactive Dev Playground</h2>
-          <p class="section-sub">Try out my focus sprint timer with authentic Indian soundscapes, test the live CryptoLock cipher, or poke around in the mini terminal!</p>
+          <p class="section-sub">Focus sprint timer with Genshin, Sky &amp; Little Krishna melodic soundscapes, live CryptoLock cipher, terminal shell, and Dev Arcade games.</p>
         </div>
       </div>
 
@@ -481,7 +487,7 @@
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
           <span style="color: var(--ink-secondary);">Audio Channel:</span>
-          <span id="invite-audio-channel-label" style="font-family: var(--mono); font-size: 12.5px; font-weight: 500;">🪕 Meditative Tanpura (Zero-lag Synth)</span>
+          <span id="invite-audio-channel-label" style="font-family: var(--mono); font-size: 12.5px; font-weight: 500;">🍃 Genshin Impact Melodies</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
           <span style="color: var(--ink-secondary);">Sprint Duration:</span>
@@ -492,7 +498,7 @@
 
     <!-- Generated Shareable Room Link -->
     <div style="background-color: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 10px; display: flex; gap: 8px; align-items: center; margin-bottom: 14px;">
-      <input type="text" id="invite-link-input" class="focus-input" style="font-size: 13px; text-align: left; padding: 6px 10px;" value="https://sauravpandey.me/?room=STUDY-2026&sound=tanpura&sprint=25" readonly>
+      <input type="text" id="invite-link-input" class="focus-input" style="font-size: 13px; text-align: left; padding: 6px 10px;" value="https://sauravpandey.me/?room=STUDY-2026&sound=genshin&sprint=25&friend=true" readonly>
       <button type="button" id="btn-copy-invite-link" class="btn-primary-action" style="padding: 6px 14px; font-size: 12.5px; white-space: nowrap;">Copy Link</button>
     </div>
 
@@ -507,6 +513,74 @@
       <a href="#" target="_blank" rel="noopener noreferrer" class="btn-social-share twitter">
         Twitter / X
       </a>
+    </div>
+  </dialog>
+
+  <!-- Local AI Resume Architect Dialog -->
+  <dialog id="resume-ai-dialog" class="resume-ai-dialog" closedby="any" aria-labelledby="resume-ai-title">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+      <div>
+        <span class="ai-badge">🤖 Client-Side Local AI</span>
+        <h3 id="resume-ai-title" style="margin: 4px 0 0; font-size: 21px;">AI Resume Architect &amp; ATS Tailor</h3>
+      </div>
+      <button type="button" class="dialog-close" id="resume-ai-close" aria-label="Close">×</button>
+    </div>
+    <p style="font-size: 14.5px; color: var(--ink-secondary); margin: 0 0 16px; line-height: 1.5;">
+      Uses a deterministic client-side AI rules engine to prune web widgets, strip non-technical elements, and tailor Saurav's profile into an optimal ATS-ready 1-2 page print resume.
+    </p>
+
+    <!-- AI Target Role Profile -->
+    <div class="ai-config-section">
+      <label class="ai-section-label">Select Target Role Focus:</label>
+      <div class="ai-role-chips" id="ai-role-chips">
+        <button type="button" class="ai-role-chip active" data-role="fullstack">💻 Full-Stack &amp; Systems</button>
+        <button type="button" class="ai-role-chip" data-role="avionics">🛩️ Avionics &amp; Embedded (HAL)</button>
+        <button type="button" class="ai-role-chip" data-role="frontend">🌐 Frontend &amp; Web3 UI</button>
+        <button type="button" class="ai-role-chip" data-role="academic">🎓 Academic &amp; Research</button>
+      </div>
+    </div>
+
+    <!-- AI Smart Pruning Toggles -->
+    <div class="ai-config-section" style="margin-top: 14px;">
+      <label class="ai-section-label">Local AI Smart Pruning &amp; Cleaning:</label>
+      <div class="ai-toggles-list">
+        <label class="ai-toggle-row">
+          <input type="checkbox" id="ai-opt-widgets" checked>
+          <span>Strip all interactive widgets, audio players, terminal &amp; arcade games</span>
+        </label>
+        <label class="ai-toggle-row">
+          <input type="checkbox" id="ai-opt-shelf" checked>
+          <span>Remove non-technical media, books &amp; curations (Keep research notes only)</span>
+        </label>
+        <label class="ai-toggle-row">
+          <input type="checkbox" id="ai-opt-badges" checked>
+          <span>Normalize decorative colored badges to clean ATS monochrome text</span>
+        </label>
+        <label class="ai-toggle-row">
+          <input type="checkbox" id="ai-opt-condense" checked>
+          <span>Enforce strict 2-page print margins with zero awkward page breaks</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- AI ATS Compatibility Meter -->
+    <div class="ai-ats-meter-box" style="margin-top: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-family: var(--mono); font-size: 12.5px; font-weight: 600;">ATS Compatibility Score</span>
+        <span id="ai-ats-score" style="font-family: var(--mono); font-size: 13.5px; font-weight: 700; color: #16a34a;">98% • Excellent</span>
+      </div>
+      <div class="ai-meter-track" style="height: 6px; background: var(--rule); border-radius: 999px; overflow: hidden;">
+        <div class="ai-meter-fill" id="ai-meter-fill" style="height: 100%; width: 98%; background: #22c55e; border-radius: 999px; transition: width 0.3s ease;"></div>
+      </div>
+      <p id="ai-recommendation-text" class="ai-recommendation" style="font-size: 12.5px; color: var(--muted); margin: 8px 0 0;">
+        ✓ 14 interactive UI elements pruned. Headings formatted to ATS standard. Contact links converted to text URLs.
+      </p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="ai-dialog-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+      <button type="button" id="btn-ai-preview" class="btn-secondary-action">Preview Layout</button>
+      <button type="button" id="btn-ai-print-now" class="btn-primary-action">🖨️ Print / Save Clean PDF</button>
     </div>
   </dialog>
 
@@ -548,6 +622,7 @@
   <script src="js/components/stack-explorer.js" defer></script>
   <script src="js/components/playground.js" defer></script>
   <script src="js/components/games.js" defer></script>
+  <script src="js/components/resume-ai.js" defer></script>
   <script src="js/components/command-palette.js" defer></script>
   <script src="js/app.js" defer></script>
 </body>

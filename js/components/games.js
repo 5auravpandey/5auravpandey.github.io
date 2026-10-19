@@ -119,20 +119,46 @@ window.PORTFOLIO_GAMES = {
   snakeDir: { x: 1, y: 0 },
   snakeNextDir: { x: 1, y: 0 },
   snakeFood: { x: 10, y: 10, token: "0xFF" },
+  snakeBonusFood: null, // { x, y, symbol, type, points, grow, expiresAt }
+  snakeBonusTimer: null,
+  snakeFoodsEaten: 0,
+  snakePendingGrowth: 0,
   snakeScore: 0,
   snakeHighScore: 0,
   snakeInterval: null,
   snakeGameOver: false,
+  snakeSpeedMs: 105,
+  snakeSpeedName: "normal", // 'chill' | 'normal' | 'turbo' | 'insane'
   snakeTokens: ["0xFF", "HAL", "WASM", "JAVA", "C++", "0x00", "NODE", "SQL", "LINUX"],
+
+  getSnakeLeaderboard() {
+    try {
+      const raw = localStorage.getItem("portfolio_snake_leaderboard");
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return [
+      { name: "Saurav (HAL)", score: 180, speed: "Turbo", date: "2026-10-18" },
+      { name: "Aman K.", score: 140, speed: "Normal", date: "2026-10-17" },
+      { name: "Rohan V.", score: 110, speed: "Normal", date: "2026-10-16" },
+      { name: "Priya S.", score: 90, speed: "Chill", date: "2026-10-15" },
+      { name: "Dev Cadet", score: 60, speed: "Normal", date: "2026-10-14" }
+    ];
+  },
 
   renderSnakeHtml() {
     this.snakeHighScore = parseInt(localStorage.getItem("portfolio_snake_hs") || "0", 10);
+    const friendName = localStorage.getItem("portfolio_friend_name") || "Friend";
+    const leaderboard = this.getSnakeLeaderboard();
+
     return `
       <div class="snake-arena">
         <div class="game-topbar">
           <div class="score-display">
             <span>Score: <strong id="snake-score-val">0</strong></span>
-            <span style="color: var(--muted); margin-left: 12px;">High Score: <strong id="snake-hs-val">${this.snakeHighScore}</strong></span>
+            <span style="color: var(--muted); margin-left: 10px;">High Score: <strong id="snake-hs-val">${this.snakeHighScore}</strong></span>
+            <span class="snake-borderless-badge" title="Snake wraps around borders seamlessly without dying!">
+              🌐 Borderless
+            </span>
           </div>
           <div style="display: flex; gap: 8px;">
             <button type="button" id="btn-snake-start" class="btn-primary-action" style="font-size: 12px; padding: 5px 12px;">
@@ -144,12 +170,39 @@ window.PORTFOLIO_GAMES = {
           </div>
         </div>
 
+        <!-- Speed Switcher Row -->
+        <div class="snake-speed-row">
+          <span style="font-size: 12px; color: var(--muted); font-family: var(--mono);">Speed:</span>
+          <div class="snake-speed-group" role="group">
+            <button type="button" class="snake-speed-btn ${this.snakeSpeedName === 'chill' ? 'active' : ''}" data-speed="chill" data-ms="150">🐢 Chill</button>
+            <button type="button" class="snake-speed-btn ${this.snakeSpeedName === 'normal' ? 'active' : ''}" data-speed="normal" data-ms="105">⚡ Normal</button>
+            <button type="button" class="snake-speed-btn ${this.snakeSpeedName === 'turbo' ? 'active' : ''}" data-speed="turbo" data-ms="70">🔥 Turbo</button>
+            <button type="button" class="snake-speed-btn ${this.snakeSpeedName === 'insane' ? 'active' : ''}" data-speed="insane" data-ms="45">🚀 Insane</button>
+          </div>
+        </div>
+
+        <!-- Bonus Token HUD Alert -->
+        <div id="snake-bonus-hud" class="snake-bonus-hud" style="display: none;">
+          <span id="snake-bonus-hud-icon">⭐</span>
+          <span id="snake-bonus-hud-text">Bonus Token active!</span>
+          <div class="snake-bonus-progress-bar"><div id="snake-bonus-progress-inner"></div></div>
+        </div>
+
         <div class="snake-canvas-box">
           <canvas id="snake-canvas" width="400" height="400" class="snake-canvas"></canvas>
           <div id="snake-overlay" class="game-overlay" style="display: none;">
             <div class="game-overlay-box">
               <h4 id="snake-overlay-title" style="margin: 0 0 6px; font-size: 20px;">Game Over!</h4>
               <p id="snake-overlay-desc" style="margin: 0 0 14px; font-size: 13px; color: var(--muted);">Press restart to play again</p>
+              <div id="snake-name-save-box" style="margin-bottom: 14px; display: none;">
+                <label for="snake-player-name" style="font-size: 12px; display: block; margin-bottom: 4px; color: var(--muted);">
+                  Save to Friends Hall of Fame:
+                </label>
+                <div style="display: flex; gap: 6px; justify-content: center;">
+                  <input type="text" id="snake-player-name" class="focus-input" value="${friendName}" style="max-width: 170px; font-size: 13px; padding: 5px 8px;" maxlength="18">
+                  <button type="button" id="btn-save-snake-score" class="btn-primary-action" style="padding: 5px 12px; font-size: 12px;">Save</button>
+                </div>
+              </div>
               <button type="button" id="btn-snake-retry" class="btn-primary-action" style="padding: 8px 18px;">Try Again</button>
             </div>
           </div>
@@ -164,8 +217,36 @@ window.PORTFOLIO_GAMES = {
             <button type="button" class="dpad-btn right" data-dir="right" aria-label="Move Right">▶</button>
           </div>
           <span style="font-size: 11px; color: var(--muted); font-family: var(--mono); text-align: center; display: block; margin-top: 4px;">
-            Swipe or use D-Pad / Arrow Keys
+            Swipe or use D-Pad / Arrow Keys &bull; Wall wrap-around active
           </span>
+        </div>
+
+        <!-- Persistent Friends Hall of Fame -->
+        <div class="snake-leaderboard-card">
+          <div class="snake-lb-head">
+            <span>🏆 Friends Hall of Fame (Top 5)</span>
+            <span style="font-size: 11px; color: var(--muted); font-family: var(--mono);">Local &amp; Friend Invites</span>
+          </div>
+          <div class="snake-lb-table">
+            <div class="snake-lb-row header">
+              <span>#</span>
+              <span>Player</span>
+              <span>Score</span>
+              <span>Speed</span>
+              <span>Date</span>
+            </div>
+            <div id="snake-lb-rows">
+              ${leaderboard.map((item, idx) => `
+                <div class="snake-lb-row ${item.name.toLowerCase().includes(friendName.toLowerCase()) ? 'highlight' : ''}">
+                  <span>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}</span>
+                  <strong>${item.name}</strong>
+                  <span class="lb-score">${item.score}</span>
+                  <span class="lb-speed">${item.speed || 'Normal'}</span>
+                  <span class="lb-date">${item.date || ''}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -191,6 +272,9 @@ window.PORTFOLIO_GAMES = {
     const startBtn = document.getElementById("btn-snake-start");
     const resetBtn = document.getElementById("btn-snake-reset");
     const retryBtn = document.getElementById("btn-snake-retry");
+    const speedBtns = document.querySelectorAll(".snake-speed-btn");
+    const saveScoreBtn = document.getElementById("btn-save-snake-score");
+    const nameInput = document.getElementById("snake-player-name");
 
     if (startBtn) {
       startBtn.addEventListener("click", () => {
@@ -208,6 +292,27 @@ window.PORTFOLIO_GAMES = {
       retryBtn.addEventListener("click", () => {
         this.resetSnake(canvas, ctx);
         this.startSnakeLoop(canvas, ctx);
+      });
+    }
+
+    speedBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        speedBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        this.snakeSpeedName = btn.dataset.speed;
+        this.snakeSpeedMs = parseInt(btn.dataset.ms, 10);
+        if (this.snakeInterval) {
+          this.startSnakeLoop(canvas, ctx);
+        }
+      });
+    });
+
+    if (saveScoreBtn && nameInput) {
+      saveScoreBtn.addEventListener("click", () => {
+        const name = nameInput.value.trim() || "Friend";
+        this.saveSnakeScore(name, this.snakeScore);
+        saveScoreBtn.textContent = "Saved ✓";
+        saveScoreBtn.disabled = true;
       });
     }
 
@@ -276,11 +381,63 @@ window.PORTFOLIO_GAMES = {
     do {
       newX = Math.floor(Math.random() * this.snakeCells);
       newY = Math.floor(Math.random() * this.snakeCells);
-      collision = this.snake.some(segment => segment.x === newX && segment.y === newY);
+      collision = this.snake.some(segment => segment.x === newX && segment.y === newY) ||
+                  (this.snakeBonusFood && this.snakeBonusFood.x === newX && this.snakeBonusFood.y === newY);
     } while (collision);
 
     const token = this.snakeTokens[Math.floor(Math.random() * this.snakeTokens.length)];
     this.snakeFood = { x: newX, y: newY, token };
+  },
+
+  spawnBonusFood() {
+    if (this.snakeGameOver) return;
+    let newX, newY, collision;
+    do {
+      newX = Math.floor(Math.random() * this.snakeCells);
+      newY = Math.floor(Math.random() * this.snakeCells);
+      collision = this.snake.some(segment => segment.x === newX && segment.y === newY) ||
+                  (this.snakeFood.x === newX && this.snakeFood.y === newY);
+    } while (collision);
+
+    const bonusTypes = [
+      { symbol: "⭐", type: "star", points: 30, grow: 2, label: "Star Bonus: +30 pts (+2 Length)" },
+      { symbol: "💎", type: "gem", points: 50, grow: 3, label: "Diamond Bonus: +50 pts (+3 Length)" },
+      { symbol: "⚡", type: "energy", points: 25, grow: 1, label: "Energy Bonus: +25 pts (+1 Length)" }
+    ];
+    const picked = bonusTypes[Math.floor(Math.random() * bonusTypes.length)];
+    const durationMs = 8000;
+    const expiresAt = Date.now() + durationMs;
+
+    this.snakeBonusFood = {
+      x: newX,
+      y: newY,
+      symbol: picked.symbol,
+      type: picked.type,
+      points: picked.points,
+      grow: picked.grow,
+      label: picked.label,
+      expiresAt,
+      durationMs
+    };
+
+    const hud = document.getElementById("snake-bonus-hud");
+    const icon = document.getElementById("snake-bonus-hud-icon");
+    const text = document.getElementById("snake-bonus-hud-text");
+    const progress = document.getElementById("snake-bonus-progress-inner");
+    if (hud && icon && text && progress) {
+      icon.textContent = picked.symbol;
+      text.textContent = picked.label;
+      progress.style.width = "100%";
+      hud.style.display = "flex";
+    }
+
+    this.playTone(784, 0.12, "sine"); // G5 alert chime
+  },
+
+  clearBonusFood() {
+    this.snakeBonusFood = null;
+    const hud = document.getElementById("snake-bonus-hud");
+    if (hud) hud.style.display = "none";
   },
 
   startSnakeLoop(canvas, ctx) {
@@ -292,7 +449,7 @@ window.PORTFOLIO_GAMES = {
 
     this.snakeInterval = setInterval(() => {
       this.stepSnake(canvas, ctx);
-    }, 110);
+    }, this.snakeSpeedMs || 105);
   },
 
   resetSnake(canvas, ctx) {
@@ -313,7 +470,11 @@ window.PORTFOLIO_GAMES = {
     this.snakeDir = { x: 1, y: 0 };
     this.snakeNextDir = { x: 1, y: 0 };
     this.snakeScore = 0;
+    this.snakeFoodsEaten = 0;
+    this.snakePendingGrowth = 0;
     this.snakeGameOver = false;
+    this.clearBonusFood();
+
     const scoreEl = document.getElementById("snake-score-val");
     if (scoreEl) scoreEl.textContent = "0";
 
@@ -325,18 +486,13 @@ window.PORTFOLIO_GAMES = {
     if (this.snakeGameOver) return;
     this.snakeDir = this.snakeNextDir;
 
+    // BORDERLESS WRAP-AROUND: snake NEVER dies hitting the wall!
     const head = {
-      x: this.snake[0].x + this.snakeDir.x,
-      y: this.snake[0].y + this.snakeDir.y
+      x: (this.snake[0].x + this.snakeDir.x + this.snakeCells) % this.snakeCells,
+      y: (this.snake[0].y + this.snakeDir.y + this.snakeCells) % this.snakeCells
     };
 
-    // Wall collision
-    if (head.x < 0 || head.x >= this.snakeCells || head.y < 0 || head.y >= this.snakeCells) {
-      this.handleSnakeGameOver();
-      return;
-    }
-
-    // Self collision
+    // Self collision: snake dies only if running into its own body
     if (this.snake.some(seg => seg.x === head.x && seg.y === head.y)) {
       this.handleSnakeGameOver();
       return;
@@ -344,10 +500,15 @@ window.PORTFOLIO_GAMES = {
 
     this.snake.unshift(head);
 
-    // Food collision
+    let ateFood = false;
+
+    // 1. Regular Food collision
     if (head.x === this.snakeFood.x && head.y === this.snakeFood.y) {
+      ateFood = true;
       this.snakeScore += 10;
+      this.snakeFoodsEaten++;
       this.playTone(587.33, 0.08, "triangle"); // D5 bleep
+
       const scoreEl = document.getElementById("snake-score-val");
       if (scoreEl) scoreEl.textContent = this.snakeScore.toString();
 
@@ -358,9 +519,58 @@ window.PORTFOLIO_GAMES = {
         if (hsEl) hsEl.textContent = this.snakeHighScore.toString();
       }
 
+      // Periodically spawn bonus item every 4 regular foods
+      if (this.snakeFoodsEaten % 4 === 0 && !this.snakeBonusFood) {
+        this.spawnBonusFood();
+      }
+
       this.spawnSnakeFood();
-    } else {
+    }
+
+    // 2. Bonus Food collision
+    if (this.snakeBonusFood && head.x === this.snakeBonusFood.x && head.y === this.snakeBonusFood.y) {
+      ateFood = true;
+      this.snakeScore += this.snakeBonusFood.points;
+      this.snakePendingGrowth += this.snakeBonusFood.grow;
+
+      // Happy bonus chime: E5 -> G#5 -> B5 arpeggio
+      this.playTone(659.25, 0.08, "sine");
+      setTimeout(() => this.playTone(830.61, 0.08, "sine"), 90);
+      setTimeout(() => this.playTone(987.77, 0.14, "sine"), 180);
+
+      const scoreEl = document.getElementById("snake-score-val");
+      if (scoreEl) scoreEl.textContent = this.snakeScore.toString();
+
+      if (this.snakeScore > this.snakeHighScore) {
+        this.snakeHighScore = this.snakeScore;
+        localStorage.setItem("portfolio_snake_hs", this.snakeHighScore.toString());
+        const hsEl = document.getElementById("snake-hs-val");
+        if (hsEl) hsEl.textContent = this.snakeHighScore.toString();
+      }
+
+      this.clearBonusFood();
+    }
+
+    // Handle tail popping & pending length growth
+    if (this.snakePendingGrowth > 0) {
+      this.snakePendingGrowth--;
+      // Snake grows extra length (do not pop tail)
+    } else if (!ateFood) {
       this.snake.pop();
+    }
+
+    // Update active bonus countdown progress bar
+    if (this.snakeBonusFood) {
+      const remainingMs = this.snakeBonusFood.expiresAt - Date.now();
+      if (remainingMs <= 0) {
+        this.clearBonusFood();
+      } else {
+        const progress = document.getElementById("snake-bonus-progress-inner");
+        if (progress) {
+          const pct = Math.max(0, (remainingMs / this.snakeBonusFood.durationMs) * 100);
+          progress.style.width = `${pct}%`;
+        }
+      }
     }
 
     this.drawSnake(ctx, canvas);
@@ -372,11 +582,57 @@ window.PORTFOLIO_GAMES = {
       clearInterval(this.snakeInterval);
       this.snakeInterval = null;
     }
+    this.clearBonusFood();
     this.playTone(180, 0.25, "sawtooth"); // Low tone game over
     const overlay = document.getElementById("snake-overlay");
     const desc = document.getElementById("snake-overlay-desc");
-    if (desc) desc.textContent = `You scored ${this.snakeScore} points!`;
+    const saveBox = document.getElementById("snake-name-save-box");
+    const saveBtn = document.getElementById("btn-save-snake-score");
+    if (desc) desc.textContent = `You scored ${this.snakeScore} points at ${this.snakeSpeedName.toUpperCase()} speed!`;
+    if (saveBox) {
+      if (this.snakeScore > 0) {
+        saveBox.style.display = "block";
+        if (saveBtn) {
+          saveBtn.textContent = "Save Score";
+          saveBtn.disabled = false;
+        }
+      } else {
+        saveBox.style.display = "none";
+      }
+    }
     if (overlay) overlay.style.display = "flex";
+  },
+
+  saveSnakeScore(name, score) {
+    if (!name || score <= 0) return;
+    try {
+      const list = this.getSnakeLeaderboard();
+      const speedLabel = this.snakeSpeedName.charAt(0).toUpperCase() + this.snakeSpeedName.slice(1);
+      const today = new Date().toISOString().slice(0, 10);
+      list.push({
+        name,
+        score,
+        speed: speedLabel,
+        date: today
+      });
+      list.sort((a, b) => b.score - a.score);
+      const top5 = list.slice(0, 5);
+      localStorage.setItem("portfolio_snake_leaderboard", JSON.stringify(top5));
+      localStorage.setItem("portfolio_friend_name", name);
+
+      const rowsEl = document.getElementById("snake-lb-rows");
+      if (rowsEl) {
+        rowsEl.innerHTML = top5.map((item, idx) => `
+          <div class="snake-lb-row ${item.name.toLowerCase().includes(name.toLowerCase()) ? 'highlight' : ''}">
+            <span>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}</span>
+            <strong>${item.name}</strong>
+            <span class="lb-score">${item.score}</span>
+            <span class="lb-speed">${item.speed || 'Normal'}</span>
+            <span class="lb-date">${item.date || ''}</span>
+          </div>
+        `).join('');
+      }
+    } catch (e) {}
   },
 
   drawSnake(ctx, canvas) {
@@ -399,6 +655,25 @@ window.PORTFOLIO_GAMES = {
       ctx.moveTo(0, i);
       ctx.lineTo(canvas.width, i);
       ctx.stroke();
+    }
+
+    // Draw Bonus Food Token if Active
+    if (this.snakeBonusFood) {
+      const bx = this.snakeBonusFood.x * cellSize;
+      const by = this.snakeBonusFood.y * cellSize;
+      ctx.fillStyle = "#f59e0b";
+      ctx.shadowColor = "#f59e0b";
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.roundRect(bx + 1, by + 1, cellSize - 2, cellSize - 2, 6);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(this.snakeBonusFood.symbol, bx + cellSize / 2, by + cellSize / 2);
     }
 
     // Draw Food Token

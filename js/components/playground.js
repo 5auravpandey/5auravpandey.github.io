@@ -1,6 +1,6 @@
 /**
  * Saurav Pandey - Interactive Dev Playground
- * 1. Focus Sprint & Synchronized Study Room (Zero-Lag Web Audio, Synced YouTube Lo-Fi, Spotify)
+ * 1. Focus Sprint & Synchronized Study Room (Zero-Lag Web Audio, Synced YouTube Lo-Fi, Friends VIP Access)
  * 2. CryptoLock Live Cipher (Two-Way Bitwise XOR Encrypt & Decrypt)
  * 3. Power Terminal Shell (Tab Autocompletion, Command History, Matrix Rain, CLI Controls)
  * 4. Dev Arcade (Matrix Snake, Tic-Tac-Toe Dev Duel, Grandmaster Chess)
@@ -19,10 +19,14 @@ window.PORTFOLIO_PLAYGROUND = {
   activeRoomId: null,
   roomStartTime: null,
   
-  // Music & Sound System
-  audioMode: "ambient", // 'ambient' | 'youtube' | 'spotify'
-  soundscape: "tanpura", // 'tanpura' | 'bansuri' | 'temple' | 'tabla'
-  youtubePreset: "indian-classical", // 'indian-classical' | 'lofi-focus' | 'deep-ambient'
+  // Friends VIP Access State
+  isFriend: false,
+  friendName: "",
+  
+  // Music & Sound System (Zero-Lag Web Audio Synthesizer)
+  audioMode: "ambient", // 'ambient' | 'youtube'
+  soundscape: "genshin", // 'genshin' | 'sky' | 'krishna'
+  youtubePreset: "genshin-ost", // 'genshin-ost' | 'sky-ost' | 'krishna-flute' | 'lofi-study'
   customYoutubeUrl: "",
   audioCtx: null,
   activeNodes: [],
@@ -30,8 +34,6 @@ window.PORTFOLIO_PLAYGROUND = {
   analyser: null,
   animFrameId: null,
   isAudioPlaying: false,
-  spotifyPreset: "indian-classical",
-  customSpotifyUrl: "",
 
   // CryptoLock Two-Way State
   cryptoMode: "encrypt", // 'encrypt' | 'decrypt'
@@ -43,11 +45,13 @@ window.PORTFOLIO_PLAYGROUND = {
   matrixInterval: null,
   terminalCommands: [
     "help", "about", "hal", "projects", "books", "games", "arcade", "snake", "chess", "tictactoe", 
-    "skills", "contact", "admin", "matrix", "theme", "timer", "crypto", "sound", "spotify", "youtube", "sync", "invite", "weather", "quote", "clear", "sudo hire"
+    "skills", "contact", "admin", "matrix", "theme", "timer", "crypto", "sound", "youtube", "sync", "invite", "friend", "weather", "quote", "clear", "sudo hire"
   ],
 
   init() {
     this.sprintsCompleted = parseInt(localStorage.getItem("portfolio_sprints") || "0", 10);
+    this.isFriend = localStorage.getItem("portfolio_friend_pass") === "true";
+    this.friendName = localStorage.getItem("portfolio_friend_name") || "";
     this.checkUrlParams();
     this.render();
   },
@@ -56,6 +60,17 @@ window.PORTFOLIO_PLAYGROUND = {
     try {
       const params = new URLSearchParams(window.location.search);
       
+      // Friends Access Detection from invite link
+      if (params.get("friend") === "true" || params.has("invite") || params.has("pass")) {
+        this.isFriend = true;
+        localStorage.setItem("portfolio_friend_pass", "true");
+        const fromName = params.get("from") || params.get("name") || (params.get("friend") !== "true" ? params.get("friend") : "");
+        if (fromName) {
+          this.friendName = decodeURIComponent(fromName);
+          localStorage.setItem("portfolio_friend_name", this.friendName);
+        }
+      }
+
       if (params.has("room")) {
         this.activeRoomId = params.get("room");
         this.currentTab = "focus";
@@ -85,14 +100,14 @@ window.PORTFOLIO_PLAYGROUND = {
 
       if (params.has("sound")) {
         const s = params.get("sound");
-        if (["tanpura", "bansuri", "temple", "tabla"].includes(s)) {
+        if (["genshin", "sky", "krishna"].includes(s)) {
           this.soundscape = s;
         }
       }
 
       if (params.has("audioMode")) {
         const am = params.get("audioMode");
-        if (["ambient", "youtube", "spotify"].includes(am)) {
+        if (["ambient", "youtube"].includes(am)) {
           this.audioMode = am;
         }
       }
@@ -152,7 +167,14 @@ window.PORTFOLIO_PLAYGROUND = {
 
   renderActiveTab() {
     if (this.currentTab === "games") {
+      if (!this.isFriend) {
+        return this.renderFriendGate("games");
+      }
       return `
+        <div class="friend-active-banner">
+          <span>🌟 Friends VIP Pass Active${this.friendName ? `: <strong>${this.friendName}</strong>` : ''}</span>
+          <button type="button" class="btn-invite-pill" id="btn-share-friend-pass">🔗 Invite Classmates</button>
+        </div>
         <div id="dev-games-container"></div>
       `;
     }
@@ -213,13 +235,10 @@ window.PORTFOLIO_PLAYGROUND = {
           <div class="focus-audio-center">
             <div class="audio-mode-switcher">
               <button type="button" class="audio-mode-tab ${this.audioMode === 'ambient' ? 'active' : ''}" id="btn-mode-ambient">
-                🪕 Indian Soundscapes
+                ✨ Melodic Soundscapes
               </button>
               <button type="button" class="audio-mode-tab ${this.audioMode === 'youtube' ? 'active' : ''}" id="btn-mode-youtube">
-                🎧 YouTube Focus Stream
-              </button>
-              <button type="button" class="audio-mode-tab ${this.audioMode === 'spotify' ? 'active' : ''}" id="btn-mode-spotify">
-                🟢 Spotify Player
+                🎧 Friends YouTube Stream ${this.isFriend ? '✓' : '🔒'}
               </button>
             </div>
 
@@ -228,10 +247,9 @@ window.PORTFOLIO_PLAYGROUND = {
                 <div class="soundscape-selector">
                   <label for="soundscape-select" style="font-family: var(--mono); font-size: 12.5px; color: var(--muted);">Soundscape:</label>
                   <select id="soundscape-select" class="focus-input" style="padding: 4px 8px; font-size: 13.5px; width: auto;">
-                    <option value="tanpura" ${this.soundscape === 'tanpura' ? 'selected' : ''}>🪕 Meditative Tanpura (Sa-Pa Drone)</option>
-                    <option value="bansuri" ${this.soundscape === 'bansuri' ? 'selected' : ''}>🪈 Bansuri Flute Wind Resonance</option>
-                    <option value="temple" ${this.soundscape === 'temple' ? 'selected' : ''}>🕉️ Sacred Temple Om Bowl (432Hz)</option>
-                    <option value="tabla" ${this.soundscape === 'tabla' ? 'selected' : ''}>🪘 Tabla Bayan Calming Pulse</option>
+                    <option value="genshin" ${this.soundscape === 'genshin' ? 'selected' : ''}>🍃 Genshin Impact Melodies (Peaceful Mondstadt &amp; Liyue Breeze)</option>
+                    <option value="sky" ${this.soundscape === 'sky' ? 'selected' : ''}>🕊️ Sky: Children of the Light Ambience (Celestial Cloud Echo)</option>
+                    <option value="krishna" ${this.soundscape === 'krishna' ? 'selected' : ''}>🪈 Little Krishna Divine Flute (Vrindavan Bansuri &amp; River Murmur)</option>
                   </select>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -241,12 +259,17 @@ window.PORTFOLIO_PLAYGROUND = {
                   <canvas id="soundscape-visualizer" class="soundscape-canvas" width="112" height="26" title="Live Web Audio Frequency Visualizer" style="border-radius: 4px; background: rgba(0,0,0,0.06); vertical-align: middle;"></canvas>
                 </div>
               </div>
-            ` : this.audioMode === 'youtube' ? `
+            ` : !this.isFriend ? this.renderFriendGate("youtube") : `
               <div class="youtube-controls">
+                <div class="friend-active-banner" style="margin-bottom: 10px;">
+                  <span>🌟 Friends VIP Stream Active${this.friendName ? `: <strong>${this.friendName}</strong>` : ''}</span>
+                  <button type="button" class="btn-invite-pill" id="btn-share-friend-pass-yt">🔗 Invite Classmates</button>
+                </div>
                 <div class="youtube-presets">
-                  <button type="button" class="youtube-pill ${this.youtubePreset === 'indian-classical' ? 'active' : ''}" data-youtube="indian-classical">Indian Classical Ragas</button>
-                  <button type="button" class="youtube-pill ${this.youtubePreset === 'lofi-focus' ? 'active' : ''}" data-youtube="lofi-focus">Lofi Study Beats</button>
-                  <button type="button" class="youtube-pill ${this.youtubePreset === 'deep-ambient' ? 'active' : ''}" data-youtube="deep-ambient">Deep Alpha Waves</button>
+                  <button type="button" class="youtube-pill ${this.youtubePreset === 'genshin-ost' ? 'active' : ''}" data-youtube="genshin-ost">🍃 Genshin Relaxing OST</button>
+                  <button type="button" class="youtube-pill ${this.youtubePreset === 'sky-ost' ? 'active' : ''}" data-youtube="sky-ost">🕊️ Sky Children OST</button>
+                  <button type="button" class="youtube-pill ${this.youtubePreset === 'krishna-flute' ? 'active' : ''}" data-youtube="krishna-flute">🪈 Little Krishna Divine Flute</button>
+                  <button type="button" class="youtube-pill ${this.youtubePreset === 'lofi-study' ? 'active' : ''}" data-youtube="lofi-study">☕ Study Lofi Beats</button>
                 </div>
                 <div class="youtube-iframe-box" style="margin-top: 10px;">
                   <iframe 
@@ -260,32 +283,8 @@ window.PORTFOLIO_PLAYGROUND = {
                   </iframe>
                 </div>
                 <div style="margin-top: 8px; display: flex; gap: 8px;">
-                  <input type="text" id="youtube-custom-url" class="focus-input" placeholder="Or paste any YouTube video or live-stream URL..." style="font-size: 13px; text-align: left;" value="${this.customYoutubeUrl}">
+                  <input type="text" id="youtube-custom-url" class="focus-input" placeholder="Paste YouTube video or playlist URL..." style="font-size: 13px; text-align: left;" value="${this.customYoutubeUrl}">
                   <button type="button" id="btn-youtube-load" class="btn-secondary-action" style="font-size: 12px; padding: 4px 12px;">Load</button>
-                </div>
-              </div>
-            ` : `
-              <div class="spotify-controls">
-                <div class="spotify-presets">
-                  <button type="button" class="spotify-pill ${this.spotifyPreset === 'indian-classical' ? 'active' : ''}" data-spotify="indian-classical">Indian Classical Ragas</button>
-                  <button type="button" class="spotify-pill ${this.spotifyPreset === 'indian-lofi' ? 'active' : ''}" data-spotify="indian-lofi">Indian Lofi Focus</button>
-                  <button type="button" class="spotify-pill ${this.spotifyPreset === 'bansuri-peace' ? 'active' : ''}" data-spotify="bansuri-peace">Peaceful Bansuri</button>
-                </div>
-                <div class="spotify-iframe-box">
-                  <iframe 
-                    style="border-radius:12px; margin-top: 10px;" 
-                    src="${this.getSpotifyEmbedUrl()}" 
-                    width="100%" 
-                    height="152" 
-                    frameBorder="0" 
-                    allowfullscreen="" 
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                    loading="lazy">
-                  </iframe>
-                </div>
-                <div style="margin-top: 8px; display: flex; gap: 8px;">
-                  <input type="text" id="spotify-custom-url" class="focus-input" placeholder="Or paste any Spotify Playlist / Album link..." style="font-size: 13px; text-align: left;" value="${this.customSpotifyUrl}">
-                  <button type="button" id="btn-spotify-load" class="btn-secondary-action" style="font-size: 12px; padding: 4px 12px;">Load</button>
                 </div>
               </div>
             `}
@@ -398,41 +397,59 @@ window.PORTFOLIO_PLAYGROUND = {
     return "";
   },
 
+  renderFriendGate(context = "general") {
+    const isGames = context === "games";
+    return `
+      <div class="friend-gate-card">
+        <div class="friend-gate-badge">🔒 Saurav's Friends &amp; Study Group VIP Pass</div>
+        <h3 class="friend-gate-title">${isGames ? "🎮 Dev Arcade Access Gate" : "🎧 YouTube Focus Stream Gate"}</h3>
+        <p class="friend-gate-desc">
+          ${isGames 
+            ? "The Dev Arcade (Matrix Snake, Tic-Tac-Toe, Chess) is reserved for Saurav's friends, classmates, and study group to play together and save their high scores!" 
+            : "The YouTube synced focus player is reserved for Saurav's friends and study group so you can study to Genshin, Sky, and Krishna melodies together in sync!"}
+        </p>
+        <div class="friend-gate-form">
+          <div class="friend-gate-field">
+            <label for="input-friend-name">Your Name / Nickname:</label>
+            <input type="text" id="input-friend-name" class="focus-input" placeholder="e.g., Aman, Rohan, Priya..." value="${this.friendName || ''}" maxlength="24">
+          </div>
+          <div class="friend-gate-field">
+            <label for="input-friend-code">Invite Passcode:</label>
+            <input type="text" id="input-friend-code" class="focus-input" placeholder="Enter code (e.g. SAURAV, HAL2026, STUDY)..." maxlength="24">
+          </div>
+          <button type="button" id="btn-unlock-friend" class="btn-primary-action" style="padding: 10px 20px; font-weight: 600; width: 100%;">
+            ✨ Unlock Friends Access
+          </button>
+        </div>
+        <div class="friend-gate-quick-hint">
+          <span>💡 Received a direct invite link from Saurav?</span>
+          <button type="button" id="btn-quick-unlock-friend" class="btn-text-link">Instant Unlock with Guest Pass</button>
+        </div>
+      </div>
+    `;
+  },
+
   getYoutubeEmbedUrl() {
     const defaultIds = {
-      "indian-classical": "qQ1UeR_Vqfg",
-      "lofi-focus": "jfKfPfyJRdk",
-      "deep-ambient": "WPni755-Krg"
+      "genshin-ost": "SO_B339kZ9k",
+      "sky-ost": "P_Fv8_632e8",
+      "krishna-flute": "0_Xv_uXz5m0",
+      "lofi-study": "jfKfPfyJRdk"
     };
 
     if (this.customYoutubeUrl) {
-      const match = this.customYoutubeUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      const match = this.customYoutubeUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
       if (match) {
         return `https://www.youtube-nocookie.com/embed/${match[1]}?autoplay=0&rel=0`;
       }
-    }
-
-    const vidId = defaultIds[this.youtubePreset] || defaultIds["indian-classical"];
-    return `https://www.youtube-nocookie.com/embed/${vidId}?autoplay=0&rel=0`;
-  },
-
-  getSpotifyEmbedUrl() {
-    if (this.customSpotifyUrl) {
-      const match = this.customSpotifyUrl.match(/(playlist|album|track)\/([a-zA-Z0-9]+)/);
-      if (match) {
-        return `https://open.spotify.com/embed/${match[1]}/${match[2]}?utm_source=generator&theme=0`;
+      const listMatch = this.customYoutubeUrl.match(/[?&]list=([\w-]+)/);
+      if (listMatch) {
+        return `https://www.youtube-nocookie.com/embed/videoseries?list=${listMatch[1]}&rel=0`;
       }
     }
 
-    switch (this.spotifyPreset) {
-      case "indian-lofi":
-        return "https://open.spotify.com/embed/playlist/37i9dQZF1DX3rxVfibe1L0?utm_source=generator&theme=0";
-      case "bansuri-peace":
-        return "https://open.spotify.com/embed/playlist/37i9dQZF1DWZqd5JICZI0u?utm_source=generator&theme=0";
-      case "indian-classical":
-      default:
-        return "https://open.spotify.com/embed/playlist/37i9dQZF1DX8Uebhn9wzrS?utm_source=generator&theme=0";
-    }
+    const vidId = defaultIds[this.youtubePreset] || defaultIds["genshin-ost"];
+    return `https://www.youtube-nocookie.com/embed/${vidId}?autoplay=0&rel=0`;
   },
 
   bindEvents() {
@@ -449,6 +466,47 @@ window.PORTFOLIO_PLAYGROUND = {
         this.render();
       });
     });
+
+    // Friend Gate Actions (Unlock & Instant Guest Pass)
+    const unlockBtn = document.getElementById("btn-unlock-friend");
+    const quickUnlockBtn = document.getElementById("btn-quick-unlock-friend");
+    const friendNameInput = document.getElementById("input-friend-name");
+    const friendCodeInput = document.getElementById("input-friend-code");
+
+    if (unlockBtn) {
+      unlockBtn.addEventListener("click", () => {
+        const name = (friendNameInput ? friendNameInput.value.trim() : "") || "Friend";
+        const code = (friendCodeInput ? friendCodeInput.value.trim() : "").toUpperCase();
+        // Accepts any code or friendly phrase
+        this.isFriend = true;
+        this.friendName = name;
+        localStorage.setItem("portfolio_friend_pass", "true");
+        localStorage.setItem("portfolio_friend_name", name);
+        this.render();
+      });
+    }
+
+    if (quickUnlockBtn) {
+      quickUnlockBtn.addEventListener("click", () => {
+        const name = (friendNameInput ? friendNameInput.value.trim() : "") || "Friend";
+        this.isFriend = true;
+        this.friendName = name;
+        localStorage.setItem("portfolio_friend_pass", "true");
+        localStorage.setItem("portfolio_friend_name", name);
+        this.render();
+      });
+    }
+
+    // Share Pass Buttons
+    const sharePassBtn = document.getElementById("btn-share-friend-pass");
+    const sharePassYtBtn = document.getElementById("btn-share-friend-pass-yt");
+    if (sharePassBtn) sharePassBtn.addEventListener("click", () => this.openInviteModal());
+    if (sharePassYtBtn) sharePassYtBtn.addEventListener("click", () => this.openInviteModal());
+
+    // Initialize Games if on games tab and unlocked
+    if (this.currentTab === "games" && this.isFriend && window.PORTFOLIO_GAMES) {
+      window.PORTFOLIO_GAMES.init();
+    }
 
     // --- Tab 1: Focus Sprint Events ---
     if (this.currentTab === "focus") {
@@ -487,10 +545,9 @@ window.PORTFOLIO_PLAYGROUND = {
         });
       }
 
-      // Audio Mode Tabs (Ambient vs YouTube vs Spotify)
+      // Audio Mode Tabs (Ambient vs YouTube)
       const ambientModeBtn = document.getElementById("btn-mode-ambient");
       const ytModeBtn = document.getElementById("btn-mode-youtube");
-      const spotifyModeBtn = document.getElementById("btn-mode-spotify");
 
       if (ambientModeBtn) {
         ambientModeBtn.addEventListener("click", () => {
@@ -501,13 +558,6 @@ window.PORTFOLIO_PLAYGROUND = {
       if (ytModeBtn) {
         ytModeBtn.addEventListener("click", () => {
           this.audioMode = "youtube";
-          if (this.isAudioPlaying) this.toggleAmbientAudio(); // pause synth if playing
-          this.render();
-        });
-      }
-      if (spotifyModeBtn) {
-        spotifyModeBtn.addEventListener("click", () => {
-          this.audioMode = "spotify";
           if (this.isAudioPlaying) this.toggleAmbientAudio(); // pause synth if playing
           this.render();
         });
@@ -553,25 +603,6 @@ window.PORTFOLIO_PLAYGROUND = {
       if (loadYtBtn && customYtInput) {
         loadYtBtn.addEventListener("click", () => {
           this.customYoutubeUrl = customYtInput.value.trim();
-          this.render();
-        });
-      }
-
-      // Spotify Presets
-      const spotifyPills = document.querySelectorAll(".spotify-pill");
-      spotifyPills.forEach(pill => {
-        pill.addEventListener("click", () => {
-          this.spotifyPreset = pill.dataset.spotify;
-          this.customSpotifyUrl = "";
-          this.render();
-        });
-      });
-
-      const loadCustomBtn = document.getElementById("btn-spotify-load");
-      const customUrlInput = document.getElementById("spotify-custom-url");
-      if (loadCustomBtn && customUrlInput) {
-        loadCustomBtn.addEventListener("click", () => {
-          this.customSpotifyUrl = customUrlInput.value.trim();
           this.render();
         });
       }
@@ -807,7 +838,10 @@ window.PORTFOLIO_PLAYGROUND = {
 
     const sprintMins = Math.round(this.timerDuration / 60);
     const t = this.roomStartTime || Date.now();
-    let shareUrl = `${liveOrigin}${window.location.pathname}?tab=focus&room=${this.activeRoomId}&sprint=${sprintMins}&audioMode=${this.audioMode}&t=${t}`;
+    let shareUrl = `${liveOrigin}${window.location.pathname}?tab=focus&room=${this.activeRoomId}&sprint=${sprintMins}&audioMode=${this.audioMode}&t=${t}&friend=true`;
+    if (this.friendName) {
+      shareUrl += `&from=${encodeURIComponent(this.friendName)}`;
+    }
 
     if (this.audioMode === "ambient") {
       shareUrl += `&sound=${this.soundscape}`;
@@ -822,16 +856,13 @@ window.PORTFOLIO_PLAYGROUND = {
     if (audioLabel) {
       if (this.audioMode === "ambient") {
         const soundMap = {
-          tanpura: "🪕 Meditative Tanpura (Zero-lag Synth)",
-          bansuri: "🪈 Bansuri Flute Wind Resonance",
-          temple: "🕉️ Sacred Temple Om Bowl (432Hz)",
-          tabla: "🪘 Tabla Bayan Calming Pulse"
+          genshin: "🍃 Genshin Impact Melodies",
+          sky: "🕊️ Sky: Children of the Light Ambience",
+          krishna: "🪈 Little Krishna Divine Flute"
         };
-        audioLabel.textContent = soundMap[this.soundscape] || "🪕 Indian Soundscapes";
-      } else if (this.audioMode === "youtube") {
-        audioLabel.textContent = "🎧 YouTube Synced Focus Stream";
+        audioLabel.textContent = soundMap[this.soundscape] || "✨ Melodic Soundscapes";
       } else {
-        audioLabel.textContent = "🟢 Spotify Ambient Player";
+        audioLabel.textContent = "🎧 YouTube Synced Focus Stream";
       }
     }
 
@@ -902,14 +933,14 @@ window.PORTFOLIO_PLAYGROUND = {
       this.masterGain.connect(this.analyser);
       this.analyser.connect(this.audioCtx.destination);
 
-      if (this.soundscape === "tanpura") {
-        this.createTanpuraDrone();
-      } else if (this.soundscape === "bansuri") {
-        this.createBansuriFlute();
-      } else if (this.soundscape === "temple") {
-        this.createSacredTempleBowl();
-      } else if (this.soundscape === "tabla") {
-        this.createTablaBayanPulse();
+      if (this.soundscape === "genshin") {
+        this.createGenshinMelody();
+      } else if (this.soundscape === "sky") {
+        this.createSkyGameAmbience();
+      } else if (this.soundscape === "krishna") {
+        this.createLittleKrishnaFlute();
+      } else {
+        this.createGenshinMelody();
       }
     } catch (e) {
       console.error("Audio error:", e);
@@ -1006,272 +1037,303 @@ window.PORTFOLIO_PLAYGROUND = {
   },
 
   /**
-   * 1. Meditative Tanpura (Sa-Pa Drone with Jawari Shimmer)
-   * Sa = 136.1 Hz (C#3 fundamental), Pa = 204.15 Hz, Kharaj Sa = 68.05 Hz, Tar Sa = 272.2 Hz
+   * 1. 🍃 Genshin Impact Melodies (Peaceful Mondstadt & Liyue Breeze)
+   * Acoustic harp & piano arpeggios in D Major Pentatonic / Lydian with gentle mountain breeze
    */
-  createTanpuraDrone() {
+  createGenshinMelody() {
     if (!this.audioCtx) return;
     const ctx = this.audioCtx;
 
-    // String 1: Kharaj Sa (Deep Bass Root - 68.05 Hz)
-    const kharaj = ctx.createOscillator();
-    kharaj.type = "sine";
-    kharaj.frequency.value = 68.05;
-    const kharajGain = ctx.createGain();
-    kharajGain.gain.value = 0.35;
-    kharaj.connect(kharajGain);
-    kharajGain.connect(this.masterGain);
-    kharaj.start();
+    // Warm Ambient Pad Drone (D3 + A3 + F#4 harmonic warmth)
+    const padD = ctx.createOscillator();
+    padD.type = "sine";
+    padD.frequency.value = 146.83; // D3
+    const padA = ctx.createOscillator();
+    padA.type = "triangle";
+    padA.frequency.value = 220.00; // A3
+    const padGain = ctx.createGain();
+    padGain.gain.value = 0.08;
 
-    // String 2: Pa (Fifth Harmonic - 204.15 Hz) with gentle cyclic pluck swelling
-    const pa = ctx.createOscillator();
-    pa.type = "sawtooth";
-    pa.frequency.value = 204.15;
-    const paFilter = ctx.createBiquadFilter();
-    paFilter.type = "lowpass";
-    paFilter.frequency.value = 520;
-    const paGain = ctx.createGain();
-    paGain.gain.value = 0.12;
+    padD.connect(padGain);
+    padA.connect(padGain);
+    padGain.connect(this.masterGain);
+    padD.start();
+    padA.start();
 
-    const paLfo = ctx.createOscillator();
-    paLfo.frequency.value = 0.22;
-    const paLfoGain = ctx.createGain();
-    paLfoGain.gain.value = 0.08;
-    paLfo.connect(paLfoGain);
-    paLfoGain.connect(paGain.gain);
-
-    pa.connect(paFilter);
-    paFilter.connect(paGain);
-    paGain.connect(this.masterGain);
-    pa.start();
-    paLfo.start();
-
-    // String 3: Madhya Sa (Middle Root - 136.1 Hz)
-    const sa = ctx.createOscillator();
-    sa.type = "sawtooth";
-    sa.frequency.value = 136.1;
-    const saFilter = ctx.createBiquadFilter();
-    saFilter.type = "lowpass";
-    saFilter.frequency.value = 480;
-    const saGain = ctx.createGain();
-    saGain.gain.value = 0.14;
-
-    const saLfo = ctx.createOscillator();
-    saLfo.frequency.value = 0.16;
-    const saLfoGain = ctx.createGain();
-    saLfoGain.gain.value = 0.09;
-    saLfo.connect(saLfoGain);
-    saLfoGain.connect(saGain.gain);
-
-    sa.connect(saFilter);
-    saFilter.connect(saGain);
-    saGain.connect(this.masterGain);
-    sa.start();
-    saLfo.start();
-
-    // String 4: Tar Sa (Higher Octave - 272.2 Hz)
-    const tarSa = ctx.createOscillator();
-    tarSa.type = "sine";
-    tarSa.frequency.value = 272.2;
-    const tarGain = ctx.createGain();
-    tarGain.gain.value = 0.08;
-    tarSa.connect(tarGain);
-    tarGain.connect(this.masterGain);
-    tarSa.start();
-
-    // Jawari thread acoustic buzz/shimmer (gentle resonant bandpass noise)
+    // Gentle Mondstadt Mountain Wind Breeze (Soft filtered noise with slow modulation)
     const bufferSize = ctx.sampleRate * 2;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
       data[i] = (Math.random() * 2 - 1) * 0.015;
     }
-    const jawariNoise = ctx.createBufferSource();
-    jawariNoise.buffer = buffer;
-    jawariNoise.loop = true;
+    const windNoise = ctx.createBufferSource();
+    windNoise.buffer = buffer;
+    windNoise.loop = true;
 
-    const jawariFilter = ctx.createBiquadFilter();
-    jawariFilter.type = "bandpass";
-    jawariFilter.frequency.value = 950;
-    jawariFilter.Q.value = 3.5;
+    const windFilter = ctx.createBiquadFilter();
+    windFilter.type = "lowpass";
+    windFilter.frequency.value = 320;
 
-    jawariNoise.connect(jawariFilter);
-    jawariFilter.connect(this.masterGain);
-    jawariNoise.start();
+    const windGain = ctx.createGain();
+    windGain.gain.value = 0.04;
 
-    this.activeNodes.push(kharaj, pa, paLfo, sa, saLfo, tarSa, jawariNoise, paFilter, saFilter, jawariFilter);
+    const windLfo = ctx.createOscillator();
+    windLfo.frequency.value = 0.08;
+    const windLfoGain = ctx.createGain();
+    windLfoGain.gain.value = 0.02;
+    windLfo.connect(windLfoGain);
+    windLfoGain.connect(windGain.gain);
+
+    windNoise.connect(windFilter);
+    windFilter.connect(windGain);
+    windGain.connect(this.masterGain);
+    windNoise.start();
+    windLfo.start();
+
+    // Peaceful Acoustic Harp Arpeggio Sequence (Genshin Theme Motif)
+    const notes = [
+      293.66, // D4
+      369.99, // F#4
+      440.00, // A4
+      587.33, // D5
+      659.25, // E5
+      739.99, // F#5
+      880.00, // A5
+      739.99, // F#5
+      659.25, // E5
+      440.00  // A4
+    ];
+    let noteIdx = 0;
+
+    const arpeggioInterval = setInterval(() => {
+      if (!this.isAudioPlaying || !this.audioCtx) return;
+      try {
+        const now = ctx.currentTime;
+        const freq = notes[noteIdx % notes.length];
+        noteIdx++;
+
+        // Primary Pluck (Triangle warmth)
+        const osc = ctx.createOscillator();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, now);
+
+        // Soft Shimmer Overtone (Sine)
+        const sub = ctx.createOscillator();
+        sub.type = "sine";
+        sub.frequency.setValueAtTime(freq * 2, now);
+
+        const noteGain = ctx.createGain();
+        noteGain.gain.setValueAtTime(0.001, now);
+        noteGain.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+        noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.25);
+
+        const subGain = ctx.createGain();
+        subGain.gain.setValueAtTime(0.001, now);
+        subGain.gain.exponentialRampToValueAtTime(0.035, now + 0.02);
+        subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(1400, now);
+        filter.frequency.exponentialRampToValueAtTime(500, now + 1.2);
+
+        osc.connect(filter);
+        sub.connect(filter);
+        filter.connect(noteGain);
+        noteGain.connect(this.masterGain);
+
+        osc.start(now);
+        sub.start(now);
+        osc.stop(now + 1.3);
+        sub.stop(now + 1.3);
+      } catch (e) {}
+    }, 620);
+
+    this.activeNodes.push(padD, padA, padGain, windNoise, windFilter, windGain, windLfo, windLfoGain, arpeggioInterval);
   },
 
   /**
-   * 2. Bansuri Flute Wind Resonance
-   * Warm bamboo flute tone (432Hz fundamental) layered with breath noise and soft micro-vibrato
+   * 2. 🕊️ Sky: Children of the Light Ambience (Celestial Cloud Echo & Shimmer)
+   * Airy ethereal pads in Fmaj9 with slow rotary phasing and crystalline chime resonance
    */
-  createBansuriFlute() {
+  createSkyGameAmbience() {
     if (!this.audioCtx) return;
     const ctx = this.audioCtx;
 
-    // Flute Fundamental (Triangle warmth)
-    const flute = ctx.createOscillator();
-    flute.type = "triangle";
-    flute.frequency.value = 432;
+    // Celestial Pad Voices (F3 174.61Hz, C4 261.63Hz, A4 440.00Hz, E5 659.25Hz)
+    const freqs = [174.61, 261.63, 440.00, 659.25];
+    const padNodes = [];
 
-    // Soft human vibrato (4.5 Hz LFO)
-    const vibrato = ctx.createOscillator();
-    vibrato.frequency.value = 4.5;
-    const vibratoGain = ctx.createGain();
-    vibratoGain.gain.value = 3.5;
-    vibrato.connect(vibratoGain);
-    vibratoGain.connect(flute.frequency);
+    freqs.forEach(f => {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = f;
 
-    const fluteFilter = ctx.createBiquadFilter();
-    fluteFilter.type = "lowpass";
-    fluteFilter.frequency.value = 850;
+      const oscDetune = ctx.createOscillator();
+      oscDetune.type = "sine";
+      oscDetune.frequency.value = f * 1.003; // Soft chorus detuning
 
-    const fluteGain = ctx.createGain();
-    fluteGain.gain.value = 0.22;
+      const voiceGain = ctx.createGain();
+      voiceGain.gain.value = 0.045;
 
-    flute.connect(fluteFilter);
-    fluteFilter.connect(fluteGain);
-    fluteGain.connect(this.masterGain);
+      osc.connect(voiceGain);
+      oscDetune.connect(voiceGain);
+      voiceGain.connect(this.masterGain);
 
-    // Bamboo breath turbulence (filtered noise with slow breath swell)
+      osc.start();
+      oscDetune.start();
+      padNodes.push(osc, oscDetune, voiceGain);
+    });
+
+    // Slow Celestial Rotary Phasing
+    const padLfo = ctx.createOscillator();
+    padLfo.frequency.value = 0.07;
+    const padLfoGain = ctx.createGain();
+    padLfoGain.gain.value = 0.03;
+    padLfo.connect(padLfoGain);
+    padLfoGain.connect(this.masterGain.gain);
+    padLfo.start();
+    padNodes.push(padLfo, padLfoGain);
+
+    // Crystalline Chime Resonance (Rings every 4.2 seconds)
+    const chimeFrequencies = [1318.51, 1760.00, 2093.00, 1567.98];
+    let chimeIdx = 0;
+
+    const chimeInterval = setInterval(() => {
+      if (!this.isAudioPlaying || !this.audioCtx) return;
+      try {
+        const now = ctx.currentTime;
+        const chimeFreq = chimeFrequencies[chimeIdx % chimeFrequencies.length];
+        chimeIdx++;
+
+        const chimeOsc = ctx.createOscillator();
+        chimeOsc.type = "sine";
+        chimeOsc.frequency.setValueAtTime(chimeFreq, now);
+
+        const chimeGain = ctx.createGain();
+        chimeGain.gain.setValueAtTime(0.001, now);
+        chimeGain.gain.exponentialRampToValueAtTime(0.07, now + 0.03);
+        chimeGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+
+        const chimeFilter = ctx.createBiquadFilter();
+        chimeFilter.type = "bandpass";
+        chimeFilter.frequency.setValueAtTime(chimeFreq, now);
+        chimeFilter.Q.value = 8.0;
+
+        chimeOsc.connect(chimeFilter);
+        chimeFilter.connect(chimeGain);
+        chimeGain.connect(this.masterGain);
+
+        chimeOsc.start(now);
+        chimeOsc.stop(now + 2.85);
+      } catch (e) {}
+    }, 4200);
+
+    this.activeNodes.push(...padNodes, chimeInterval);
+  },
+
+  /**
+   * 3. 🪈 Little Krishna Divine Flute (Vrindavan Bansuri & River Murmur)
+   * Warm bamboo bansuri melody with soft vibrato, portamento glides, and Yamuna river stream
+   */
+  createLittleKrishnaFlute() {
+    if (!this.audioCtx) return;
+    const ctx = this.audioCtx;
+
+    // Yamuna River Water Murmur (Filtered stream noise)
     const bufferSize = ctx.sampleRate * 2;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
+      data[i] = (Math.random() * 2 - 1) * 0.02;
     }
-    const breath = ctx.createBufferSource();
-    breath.buffer = buffer;
-    breath.loop = true;
+    const riverNoise = ctx.createBufferSource();
+    riverNoise.buffer = buffer;
+    riverNoise.loop = true;
 
-    const breathFilter = ctx.createBiquadFilter();
-    breathFilter.type = "bandpass";
-    breathFilter.frequency.value = 860;
-    breathFilter.Q.value = 5.0;
+    const riverFilter = ctx.createBiquadFilter();
+    riverFilter.type = "bandpass";
+    riverFilter.frequency.value = 680;
+    riverFilter.Q.value = 2.5;
 
-    const breathGain = ctx.createGain();
-    breathGain.gain.value = 0.04;
+    const riverGain = ctx.createGain();
+    riverGain.gain.value = 0.04;
 
-    const breathLfo = ctx.createOscillator();
-    breathLfo.frequency.value = 0.15;
-    const breathLfoGain = ctx.createGain();
-    breathLfoGain.gain.value = 0.025;
-    breathLfo.connect(breathLfoGain);
-    breathLfoGain.connect(breathGain.gain);
+    riverNoise.connect(riverFilter);
+    riverFilter.connect(riverGain);
+    riverGain.connect(this.masterGain);
+    riverNoise.start();
 
-    breath.connect(breathFilter);
-    breathFilter.connect(breathGain);
-    breathGain.connect(this.masterGain);
+    // Bansuri Bamboo Flute Instrument
+    const fluteOsc = ctx.createOscillator();
+    fluteOsc.type = "triangle";
+    fluteOsc.frequency.setValueAtTime(440, ctx.currentTime);
 
-    flute.start();
+    // Warm bamboo 2nd harmonic overtone
+    const fluteOvertone = ctx.createOscillator();
+    fluteOvertone.type = "sine";
+    fluteOvertone.frequency.setValueAtTime(880, ctx.currentTime);
+
+    // Natural human vibrato (4.6 Hz LFO)
+    const vibrato = ctx.createOscillator();
+    vibrato.frequency.value = 4.6;
+    const vibratoGain = ctx.createGain();
+    vibratoGain.gain.value = 4.0;
+    vibrato.connect(vibratoGain);
+    vibratoGain.connect(fluteOsc.frequency);
+    vibratoGain.connect(fluteOvertone.frequency);
+
+    const fluteFilter = ctx.createBiquadFilter();
+    fluteFilter.type = "lowpass";
+    fluteFilter.frequency.value = 950;
+
+    const fluteGain = ctx.createGain();
+    fluteGain.gain.value = 0.16;
+
+    fluteOsc.connect(fluteFilter);
+    fluteOvertone.connect(fluteFilter);
+    fluteFilter.connect(fluteGain);
+    fluteGain.connect(this.masterGain);
+
+    fluteOsc.start();
+    fluteOvertone.start();
     vibrato.start();
-    breath.start();
-    breathLfo.start();
 
-    this.activeNodes.push(flute, vibrato, breath, breathLfo, fluteFilter, breathFilter);
-  },
+    // Sacred Raag Yaman / Bhupali Melody Sequence (Soulful bansuri phrases)
+    const krishnaPhrases = [
+      392.00, // G4 (Pa)
+      440.00, // A4 (Dha)
+      493.88, // B4 (Ni)
+      587.33, // D5 (Re)
+      659.25, // E5 (Ga)
+      783.99, // G5 (Pa)
+      659.25, // E5
+      587.33, // D5
+      493.88, // B4
+      440.00  // A4
+    ];
+    let phraseIdx = 0;
 
-  /**
-   * 3. Sacred Temple Om Bowl (432Hz Binaural Meditation)
-   * Pure bell tones at 432 Hz, 864 Hz, and 108 Hz sub-tone with slow rotary phasing
-   */
-  createSacredTempleBowl() {
-    if (!this.audioCtx) return;
-    const ctx = this.audioCtx;
-
-    const bowl1 = ctx.createOscillator();
-    bowl1.type = "sine";
-    bowl1.frequency.value = 432;
-
-    const bowl2 = ctx.createOscillator();
-    bowl2.type = "sine";
-    bowl2.frequency.value = 436;
-
-    const chime = ctx.createOscillator();
-    chime.type = "sine";
-    chime.frequency.value = 864;
-    const chimeGain = ctx.createGain();
-    chimeGain.gain.value = 0.06;
-    chime.connect(chimeGain);
-    chimeGain.connect(this.masterGain);
-
-    const sub = ctx.createOscillator();
-    sub.type = "sine";
-    sub.frequency.value = 108;
-    const subGain = ctx.createGain();
-    subGain.gain.value = 0.18;
-    sub.connect(subGain);
-    subGain.connect(this.masterGain);
-
-    const swell = ctx.createOscillator();
-    swell.frequency.value = 0.08;
-    const swellGain = ctx.createGain();
-    swellGain.gain.value = 0.06;
-
-    const bowlMaster = ctx.createGain();
-    bowlMaster.gain.value = 0.16;
-    swell.connect(swellGain);
-    swellGain.connect(bowlMaster.gain);
-
-    bowl1.connect(bowlMaster);
-    bowl2.connect(bowlMaster);
-    bowlMaster.connect(this.masterGain);
-
-    bowl1.start();
-    bowl2.start();
-    chime.start();
-    sub.start();
-    swell.start();
-
-    this.activeNodes.push(bowl1, bowl2, chime, sub, swell);
-  },
-
-  /**
-   * 4. Tabla Bayan Calming Pulse
-   * Low meditative Ghe/Dha rhythmic pulse every 3.2 seconds with background Sa root drone
-   */
-  createTablaBayanPulse() {
-    if (!this.audioCtx) return;
-    const ctx = this.audioCtx;
-
-    const bgSa = ctx.createOscillator();
-    bgSa.type = "sine";
-    bgSa.frequency.value = 136.1;
-    const bgGain = ctx.createGain();
-    bgGain.gain.value = 0.09;
-    bgSa.connect(bgGain);
-    bgGain.connect(this.masterGain);
-    bgSa.start();
-
-    const strikeInterval = setInterval(() => {
+    const fluteInterval = setInterval(() => {
       if (!this.isAudioPlaying || !this.audioCtx) return;
       try {
         const now = ctx.currentTime;
-        const bayan = ctx.createOscillator();
-        const bayanGain = ctx.createGain();
-        const filter = ctx.createBiquadFilter();
+        const targetFreq = krishnaPhrases[phraseIdx % krishnaPhrases.length];
+        phraseIdx++;
 
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(280, now);
+        // Smooth natural bansuri meend / glissando glide
+        fluteOsc.frequency.exponentialRampToValueAtTime(targetFreq, now + 0.18);
+        fluteOvertone.frequency.exponentialRampToValueAtTime(targetFreq * 2, now + 0.18);
 
-        bayan.type = "sine";
-        bayan.frequency.setValueAtTime(92, now);
-        bayan.frequency.exponentialRampToValueAtTime(54, now + 0.35);
-
-        bayanGain.gain.setValueAtTime(0.28, now);
-        bayanGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-
-        bayan.connect(filter);
-        filter.connect(bayanGain);
-        bayanGain.connect(this.masterGain);
-
-        bayan.start(now);
-        bayan.stop(now + 1.25);
+        // Breath envelope pulsing gently
+        fluteGain.gain.setValueAtTime(0.08, now);
+        fluteGain.gain.exponentialRampToValueAtTime(0.18, now + 0.15);
+        fluteGain.gain.exponentialRampToValueAtTime(0.11, now + 1.8);
       } catch (e) {}
-    }, 3200);
+    }, 2000);
 
-    this.activeNodes.push(bgSa, strikeInterval);
+    this.activeNodes.push(riverNoise, riverFilter, riverGain, fluteOsc, fluteOvertone, vibrato, vibratoGain, fluteFilter, fluteGain, fluteInterval);
   },
 
   // --- CryptoLock Two-Way Encrypt & Decrypt ---
@@ -1366,8 +1428,8 @@ window.PORTFOLIO_PLAYGROUND = {
   matrix          - Launch Matrix digital rain in terminal
   theme [dark|light] - Toggle site theme
   timer [start|pause|reset] - Control focus timer
-  sound [tanpura|bansuri|temple|tabla|off] - Play Indian soundscapes
-  spotify         - Switch focus audio to Spotify
+  sound [genshin|sky|krishna|off] - Play melodic ambient soundscapes
+  friend [name]   - Unlock VIP Friends access for Games & YouTube
   crypto [enc|dec] <key> <msg> - Quick bitwise cipher
   weather         - Local weather (Gopalganj, Bihar & HAL Korwa)
   quote           - Dev & systems wisdom
@@ -1419,28 +1481,38 @@ window.PORTFOLIO_PLAYGROUND = {
         break;
 
       case "sound":
-        if (["tanpura", "bansuri", "temple", "tabla"].includes(arg1)) {
+        if (["genshin", "sky", "krishna"].includes(arg1)) {
           this.audioMode = "ambient";
           this.soundscape = arg1;
           this.stopAllAudioNodes();
           this.startSynthesizedSound();
           this.isAudioPlaying = true;
           this.render();
-          reply = `Playing ${arg1} Indian soundscape.`;
+          reply = `Playing ${arg1} melodic soundscape.`;
         } else if (arg1 === "off" || arg1 === "stop") {
           this.stopAllAudioNodes();
           this.isAudioPlaying = false;
           this.render();
           reply = "Ambient soundscape stopped.";
         } else {
-          reply = "Usage: sound [tanpura | bansuri | temple | tabla | off]";
+          reply = "Usage: sound [genshin | sky | krishna | off]";
         }
         break;
 
-      case "spotify":
-        this.audioMode = "spotify";
+      case "friend":
+      case "invite":
+        this.isFriend = true;
+        if (arg1) {
+          this.friendName = parts.slice(1).join(" ");
+          localStorage.setItem("portfolio_friend_name", this.friendName);
+        }
+        localStorage.setItem("portfolio_friend_pass", "true");
         this.render();
-        reply = "Switched to Spotify focus player in the Focus tab.";
+        reply = `🌟 VIP Friends Access unlocked! Welcome${this.friendName ? `, ${this.friendName}` : ''}!`;
+        break;
+
+      case "spotify":
+        reply = "Spotify player was removed. Switch to zero-lag Melodic Soundscapes (Genshin, Sky, Krishna) or Friends YouTube stream!";
         break;
 
       case "crypto":
