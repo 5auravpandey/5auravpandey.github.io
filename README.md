@@ -1,6 +1,6 @@
-# Saurav Pandey — Personal Portfolio & Interactive Developer Journal
+# Saurav Pandey — Personal Portfolio & Developer Journal
 
-A clean, honest, and expandable personal portfolio combining developer-first design with an interactive lab, Google Authenticator-protected Admin Studio, and a curated archive of research, technical notes, books, games, watched cinema, and music.
+A clean and expandable personal portfolio combining developer-first design with an interactive lab, and a curated archive of research, technical notes, books, games, watched cinema, and music.
 
 Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
 
@@ -10,7 +10,7 @@ Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
 
 - **MCA Student** at **IIIT Ranchi** & **IIT Patna**
 - **Programming Assistant** in the **Avionics Department** at **Hindustan Aeronautics Limited (HAL)**
-- **Developer** focused on Full-Stack, Systems, and Web3 from **Amethi, UP, India**
+- **Developer** focused on Full-Stack, Systems, and Web3 from **Gopalganj, Bihar, India**
 
 ---
 
@@ -25,7 +25,7 @@ Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
      - 🎬 **Watched Shows & Cinema** (sci-fi, tech dramas, and anime)
      - 🎵 **Playlists & Music** (responsive lazy-loaded Spotify & YouTube player embeds)
 
-2. **⚙️ Hidden Admin Studio (TOTP / Google Authenticator)**:
+2. **⚙️ Hidden Admin Studio**:
    - Discreetly hidden from public visitors.
    - Triggers: Secret shortcut `Ctrl+Shift+A` (or `Cmd+Shift+A`), typing `admin` in the terminal shell, visiting `#admin`, or triple-clicking the footer copyright.
    - Protected with **RFC 6238 TOTP (Google Authenticator)** verified locally via Web Crypto API.
