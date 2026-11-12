@@ -44,8 +44,8 @@
   </noscript>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/style.css?v=20261112_v1">
-  <link rel="stylesheet" href="css/transitions.css?v=20261112_v1">
+  <link rel="stylesheet" href="css/style.css?v=20261112_v2">
+  <link rel="stylesheet" href="css/transitions.css?v=20261112_v2">
 </head>
 <body>
 
@@ -67,9 +67,9 @@
               <circle cx="23" cy="9" r="2.2" fill="#22c55e" />
             </svg>
             <span class="brand-name">Saurav Pandey</span>
-            <span class="status-indicator" title="Programming Assistant Intern (Software Development) in Avionics at HAL • Open to Work">
+            <span class="status-indicator" title="HAL Avionics Intern • Open to Work">
               <span class="pulse-dot" aria-hidden="true"></span>
-              <span class="status-text-full">Programming Assistant Intern (Software Development) at HAL • Open to Work</span>
+              <span class="status-text-full">HAL Avionics Intern • Open to Work</span>
               <span class="status-text-compact">HAL Avionics • Open to Work</span>
               <span class="status-text-short">HAL • Open to Work</span>
             </span>
@@ -78,7 +78,7 @@
 
         <!-- Desktop Perspective & Theme Controls -->
         <div class="desktop-controls">
-          <div class="perspective-container" role="group" aria-label="Perspective Switcher">
+          <div class="perspective-container" role="group" aria-label="Perspective Switcher" style="display: none;">
             <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
               ⚡ Systems
             </button>
@@ -91,7 +91,7 @@
             <span>👑 Admin Studio</span>
           </button>
 
-          <button id="btn-global-auth" class="btn-auth-pill" type="button" aria-label="Account Login" title="Unified Account Center & Telegram Login">
+          <button id="btn-global-auth" class="btn-auth-pill" type="button" aria-label="Account Login" title="Unified Account Center & Telegram Login" style="display: none;">
             <span class="auth-icon">✈️</span>
             <span class="auth-label" id="global-auth-label">Login</span>
           </button>
@@ -125,10 +125,10 @@
         <nav id="desktop-nav" class="desktop-nav" aria-label="Main Navigation">
           <ul class="nav-links">
             <li><a href="#about" class="nav-link-item">About</a></li>
-            <li><a href="#experience" class="nav-link-item">Experiences</a></li>
+            <li><a href="#experience" class="nav-link-item">Experience</a></li>
             <li><a href="#projects" class="nav-link-item">Projects</a></li>
-            <li><a href="#playground" class="nav-link-item">Dev Lab</a></li>
-            <li><a href="#curations" class="nav-link-item">Archive</a></li>
+            <li><a href="#playground" class="nav-link-item">Systems Lab</a></li>
+            <li><a href="#curations" class="nav-link-item">Notes &amp; Research</a></li>
             <li><a href="#skills" class="nav-link-item">Stack</a></li>
             <li><a href="#education" class="nav-link-item">Education</a></li>
             <li><a href="#contact" class="nav-link-item">Contact</a></li>
@@ -142,8 +142,8 @@
   <div id="mobile-dropdown" class="mobile-dropdown-sheet" hidden>
     <div class="dropdown-backdrop" id="dropdown-backdrop"></div>
     <div class="dropdown-panel">
-      <!-- Perspective Switcher Inside Dropdown -->
-      <div class="dropdown-perspective-card">
+      <!-- Perspective Switcher Inside Dropdown (Hidden for Clean Minimalism) -->
+      <div class="dropdown-perspective-card" style="display: none;">
         <div class="dropdown-perspective-meta">
           <span class="dropdown-section-title">Perspective Mode</span>
           <span id="mobile-perspective-label" class="dropdown-perspective-indicator">⚡ Systems & Code</span>
@@ -167,27 +167,27 @@
         </a>
         <a href="#experience" class="dropdown-nav-item">
           <span class="nav-item-icon">💼</span>
-          <span class="nav-item-text">Experiences (HAL)</span>
+          <span class="nav-item-text">Work Experience (HAL)</span>
           <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#projects" class="dropdown-nav-item">
           <span class="nav-item-icon">💻</span>
-          <span class="nav-item-text">Projects & Code</span>
+          <span class="nav-item-text">Projects &amp; Code</span>
           <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#playground" class="dropdown-nav-item">
           <span class="nav-item-icon">⚡</span>
-          <span class="nav-item-text">Dev Lab & Audio</span>
+          <span class="nav-item-text">Systems Lab</span>
           <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#curations" class="dropdown-nav-item">
-          <span class="nav-item-icon">📚</span>
-          <span class="nav-item-text">Archive & Curations</span>
+          <span class="nav-item-icon">📝</span>
+          <span class="nav-item-text">Notes &amp; Research</span>
           <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#skills" class="dropdown-nav-item">
           <span class="nav-item-icon">🛠️</span>
-          <span class="nav-item-text">Stack Matrix</span>
+          <span class="nav-item-text">Technical Stack</span>
           <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
         <a href="#education" class="dropdown-nav-item">
@@ -197,17 +197,17 @@
         </a>
         <a href="#contact" class="dropdown-nav-item">
           <span class="nav-item-icon">📬</span>
-          <span class="nav-item-text">Contact & Say Hello</span>
+          <span class="nav-item-text">Contact &amp; Say Hello</span>
           <span class="nav-item-arrow" aria-hidden="true">›</span>
         </a>
       </nav>
 
-      <!-- Unified Account & Telegram Auth Strip -->
-      <div style="padding: 12px 16px 4px; display: flex; flex-direction: column; gap: 8px;">
+      <!-- Unified Account & Telegram Auth Strip (Hidden for Clean Minimalism) -->
+      <div style="display: none;">
         <button type="button" id="btn-mobile-auth" class="btn-mobile-auth-pill">
           <span id="mobile-auth-label">✈️ Connect Telegram / Account</span>
         </button>
-        <button type="button" id="btn-mobile-admin" class="btn-mobile-auth-pill" style="display: none; background: rgba(6, 182, 212, 0.12); color: #06b6d4; border-color: rgba(6, 182, 212, 0.4);">
+        <button type="button" id="btn-mobile-admin" class="btn-mobile-auth-pill" style="display: none;">
           <span>👑 Open Admin Studio</span>
         </button>
       </div>
@@ -229,12 +229,12 @@
     <header class="hero-section" id="about">
       <div class="hero-header">
         <div class="hero-main">
-          <div class="hero-tag"><span style="color: var(--ok); font-weight: 600;">🟢 Open to Work</span> • Gopalganj, Bihar, India • MCA @ IIIT Ranchi & IIT Patna • Programming Assistant Intern (Software Development) at HAL (Korwa, Amethi)</div>
+          <div class="hero-tag"><span style="color: var(--ok); font-weight: 600;">🟢 Open to Work</span> • Software Development &amp; Systems</div>
           <h1 class="hero-title">Saurav Pandey</h1>
-          <div class="hero-role" id="hero-role">Full-Stack, Systems & Web3 Developer</div>
-          <div class="hero-subtitle" id="hero-subtitle">I like building practical web apps, low-level utilities, and experimenting with Web3.</div>
+          <div class="hero-role" id="hero-role">Full-Stack, Systems &amp; Web3 Developer</div>
+          <div class="hero-subtitle" id="hero-subtitle">Programming Assistant Intern (Software Development) at HAL • MCA @ IIIT Ranchi &amp; IIT Patna</div>
           <p class="hero-lede" id="hero-bio">
-            Hey, I'm Saurav! I'm an MCA student at IIIT Ranchi and IIT Patna, and working as a Programming Assistant Intern (Software Development) in the Avionics Department at HAL. I like understanding how software works from scratch — whether that's managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized apps on the Internet Computer.
+            I'm a software developer focused on practical systems, backend engineering, and Web3. Currently working on internal avionics software utilities at Hindustan Aeronautics Limited (HAL) and studying computer applications at IIIT Ranchi and IIT Patna.
           </p>
         </div>
       </div>
@@ -278,12 +278,12 @@
       </div>
     </section>
 
-    <!-- Engaging Playground Section -->
+    <!-- Systems & Engineering Lab Section -->
     <section id="playground">
       <div class="section-head">
         <div>
-          <h2 class="section-title">Interactive Dev Playground</h2>
-          <p class="section-sub">Focus timer, ambient audio soundscapes, live cipher, terminal shell, and arcade games.</p>
+          <h2 class="section-title">Systems &amp; Engineering Lab</h2>
+          <p class="section-sub">Interactive bitwise cryptographic utility, systems terminal, and deep work timer.</p>
         </div>
       </div>
 
@@ -292,13 +292,13 @@
       </div>
     </section>
 
-    <!-- Archive & Curations Section (Research, Notes, Books, Games, Shows, Music) -->
+    <!-- Engineering Notes & Research Section -->
     <section id="curations">
       <a id="shelf" style="position: absolute; pointer-events: none; opacity: 0;"></a>
       <div class="section-head">
         <div>
-          <h2 class="section-title">Archive & Curations</h2>
-          <p class="section-sub">A personal collection of research papers, study notes, books, games, watched shows, and music playlists.</p>
+          <h2 class="section-title">Engineering Notes &amp; Research</h2>
+          <p class="section-sub">Technical publications, systems architecture write-ups, and engineering readings.</p>
         </div>
       </div>
 
@@ -311,12 +311,12 @@
       </div>
     </section>
 
-    <!-- Interactive Stack Explorer Matrix -->
+    <!-- Technical Skills & Stack Section -->
     <section id="skills">
       <div class="section-head">
         <div>
-          <h2 class="section-title">Technical Competencies & Stack Matrix</h2>
-          <p class="section-sub">Select any technology below to inspect practical implementations and real project connections.</p>
+          <h2 class="section-title">Technical Skills &amp; Stack</h2>
+          <p class="section-sub">Core technologies, languages, and frameworks used in production and projects.</p>
         </div>
       </div>
 
@@ -331,8 +331,8 @@
     <section id="education">
       <div class="section-head">
         <div>
-          <h2 class="section-title">Academic Background</h2>
-          <p class="section-sub">Formal education and coursework.</p>
+          <h2 class="section-title">Education &amp; Credentials</h2>
+          <p class="section-sub">Formal academic background and professional coursework.</p>
         </div>
       </div>
 
@@ -345,20 +345,20 @@
       </div>
     </section>
 
-    <!-- Contact & Live Telemetry -->
+    <!-- Contact Section -->
     <section id="contact">
       <div class="section-head">
         <div>
-          <h2 class="section-title">Contact & Say Hello</h2>
-          <p class="section-sub">Feel free to reach out anytime for roles, ideas, or tech discussions.</p>
+          <h2 class="section-title">Get In Touch</h2>
+          <p class="section-sub">Open for full-stack, backend, and systems software engineering opportunities.</p>
         </div>
       </div>
 
-      <div class="contact-card">
+      <div class="contact-card minimal-contact-card">
         <div class="contact-main">
-          <h3>Get In Touch</h3>
-          <p style="font-size: 17px; color: var(--ink-secondary); margin: 0 0 12px;">
-            Whether you want to chat about a software engineering role, discuss projects, or just talk about books and video games, my inbox is always open.
+          <h3>Let's Connect</h3>
+          <p style="font-size: 16.5px; color: var(--ink-secondary); line-height: 1.6; margin: 0 0 16px;">
+            Whether you want to discuss an engineering role, technical projects, or collaborate on systems and Web3, my inbox is always open.
           </p>
 
           <div class="contact-email-row">
@@ -368,33 +368,15 @@
             </button>
           </div>
 
-          <ul class="contact-links">
-            <li><a href="https://t.me/sauravpandey" target="_blank" rel="noopener noreferrer">Telegram (@sauravpandey)</a></li>
+          <ul class="contact-links" style="margin-top: 18px;">
             <li><a href="https://github.com/5auravpandey" target="_blank" rel="noopener noreferrer">GitHub (@5auravpandey)</a></li>
             <li><a href="https://www.linkedin.com/in/5auravpandey" target="_blank" rel="noopener noreferrer">LinkedIn (@5auravpandey)</a></li>
+            <li><a href="https://t.me/sauravpandey" target="_blank" rel="noopener noreferrer">Telegram (@sauravpandey)</a></li>
           </ul>
-        </div>
 
-        <div class="contact-telemetry">
-          <div class="telemetry-item">
-            <span class="telemetry-label">Availability</span>
-            <span class="telemetry-val" style="color: var(--ok); font-weight: 600;">🟢 Open to Work</span>
-          </div>
-          <div class="telemetry-item">
-            <span class="telemetry-label">Active Role</span>
-            <span class="telemetry-val">Programming Assistant Intern (Software Development) at HAL</span>
-          </div>
-          <div class="telemetry-item">
-            <span class="telemetry-label">Current Studies</span>
-            <span class="telemetry-val">MCA (IIIT Ranchi & IIT Patna)</span>
-          </div>
-          <div class="telemetry-item">
-            <span class="telemetry-label">Location</span>
-            <span class="telemetry-val">Gopalganj, Bihar, India</span>
-          </div>
-          <div class="telemetry-item">
-            <span class="telemetry-label">Local Clock</span>
-            <span class="telemetry-val" id="telemetry-time">Loading...</span>
+          <div class="contact-meta-row" style="margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--rule-light); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--muted); font-family: var(--mono);">
+            <span>📍 Gopalganj, Bihar, India</span>
+            <span>Local Time: <span id="telemetry-time" style="color: var(--ink); font-weight: 500;">--:--:-- IST</span></span>
           </div>
         </div>
       </div>
@@ -402,9 +384,9 @@
 
     <!-- Footer -->
     <footer>
-      <p>Saurav Pandey • Handcrafted with Semantic HTML, CSS & Modern Vanilla JavaScript • Gopalganj, Bihar, India</p>
+      <p>Saurav Pandey • Handcrafted with Semantic HTML, CSS &amp; Vanilla JavaScript</p>
       <p style="font-size: 12px; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
-        <span>Zero dependencies • Open source on <a href="https://github.com/5auravpandey/5auravpandey.github.io" target="_blank" rel="noopener noreferrer">GitHub</a></span>
+        <span>Open source on <a href="https://github.com/5auravpandey/5auravpandey.github.io" target="_blank" rel="noopener noreferrer">GitHub</a></span>
       </p>
     </footer>
   </main>
@@ -524,17 +506,17 @@
   <div id="toast" class="toast-msg" role="status" aria-live="polite"></div>
 
   <!-- Modular Scripts (Zero Bundler Required, 100% Native & Portable, Deferred for Rapid First Paint) -->
-  <script src="js/data/profile.js?v=20261112_v1" defer></script>
-  <script src="js/data/experience.js?v=20261112_v1" defer></script>
-  <script src="js/data/projects.js?v=20261112_v1" defer></script>
-  <script src="js/data/skills.js?v=20261112_v1" defer></script>
-  <script src="js/data/shelf.js?v=20261112_v1" defer></script>
-  <script src="js/transitions.js?v=20261112_v1" defer></script>
-  <script src="js/components/perspective.js?v=20261112_v1" defer></script>
-  <script src="js/components/case-study.js?v=20261112_v1" defer></script>
-  <script src="js/components/stack-explorer.js?v=20261112_v1" defer></script>
-  <script src="js/data/database.js?v=20261112_v1" defer></script>
-  <script src="js/components/playground.js?v=20261112_v1" defer></script>
-  <script src="js/app.js?v=20261112_v1" defer></script>
+  <script src="js/data/profile.js?v=20261112_v2" defer></script>
+  <script src="js/data/experience.js?v=20261112_v2" defer></script>
+  <script src="js/data/projects.js?v=20261112_v2" defer></script>
+  <script src="js/data/skills.js?v=20261112_v2" defer></script>
+  <script src="js/data/shelf.js?v=20261112_v2" defer></script>
+  <script src="js/transitions.js?v=20261112_v2" defer></script>
+  <script src="js/components/perspective.js?v=20261112_v2" defer></script>
+  <script src="js/components/case-study.js?v=20261112_v2" defer></script>
+  <script src="js/components/stack-explorer.js?v=20261112_v2" defer></script>
+  <script src="js/data/database.js?v=20261112_v2" defer></script>
+  <script src="js/components/playground.js?v=20261112_v2" defer></script>
+  <script src="js/app.js?v=20261112_v2" defer></script>
 </body>
 </html>

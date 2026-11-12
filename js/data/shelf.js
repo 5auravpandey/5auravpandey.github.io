@@ -54,30 +54,6 @@ const DEFAULT_SHELF = [
     summary: "Essential reading on software craftsmanship, DRY principles, orthogonality, and treating programming as a disciplined trade.",
     media: "",
     content: "Key takeaways applied daily in my projects: software entropy (broken window theory), investing regularly in your knowledge portfolio, and building software with small, testable, orthogonal components."
-  },
-  {
-    id: "game-nier-automata",
-    type: "games",
-    category: "games",
-    badge: "Action RPG",
-    title: "NieR:Automata",
-    meta: "Square Enix • PlatinumGames",
-    rating: "★★★★★",
-    summary: "Philosophical exploration of artificial consciousness, existentialism, and purpose through multiple narrative playthroughs and sublime adaptive music.",
-    media: "",
-    content: "Beyond the fluid combat, NieR:Automata stands as one of the finest artistic achievements in interactive storytelling. Keiichi Okabe's dynamic soundtrack and the brilliant Route C narrative reveal left a lasting impression."
-  },
-  {
-    id: "game-sky-children",
-    type: "games",
-    category: "games",
-    badge: "Social Adventure",
-    title: "Sky: Children of the Light",
-    meta: "thatgamecompany",
-    rating: "★★★★★",
-    summary: "A peaceful, breathtaking journey through a forgotten kingdom, emphasizing compassion, teamwork, and exploration.",
-    media: "",
-    content: "The ambient soundscapes and flight mechanics inspired the study soundscapes integrated into this dev lab."
   }
 ];
 

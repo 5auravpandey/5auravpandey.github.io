@@ -100,7 +100,7 @@ function loadAdminStudio(autoOpen = true) {
   if (!adminLoadPromise) {
     adminLoadPromise = new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = "js/components/admin.js?v=20261020_v7";
+      script.src = "js/components/admin.js?v=20261112_v2";
       script.defer = true;
       script.onload = () => {
         if (window.PORTFOLIO_ADMIN) {
@@ -416,13 +416,10 @@ function initShelf() {
   const tabsContainer = document.getElementById("shelf-filter-tabs");
   if (tabsContainer) {
     const filters = [
-      { id: "all", label: "All Items" },
-      { id: "research", label: "🔬 Research" },
-      { id: "notes", label: "📝 Notes" },
-      { id: "books", label: "📚 Books" },
-      { id: "games", label: "🎮 Games" },
-      { id: "shows", label: "🎬 Shows & Cinema" },
-      { id: "music", label: "🎵 Playlists & Music" }
+      { id: "all", label: "All Publications" },
+      { id: "research", label: "🔬 Research Papers" },
+      { id: "notes", label: "📝 Technical Notes" },
+      { id: "books", label: "📚 Books" }
     ];
 
     tabsContainer.innerHTML = filters.map(f => `

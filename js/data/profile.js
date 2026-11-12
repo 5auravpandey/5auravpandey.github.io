@@ -18,23 +18,23 @@ window.PORTFOLIO_PROFILE = {
     engineer: {
       label: "⚡ Systems & Code",
       role: "Full-Stack, Systems & Web3 Developer",
-      tagline: "I like building practical web apps, low-level utilities, and experimenting with Web3.",
-      bio: "Hey, I'm Saurav! I'm an MCA student at IIIT Ranchi and IIT Patna, and working as a Programming Assistant Intern (Software Development) in the Avionics Department at HAL. I like understanding how software works from scratch — whether that's managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized apps on the Internet Computer.",
+      tagline: "Programming Assistant Intern (Software Development) at HAL • MCA @ IIIT Ranchi & IIT Patna",
+      bio: "I'm a software developer focused on practical systems, backend engineering, and Web3. Currently working on internal avionics software utilities at Hindustan Aeronautics Limited (HAL) and studying computer applications at IIIT Ranchi and IIT Patna. I enjoy understanding how software works from scratch — whether managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized canisters on the Internet Computer.",
       keyPillars: [
         { title: "Systems & C++", desc: "Bitwise encryption, binary file streams, and memory handling." },
-        { title: "Backend & Web", desc: "Java Servlets/JSP, Node.js, Express, and SQL databases." },
+        { title: "Backend & Web", desc: "Java Servlets/JSP, Node.js, Express, and relational SQL." },
         { title: "Web3 & DApps", desc: "Smart contracts and decentralized canisters on the Internet Computer." }
       ]
     },
     overview: {
-      label: "💡 Quick Overview",
-      role: "MCA Student & Software Builder",
-      tagline: "Learning computer science at IIIT Ranchi & IIT Patna, and writing code at HAL.",
-      bio: "I'm a passionate computer science student from Gopalganj, Bihar. I enjoy building useful software, learning core engineering fundamentals, and solving practical problems with technology. Outside of programming, I love reading books, playing video games, and exploring tech.",
+      label: "⚡ Systems & Code",
+      role: "Full-Stack, Systems & Web3 Developer",
+      tagline: "Programming Assistant Intern (Software Development) at HAL • MCA @ IIIT Ranchi & IIT Patna",
+      bio: "I'm a software developer focused on practical systems, backend engineering, and Web3. Currently working on internal avionics software utilities at Hindustan Aeronautics Limited (HAL) and studying computer applications at IIIT Ranchi and IIT Patna. I enjoy understanding how software works from scratch — whether managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized canisters on the Internet Computer.",
       keyPillars: [
-        { title: "HAL Experience", desc: "Programming Assistant Intern (Software Development) at Hindustan Aeronautics Limited." },
-        { title: "MCA Student", desc: "Studying computer applications with IIIT Ranchi & IIT Patna." },
-        { title: "Personal Projects", desc: "Building hands-on projects across web, systems, and Web3." }
+        { title: "Systems & C++", desc: "Bitwise encryption, binary file streams, and memory handling." },
+        { title: "Backend & Web", desc: "Java Servlets/JSP, Node.js, Express, and relational SQL." },
+        { title: "Web3 & DApps", desc: "Smart contracts and decentralized canisters on the Internet Computer." }
       ]
     }
   },

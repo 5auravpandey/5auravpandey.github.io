@@ -1401,6 +1401,12 @@ h2.section-title {
   gap: 32px;
 }
 
+.contact-card.minimal-contact-card {
+  display: block;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
 .contact-main h3 {
   font-size: 26px;
   font-weight: 500;

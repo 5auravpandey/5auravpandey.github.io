@@ -16,14 +16,11 @@ Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
 
 ## 🌟 Key Features & Interactive Sections
 
-1. **📚 Archive & Curations**:
+1. **📝 Engineering Notes & Research**:
    - Filterable showcase across:
-     - 🔬 **Research Papers & Studies**
-     - 📝 **Technical Notes & Findings**
-     - 📚 **Books Read** (with honest takeaways and ratings)
-     - 🎮 **Games Played** (system mechanics and critiques)
-     - 🎬 **Watched Shows & Cinema** (sci-fi, tech dramas, and anime)
-     - 🎵 **Playlists & Music** (responsive lazy-loaded YouTube player embeds and synchronized streams)
+     - 🔬 **Research Papers & Studies** (Distributed state, lightweight ciphers)
+     - 📝 **Technical Notes & Findings** (Java Servlets, C++ bitwise arithmetic)
+     - 📚 **Engineering Books** (The Pragmatic Programmer)
 
 2. **⚙️ Hidden Admin Studio**:
    - Discreetly hidden from public visitors.
@@ -31,21 +28,12 @@ Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
    - Protected with **Telegram OAuth (@SauravPandeyBot)** cryptographic signature verification.
    - Manage YouTube room whitelists, add, edit, delete, and copy updated `shelf.js` JavaScript code directly for committing to GitHub.
 
-3. **⏱️ Focus Sprint & Melodic Soundscapes**:
-   - Native Web Audio synthesizer for ambient focus:
-     - 🍃 Genshin Impact Melodies (Peaceful Mondstadt & Liyue Breeze)
-     - 🕊️ Sky: Children of the Light Ambience (Celestial Cloud Echo)
-     - 🪈 Little Krishna Divine Flute (Vrindavan Bansuri & River Murmur)
-   - Synchronized YouTube focus stream & real-time Sprint Invite room generator.
+3. **🔐 Systems & Engineering Lab**:
+   - **CryptoLock Two-Way XOR Cipher**: Real-time bitwise encryption and decryption (`(A ^ Key) ^ Key = A`), live hex byte visualization, and binary bit breakdown.
+   - **Developer Terminal Shell**: Command history (`↑`/`↓`), tab autocompletion, matrix digital rain (`matrix`), theme toggle, and quick portfolio navigation.
+   - **Deep Work Sprint Timer**: Distraction-free Pomodoro timer (25m / 50m intervals) with goal tracking.
 
-4. **🔐 CryptoLock Two-Way Cipher**:
-   - Symmetric bitwise XOR encryption and decryption (`(A ^ Key) ^ Key = A`).
-   - Live hex byte visualization and raw binary bit breakdown.
-
-5. **💻 Developer Terminal Shell**:
-   - Command history (`↑`/`↓`), tab autocompletion, matrix digital rain (`matrix`), theme toggle, soundscape controls, and quick portfolio navigation.
-
-6. **📐 Architecture Blueprints & Case Studies**:
+4. **📐 Architecture Blueprints & Case Studies**:
    - Deep-dive ASCII system architecture diagrams inside accessible modal dialogs.
 
 ---

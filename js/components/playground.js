@@ -6,7 +6,7 @@
  * 4. Dev Arcade (Matrix Snake, Tic-Tac-Toe Dev Duel, Grandmaster Chess)
  */
 window.PORTFOLIO_PLAYGROUND = {
-  currentTab: "focus", // 'focus' | 'crypto' | 'terminal' | 'games'
+  currentTab: "crypto", // 'crypto' | 'terminal' | 'focus'
   
   // Timer State
   timerDuration: 25 * 60,
@@ -346,17 +346,14 @@ window.PORTFOLIO_PLAYGROUND = {
       <div class="playground-card">
         <!-- Tab Navigation -->
         <div class="playground-tabs" role="tablist">
-          <button type="button" class="playground-tab ${this.currentTab === 'focus' ? 'active' : ''}" data-tab="focus">
-            ⏱️ Focus &amp; Sync Room
-          </button>
           <button type="button" class="playground-tab ${this.currentTab === 'crypto' ? 'active' : ''}" data-tab="crypto">
-            🔐 CryptoLock (Cipher)
+            🔐 CryptoLock (Bitwise Cipher)
           </button>
           <button type="button" class="playground-tab ${this.currentTab === 'terminal' ? 'active' : ''}" data-tab="terminal">
-            💻 Power Terminal Shell
+            💻 Systems Terminal
           </button>
-          <button type="button" class="playground-tab ${this.currentTab === 'games' ? 'active' : ''}" data-tab="games">
-            🎮 Dev Arcade (Games)
+          <button type="button" class="playground-tab ${this.currentTab === 'focus' ? 'active' : ''}" data-tab="focus">
+            ⏱️ Deep Work Timer
           </button>
         </div>
 
@@ -448,79 +445,14 @@ window.PORTFOLIO_PLAYGROUND = {
             <button type="button" id="btn-timer-reset" class="btn-secondary-action">
               🔄 Reset
             </button>
-            <button type="button" id="btn-invite-friend" class="btn-ambient-action" title="Invite friends to study and sync audio together">
+            <button type="button" id="btn-invite-friend" class="btn-ambient-action" title="Invite friends to study and sync together">
               👥 Invite Friends &amp; Sync
             </button>
           </div>
 
-          <!-- Music & Audio Center -->
-          <div class="focus-audio-center">
-            <div class="audio-mode-switcher">
-              <button type="button" class="audio-mode-tab ${this.audioMode === 'ambient' ? 'active' : ''}" id="btn-mode-ambient">
-                ✨ Melodic Soundscapes
-              </button>
-              <button type="button" class="audio-mode-tab ${this.audioMode === 'youtube' ? 'active' : ''}" id="btn-mode-youtube">
-                🎧 Friends YouTube Stream ${this.isFriend ? '✓' : '🔒'}
-              </button>
-            </div>
-
-            ${this.audioMode === 'ambient' ? `
-              <div class="ambient-controls">
-                <div class="soundscape-selector">
-                  <label for="soundscape-select" style="font-family: var(--mono); font-size: 12.5px; color: var(--muted);">Soundscape:</label>
-                  <select id="soundscape-select" class="focus-input" style="padding: 4px 8px; font-size: 13.5px; width: auto;">
-                    <option value="genshin" ${this.soundscape === 'genshin' ? 'selected' : ''}>🍃 Genshin Impact Melodies (Peaceful Mondstadt &amp; Liyue Breeze)</option>
-                    <option value="sky" ${this.soundscape === 'sky' ? 'selected' : ''}>🕊️ Sky: Children of the Light Ambience (Celestial Cloud Echo)</option>
-                    <option value="krishna" ${this.soundscape === 'krishna' ? 'selected' : ''}>🪈 Little Krishna Divine Flute (Vrindavan Bansuri &amp; River Murmur)</option>
-                  </select>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                  <button type="button" id="btn-audio-toggle" class="btn-ambient-action ${this.isAudioPlaying ? 'playing' : ''}">
-                    ${this.isAudioPlaying ? "⏸️ Pause Audio" : "▶️ Play Soundscape"}
-                  </button>
-                  <canvas id="soundscape-visualizer" class="soundscape-canvas" width="112" height="26" title="Live Web Audio Frequency Visualizer" style="border-radius: 4px; background: rgba(0,0,0,0.06); vertical-align: middle;"></canvas>
-                </div>
-              </div>
-            ` : !this.isFriend ? this.renderFriendGate("youtube") : `
-              <div class="youtube-controls">
-                <div class="friend-active-banner">
-                  <div class="friend-banner-info">
-                    <span>🎧 Stream Active: <strong>${this.escapeHTML(this.friendName || this.friendUsername)}</strong></span>
-                    <span class="friend-role-badge">Unlocked ✓</span>
-                  </div>
-                  <div class="friend-banner-actions">
-                    <button type="button" class="btn-invite-pill" id="btn-share-friend-pass-yt">👥 Invite Friends</button>
-                    <button type="button" class="btn-revoke-pill" id="btn-revoke-pass">Switch</button>
-                  </div>
-                </div>
-                <div class="youtube-presets">
-                  <button type="button" class="youtube-pill ${this.youtubePreset === 'genshin-ost' ? 'active' : ''}" data-youtube="genshin-ost">🍃 Genshin Relaxing OST</button>
-                  <button type="button" class="youtube-pill ${this.youtubePreset === 'sky-ost' ? 'active' : ''}" data-youtube="sky-ost">🕊️ Sky Children OST</button>
-                  <button type="button" class="youtube-pill ${this.youtubePreset === 'krishna-flute' ? 'active' : ''}" data-youtube="krishna-flute">🪈 Little Krishna Divine Flute</button>
-                  <button type="button" class="youtube-pill ${this.youtubePreset === 'lofi-study' ? 'active' : ''}" data-youtube="lofi-study">☕ Study Lofi Beats</button>
-                </div>
-                <div class="youtube-iframe-box" style="margin-top: 10px;">
-                  <iframe 
-                    style="border-radius: 12px; width: 100%; aspect-ratio: 16/9; max-height: 220px; border: 1px solid var(--rule);" 
-                    src="${this.getYoutubeEmbedUrl()}" 
-                    title="YouTube Synced Focus Stream"
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen
-                    loading="lazy">
-                  </iframe>
-                </div>
-                <div style="margin-top: 8px; display: flex; gap: 8px;">
-                  <input type="text" id="youtube-custom-url" class="focus-input" placeholder="Paste YouTube video or playlist URL..." style="font-size: 13px; text-align: left;" value="${this.escapeHTML(this.customYoutubeUrl)}">
-                  <button type="button" id="btn-youtube-load" class="btn-secondary-action" style="font-size: 12px; padding: 4px 12px;">Load</button>
-                </div>
-              </div>
-            `}
-          </div>
-
           <div class="focus-footer">
             <span>Sprints finished: <strong id="sprint-counter">${this.sprintsCompleted}</strong></span>
-            <span class="focus-tip">Tip: Bookmark or leave this tab open while studying!</span>
+            <span class="focus-tip">Distraction-free Deep Work &amp; Pomodoro Sprint Timer.</span>
           </div>
         </div>
       `;
@@ -776,10 +708,6 @@ window.PORTFOLIO_PLAYGROUND = {
       });
     });
 
-    // Share Pass Buttons
-    const sharePassBtn = document.getElementById("btn-share-friend-pass-yt");
-    if (sharePassBtn) sharePassBtn.addEventListener("click", () => this.openInviteModal());
-
     // --- Tab 1: Focus Sprint Events ---
     if (this.currentTab === "focus") {
       const toggleBtn = document.getElementById("btn-timer-toggle");
@@ -819,70 +747,6 @@ window.PORTFOLIO_PLAYGROUND = {
             url.searchParams.delete("name");
             window.history.replaceState({}, "", url.toString());
           } catch (e) {}
-          this.render();
-        });
-      }
-
-      // Audio Mode Tabs (Ambient vs YouTube)
-      const ambientModeBtn = document.getElementById("btn-mode-ambient");
-      const ytModeBtn = document.getElementById("btn-mode-youtube");
-
-      if (ambientModeBtn) {
-        ambientModeBtn.addEventListener("click", () => {
-          this.audioMode = "ambient";
-          this.broadcastSync("AUDIO_CHANGE", { mode: "ambient", soundscape: this.soundscape });
-          this.render();
-        });
-      }
-      if (ytModeBtn) {
-        ytModeBtn.addEventListener("click", () => {
-          this.audioMode = "youtube";
-          if (this.isAudioPlaying) this.toggleAmbientAudio(); // pause synth if playing
-          this.broadcastSync("AUDIO_CHANGE", { mode: "youtube", youtubePreset: this.youtubePreset });
-          this.render();
-        });
-      }
-
-      // Ambient controls
-      const soundSelect = document.getElementById("soundscape-select");
-      const audioBtn = document.getElementById("btn-audio-toggle");
-
-      if (soundSelect) {
-        soundSelect.addEventListener("change", (e) => {
-          this.soundscape = e.target.value;
-          if (this.isAudioPlaying) {
-            this.stopAllAudioNodes();
-            this.startSynthesizedSound();
-          }
-        });
-      }
-
-      if (audioBtn) {
-        audioBtn.addEventListener("click", () => this.toggleAmbientAudio());
-      }
-
-      // Initialize or restore audio frequency visualizer state
-      if (this.isAudioPlaying) {
-        setTimeout(() => this.startVisualizer(), 60);
-      } else {
-        setTimeout(() => this.clearVisualizer(), 60);
-      }
-
-      // YouTube Presets & Custom URL
-      const ytPills = document.querySelectorAll(".youtube-pill");
-      ytPills.forEach(pill => {
-        pill.addEventListener("click", () => {
-          this.youtubePreset = pill.dataset.youtube;
-          this.customYoutubeUrl = "";
-          this.render();
-        });
-      });
-
-      const loadYtBtn = document.getElementById("btn-youtube-load");
-      const customYtInput = document.getElementById("youtube-custom-url");
-      if (loadYtBtn && customYtInput) {
-        loadYtBtn.addEventListener("click", () => {
-          this.customYoutubeUrl = customYtInput.value.trim();
           this.render();
         });
       }
@@ -1267,79 +1131,8 @@ window.PORTFOLIO_PLAYGROUND = {
     }
   },
 
-  startVisualizer() {
-    this.stopVisualizer();
-    const canvas = document.getElementById("soundscape-visualizer");
-    if (!canvas || !this.analyser) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const bufferLength = this.analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const draw = () => {
-      if (!this.isAudioPlaying) {
-        this.clearVisualizer(canvas, ctx);
-        return;
-      }
-      const currentCanvas = document.getElementById("soundscape-visualizer");
-      if (!currentCanvas || this.currentTab !== "focus") {
-        this.stopVisualizer();
-        return;
-      }
-      this.animFrameId = requestAnimationFrame(draw);
-      this.analyser.getByteFrequencyData(dataArray);
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const numBars = 16;
-      const spacing = 2;
-      const barWidth = Math.floor((canvas.width - (numBars + 1) * spacing) / numBars);
-      let x = spacing;
-
-      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-
-      for (let i = 0; i < numBars; i++) {
-        const binIndex = Math.min(i * 2, bufferLength - 1);
-        const val = dataArray[binIndex] || 0;
-        const norm = val / 255;
-        const minHeight = 3;
-        const barHeight = Math.max(minHeight, norm * (canvas.height - 4));
-        const y = canvas.height - barHeight - 2;
-
-        ctx.fillStyle = isDark
-          ? `rgba(96, 165, 250, ${0.45 + norm * 0.55})`
-          : `rgba(37, 99, 235, ${0.5 + norm * 0.5})`;
-
-        ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(x, y, barWidth, barHeight, 2);
-        } else {
-          ctx.rect(x, y, barWidth, barHeight);
-        }
-        ctx.fill();
-
-        x += barWidth + spacing;
-      }
-    };
-    draw();
-  },
-
-  clearVisualizer(canvas, ctx) {
-    if (!canvas) canvas = document.getElementById("soundscape-visualizer");
-    if (!canvas) return;
-    if (!ctx) ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const numBars = 16;
-    const spacing = 2;
-    const barWidth = Math.floor((canvas.width - (numBars + 1) * spacing) / numBars);
-    let x = spacing;
-    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-    ctx.fillStyle = isDark ? "rgba(255, 255, 255, 0.18)" : "rgba(0, 0, 0, 0.12)";
-    for (let i = 0; i < numBars; i++) {
-      ctx.fillRect(x, canvas.height - 4, barWidth, 2);
-      x += barWidth + spacing;
-    }
-  },
+  startVisualizer() {},
+  clearVisualizer() {},
 
   stopVisualizer() {
     if (this.animFrameId) {
