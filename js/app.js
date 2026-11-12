@@ -829,7 +829,7 @@ function initDesktopNav() {
     }
 
     // Find the section currently in view (offset by header + hysteresis)
-    const headerOffset = 110;
+    const headerOffset = 80;
     let currentId = "about";
 
     for (let i = 0; i < sections.length; i++) {
