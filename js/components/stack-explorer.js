@@ -138,7 +138,7 @@ window.PORTFOLIO_STACK_EXPLORER = {
               <a 
                 href="#experience" 
                 id="link-hal-experience"
-                style="display: inline-flex; align-items: center; gap: 6px; background: var(--tint); color: var(--accent); font-weight: 500; padding: 5px 12px; border-radius: 4px; text-decoration: none; font-size: 13.5px; border: 1px solid var(--accent); transition: all 0.2s ease;">
+                style="display: inline-flex; align-items: center; gap: 6px; background: var(--tint); color: var(--accent); font-weight: 500; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; border: 1px solid var(--accent); transition: all 0.2s ease; max-width: 100%; white-space: normal; line-height: 1.4; word-break: break-word;">
                 💼 Hindustan Aeronautics Limited (HAL) - Avionics Department (.NET Web App) ↗
               </a>
             </div>

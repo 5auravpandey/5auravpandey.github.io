@@ -247,7 +247,8 @@ input:focus-visible {
 }
 
 .status-text-compact,
-.status-text-short {
+.status-text-short,
+.status-text-mobile {
   display: none;
 }
 
@@ -3334,7 +3335,8 @@ dialog#invite-dialog {
   }
 
   .status-text-full,
-  .status-text-compact {
+  .status-text-compact,
+  .status-text-mobile {
     display: none !important;
   }
 
@@ -3346,9 +3348,13 @@ dialog#invite-dialog {
     .status-text-short {
       display: none !important;
     }
+    .status-text-mobile {
+      display: inline-block !important;
+    }
     .status-indicator {
-      padding: 4px;
-      gap: 0;
+      font-size: 9px;
+      padding: 2px 7px;
+      gap: 5px;
     }
     .brand-name {
       font-size: 13.5px;
@@ -3554,6 +3560,7 @@ dialog#invite-dialog {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding-bottom: 6px;
+    padding-right: 16px;
     flex-wrap: nowrap;
     margin-bottom: 18px;
   }
@@ -3806,6 +3813,38 @@ dialog#invite-dialog {
 
   .timeline-desc {
     font-size: 14.5px;
+  }
+
+  /* Certification Bootcamp Card on Mobile */
+  .certification-card {
+    padding: 18px 16px;
+    margin-top: 20px;
+  }
+
+  .cert-title {
+    font-size: clamp(18px, 4.8vw, 20px);
+    line-height: 1.3;
+  }
+
+  .cert-modules-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .cert-project-chip {
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+    line-height: 1.4;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .cert-verification-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    word-break: break-all;
   }
 
   /* Contact Section */
@@ -4076,8 +4115,33 @@ dialog#invite-dialog {
   }
 
   .btn-case-study,
-  .btn-project-link {
-    flex: 1 1 100%;
+  .github-link {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+  }
+
+  .contact-links li {
+    flex: 1 1 100% !important;
+  }
+
+  .hero-role {
+    font-size: clamp(13px, 3.8vw, 14.5px);
+    line-height: 1.45;
+    word-break: break-word;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(15px, 4.4vw, 17px);
+    line-height: 1.4;
+  }
+
+  .certification-card {
+    padding: 16px 14px;
+  }
+
+  .cert-project-chip {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .admin-item-row > div:last-child {
