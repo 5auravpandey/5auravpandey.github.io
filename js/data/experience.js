@@ -5,7 +5,7 @@
 window.PORTFOLIO_EXPERIENCE = [
   {
     id: "hal-avionics",
-    title: "Programming Assistant Intern (Software Development)",
+    title: "Software Developer Intern (Programming Assistant)",
     department: "Avionics Department",
     company: "Hindustan Aeronautics Limited (HAL)",
     duration: "October 2026 – Present",

@@ -4,25 +4,25 @@
  * CacheFirst / StaleWhileRevalidate for versioned CSS, JS, Fonts & Assets.
  */
 
-const CACHE_NAME = "sp-portfolio-cache-v20261112_v16";
+const CACHE_NAME = "sp-portfolio-cache-v20261112_v17";
 
 const PRECACHE_ASSETS = [
   "./",
   "index.html",
   "assets/favicon.svg",
-  "css/style.css?v=20261112_v16",
-  "css/transitions.css?v=20261112_v16",
-  "js/data/profile.js?v=20261112_v16",
-  "js/data/experience.js?v=20261112_v16",
-  "js/data/projects.js?v=20261112_v16",
-  "js/data/skills.js?v=20261112_v16",
-  "js/data/shelf.js?v=20261112_v16",
-  "js/transitions.js?v=20261112_v16",
-  "js/components/perspective.js?v=20261112_v16",
-  "js/components/case-study.js?v=20261112_v16",
-  "js/components/stack-explorer.js?v=20261112_v16",
-  "js/data/database.js?v=20261112_v16",
-  "js/app.js?v=20261112_v16"
+  "css/style.css?v=20261112_v17",
+  "css/transitions.css?v=20261112_v17",
+  "js/data/profile.js?v=20261112_v17",
+  "js/data/experience.js?v=20261112_v17",
+  "js/data/projects.js?v=20261112_v17",
+  "js/data/skills.js?v=20261112_v17",
+  "js/data/shelf.js?v=20261112_v17",
+  "js/transitions.js?v=20261112_v17",
+  "js/components/perspective.js?v=20261112_v17",
+  "js/components/case-study.js?v=20261112_v17",
+  "js/components/stack-explorer.js?v=20261112_v17",
+  "js/data/database.js?v=20261112_v17",
+  "js/app.js?v=20261112_v17"
 ];
 
 // Install: precache application shell

@@ -17,24 +17,24 @@ window.PORTFOLIO_PROFILE = {
   perspectives: {
     engineer: {
       label: "⚡ Systems & Code",
-      role: "Software Developer • Python, .NET & Full-Stack Web",
-      tagline: "Software Developer Intern at HAL Avionics • MCA @ IIIT Ranchi & IIT Patna",
+      role: "Software Developer Intern @ HAL Avionics",
+      tagline: "Python, .NET & Full-Stack Web • MCA @ IIIT Ranchi & IIT Patna",
       bio: "I'm a software developer working inside the Avionics Department at Hindustan Aeronautics Limited (HAL), where I build database-driven ASP.NET web applications and automated data workflows with C#, VB.NET, and SQL. My core engineering focus is Python, modern full-stack web development, and relational database systems. Currently pursuing my MCA with IIIT Ranchi and IIT Patna.",
       keyPillars: [
-        { title: "Python & Full-Stack Web", desc: "Full-stack web applications, Python backend services, REST APIs, and modern JavaScript." },
-        { title: ".NET & Enterprise Systems", desc: "Database-driven ASP.NET web applications, C#, VB.NET, and enterprise tools at HAL." },
-        { title: "SQL & Relational Databases", desc: "Schema normalization, Microsoft Access, query optimization, and key-based record retrieval." }
+        { title: "Python & Modern Web", desc: "Full-stack web applications, Python backend services, REST APIs, and modern JavaScript." },
+        { title: ".NET & Avionics Systems", desc: "Database-driven ASP.NET web applications, C#, VB.NET, and enterprise tools at HAL." },
+        { title: "SQL & Normalized Schemas", desc: "Schema normalization, Microsoft Access, query optimization, and key-based record retrieval." }
       ]
     },
     overview: {
       label: "⚡ Systems & Code",
-      role: "Software Developer • Python, .NET & Full-Stack Web",
-      tagline: "Software Developer Intern at HAL Avionics • MCA @ IIIT Ranchi & IIT Patna",
+      role: "Software Developer Intern @ HAL Avionics",
+      tagline: "Python, .NET & Full-Stack Web • MCA @ IIIT Ranchi & IIT Patna",
       bio: "I'm a software developer working inside the Avionics Department at Hindustan Aeronautics Limited (HAL), where I build database-driven ASP.NET web applications and automated data workflows with C#, VB.NET, and SQL. My core engineering focus is Python, modern full-stack web development, and relational database systems. Currently pursuing my MCA with IIIT Ranchi and IIT Patna.",
       keyPillars: [
-        { title: "Python & Full-Stack Web", desc: "Full-stack web applications, Python backend services, REST APIs, and modern JavaScript." },
-        { title: ".NET & Enterprise Systems", desc: "Database-driven ASP.NET web applications, C#, VB.NET, and enterprise tools at HAL." },
-        { title: "SQL & Relational Databases", desc: "Schema normalization, Microsoft Access, query optimization, and key-based record retrieval." }
+        { title: "Python & Modern Web", desc: "Full-stack web applications, Python backend services, REST APIs, and modern JavaScript." },
+        { title: ".NET & Avionics Systems", desc: "Database-driven ASP.NET web applications, C#, VB.NET, and enterprise tools at HAL." },
+        { title: "SQL & Normalized Schemas", desc: "Schema normalization, Microsoft Access, query optimization, and key-based record retrieval." }
       ]
     }
   },

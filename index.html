@@ -44,87 +44,80 @@
   </noscript>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/style.css?v=20261112_v16">
-  <link rel="stylesheet" href="css/transitions.css?v=20261112_v16">
+  <link rel="stylesheet" href="css/style.css?v=20261112_v17">
+  <link rel="stylesheet" href="css/transitions.css?v=20261112_v17">
 </head>
 <body>
 
-  <!-- Fixed Header & Modern Navigation (2-Layer on Desktop, 1-Layer on Mobile) -->
+  <!-- Fixed Header & Modern Navigation (Unified 58px Bar) -->
   <header class="nav-bar" id="main-nav-bar">
-    <!-- Layer 1: Top Bar (Identity & Status on Left, Controls on Right) -->
-    <div class="nav-layer-top">
-      <div class="nav-container nav-container-top">
-        <div class="nav-brand-group">
-          <a href="#top" class="nav-brand" aria-label="Saurav Pandey Home">
-            <svg class="brand-logo-s" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" style="flex-shrink: 0; vertical-align: middle;">
-              <rect width="32" height="32" rx="7" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-opacity="0.15" stroke-width="1.2" />
-              <path d="M21 11C21 8.5 18.8 7 16 7C13 7 11 8.5 11 11C11 14 14 15 16.2 15.8C18.8 16.8 21 17.8 21 21C21 23.8 18.8 25 16 25C12.8 25 10.8 23.2 10.8 20.5" 
-                    fill="none" 
-                    stroke="var(--accent)" 
-                    stroke-width="3.2" 
-                    stroke-linecap="round" 
-                    stroke-linejoin="round" />
-              <circle cx="23" cy="9" r="2.2" fill="#22c55e" />
-            </svg>
-            <span class="brand-name">Saurav Pandey</span>
-            <span class="status-indicator" title="Software Developer @ HAL Avionics • Open to Work">
-              <span class="pulse-dot" aria-hidden="true"></span>
-              <span class="status-text-full">Software Developer @ HAL Avionics • Open to Work</span>
-              <span class="status-text-compact">Developer @ HAL Avionics • Open to Work</span>
-              <span class="status-text-short">HAL Avionics • Open to Work</span>
-              <span class="status-text-mobile">Open to Work</span>
-            </span>
-          </a>
-        </div>
-
-        <!-- Desktop Controls -->
-        <div class="desktop-controls">
-          <button id="btn-desktop-admin" class="btn-admin-nav-pill" type="button" aria-label="Open Admin Studio" title="Admin Studio" style="display: none;">
-            <span>👑 Admin Studio</span>
-          </button>
-
-          <button id="btn-global-auth" class="btn-auth-pill" type="button" aria-label="Account Login" title="Unified Account Center & Telegram Login" style="display: none;">
-            <span class="auth-icon">✈️</span>
-            <span class="auth-label" id="global-auth-label">Login</span>
-          </button>
-
-          <button id="theme-toggle-btn" class="btn-theme-toggle" type="button" aria-pressed="false" title="Toggle color theme">
-            <span class="theme-icon">🌙</span>
-            <span class="theme-text">Dark</span>
-          </button>
-        </div>
-
-        <!-- Mobile Controls (Visible on mobile/tablet) -->
-        <div class="mobile-controls">
-          <button id="mobile-theme-btn" class="btn-theme-toggle mobile-theme-icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
-            <span class="mobile-theme-icon">🌙</span>
-          </button>
-
-          <button id="nav-dropdown-trigger" class="nav-dropdown-btn" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-dropdown">
-            <span class="dropdown-hamburger" aria-hidden="true">
-              <span></span>
-              <span></span>
-            </span>
-            <span class="dropdown-btn-text">Menu</span>
-          </button>
-        </div>
+    <div class="nav-container">
+      <div class="nav-brand-group">
+        <a href="#top" class="nav-brand" aria-label="Saurav Pandey Home">
+          <svg class="brand-logo-s" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" style="flex-shrink: 0; vertical-align: middle;">
+            <rect width="32" height="32" rx="7" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-opacity="0.15" stroke-width="1.2" />
+            <path d="M21 11C21 8.5 18.8 7 16 7C13 7 11 8.5 11 11C11 14 14 15 16.2 15.8C18.8 16.8 21 17.8 21 21C21 23.8 18.8 25 16 25C12.8 25 10.8 23.2 10.8 20.5" 
+                  fill="none" 
+                  stroke="var(--accent)" 
+                  stroke-width="3.2" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" />
+            <circle cx="23" cy="9" r="2.2" fill="#22c55e" />
+          </svg>
+          <span class="brand-name">Saurav Pandey</span>
+          <span class="status-indicator" title="Software Developer Intern at HAL Avionics • Open to Work">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            <span class="status-text-full">HAL Avionics • Open to Work</span>
+            <span class="status-text-compact">HAL • Open to Work</span>
+            <span class="status-text-short">HAL • Open</span>
+            <span class="status-text-mobile">Open</span>
+          </span>
+        </a>
       </div>
-    </div>
 
-    <!-- Layer 2: Dedicated Desktop Section Navigation Links -->
-    <div class="nav-layer-bottom">
-      <div class="nav-container nav-container-bottom">
-        <nav id="desktop-nav" class="desktop-nav" aria-label="Main Navigation">
-          <ul class="nav-links">
-            <li><a href="#about" class="nav-link-item">About</a></li>
-            <li><a href="#experience" class="nav-link-item">Experience</a></li>
-            <li><a href="#projects" class="nav-link-item">Projects</a></li>
-            <li><a href="#skills" class="nav-link-item">Stack</a></li>
-            <li><a href="#curations" class="nav-link-item">Notes &amp; Shelf</a></li>
-            <li><a href="#education" class="nav-link-item">Education</a></li>
-            <li><a href="#contact" class="nav-link-item">Contact</a></li>
-          </ul>
-        </nav>
+      <!-- Desktop Section Navigation Links -->
+      <nav id="desktop-nav" class="desktop-nav" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#about" class="nav-link-item">About</a></li>
+          <li><a href="#experience" class="nav-link-item">Experience</a></li>
+          <li><a href="#projects" class="nav-link-item">Projects</a></li>
+          <li><a href="#skills" class="nav-link-item">Stack</a></li>
+          <li><a href="#curations" class="nav-link-item">Notes &amp; Shelf</a></li>
+          <li><a href="#education" class="nav-link-item">Education</a></li>
+          <li><a href="#contact" class="nav-link-item">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Desktop Controls -->
+      <div class="desktop-controls">
+        <button id="btn-desktop-admin" class="btn-admin-nav-pill" type="button" aria-label="Open Admin Studio" title="Admin Studio" style="display: none;">
+          <span>👑 Admin Studio</span>
+        </button>
+
+        <button id="btn-global-auth" class="btn-auth-pill" type="button" aria-label="Account Login" title="Unified Account Center & Telegram Login" style="display: none;">
+          <span class="auth-icon">✈️</span>
+          <span class="auth-label" id="global-auth-label">Login</span>
+        </button>
+
+        <button id="theme-toggle-btn" class="btn-theme-toggle" type="button" aria-pressed="false" title="Toggle color theme">
+          <span class="theme-icon">🌙</span>
+          <span class="theme-text">Dark</span>
+        </button>
+      </div>
+
+      <!-- Mobile Controls (Visible on mobile/tablet) -->
+      <div class="mobile-controls">
+        <button id="mobile-theme-btn" class="btn-theme-toggle mobile-theme-icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+          <span class="mobile-theme-icon">🌙</span>
+        </button>
+
+        <button id="nav-dropdown-trigger" class="nav-dropdown-btn" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-dropdown">
+          <span class="dropdown-hamburger" aria-hidden="true">
+            <span></span>
+            <span></span>
+          </span>
+          <span class="dropdown-btn-text">Menu</span>
+        </button>
       </div>
     </div>
   </header>
@@ -195,8 +188,8 @@
       <div class="hero-header">
         <div class="hero-main">
           <h1 class="hero-title">Saurav Pandey</h1>
-          <div class="hero-role" id="hero-role">Software Developer • Python, .NET &amp; Full-Stack Web</div>
-          <div class="hero-subtitle" id="hero-subtitle">Software Developer Intern at HAL Avionics • MCA @ IIIT Ranchi &amp; IIT Patna</div>
+          <div class="hero-role" id="hero-role">Software Developer Intern @ HAL Avionics</div>
+          <div class="hero-subtitle" id="hero-subtitle">Python, .NET &amp; Full-Stack Web &bull; MCA @ IIIT Ranchi &amp; IIT Patna</div>
           <p class="hero-lede" id="hero-bio">
             I'm a software developer working inside the Avionics Department at Hindustan Aeronautics Limited (HAL), where I build database-driven ASP.NET web applications and automated data workflows with C#, VB.NET, and SQL. My core engineering focus is Python, modern full-stack web development, and relational database systems. Currently pursuing my MCA with IIIT Ranchi and IIT Patna.
           </p>
@@ -206,15 +199,18 @@
       <!-- Core Engineering Pillars -->
       <div class="pillars-grid" id="hero-pillars">
         <div class="pillar-card">
-          <h3>Python &amp; Full-Stack Web</h3>
+          <div class="pillar-index">01 // FULL-STACK WEB</div>
+          <h3>Python &amp; Modern Web</h3>
           <p>Full-stack web applications, Python backend services, REST APIs, and modern JavaScript.</p>
         </div>
         <div class="pillar-card">
-          <h3>.NET &amp; Enterprise Systems</h3>
+          <div class="pillar-index">02 // ENTERPRISE SYSTEMS</div>
+          <h3>.NET &amp; Avionics Systems</h3>
           <p>Database-driven ASP.NET web applications, C#, VB.NET, and enterprise tools at HAL.</p>
         </div>
         <div class="pillar-card">
-          <h3>SQL &amp; Relational Databases</h3>
+          <div class="pillar-index">03 // RELATIONAL DATABASES</div>
+          <h3>SQL &amp; Normalized Schemas</h3>
           <p>Schema normalization, Microsoft Access, query optimization, and key-based record retrieval.</p>
         </div>
       </div>
@@ -225,7 +221,7 @@
       <div class="section-head">
         <div>
           <h2 class="section-title">Work Experience</h2>
-          <p class="section-sub">Programming Assistant Intern (Software Development) in the Avionics Department at Hindustan Aeronautics Limited (HAL).</p>
+          <p class="section-sub">Software Developer Intern (Avionics Department) at Hindustan Aeronautics Limited (HAL).</p>
         </div>
       </div>
       <div id="spotlight-container">
@@ -464,16 +460,16 @@
   <div id="toast" class="toast-msg" role="status" aria-live="polite"></div>
 
   <!-- Modular Scripts (Zero Bundler Required, 100% Native & Portable, Deferred for Rapid First Paint) -->
-  <script src="js/data/profile.js?v=20261112_v16" defer></script>
-  <script src="js/data/experience.js?v=20261112_v16" defer></script>
-  <script src="js/data/projects.js?v=20261112_v16" defer></script>
-  <script src="js/data/skills.js?v=20261112_v16" defer></script>
-  <script src="js/data/shelf.js?v=20261112_v16" defer></script>
-  <script src="js/transitions.js?v=20261112_v16" defer></script>
-  <script src="js/components/perspective.js?v=20261112_v16" defer></script>
-  <script src="js/components/case-study.js?v=20261112_v16" defer></script>
-  <script src="js/components/stack-explorer.js?v=20261112_v16" defer></script>
-  <script src="js/data/database.js?v=20261112_v16" defer></script>
-  <script src="js/app.js?v=20261112_v16" defer></script>
+  <script src="js/data/profile.js?v=20261112_v17" defer></script>
+  <script src="js/data/experience.js?v=20261112_v17" defer></script>
+  <script src="js/data/projects.js?v=20261112_v17" defer></script>
+  <script src="js/data/skills.js?v=20261112_v17" defer></script>
+  <script src="js/data/shelf.js?v=20261112_v17" defer></script>
+  <script src="js/transitions.js?v=20261112_v17" defer></script>
+  <script src="js/components/perspective.js?v=20261112_v17" defer></script>
+  <script src="js/components/case-study.js?v=20261112_v17" defer></script>
+  <script src="js/components/stack-explorer.js?v=20261112_v17" defer></script>
+  <script src="js/data/database.js?v=20261112_v17" defer></script>
+  <script src="js/app.js?v=20261112_v17" defer></script>
 </body>
 </html>
