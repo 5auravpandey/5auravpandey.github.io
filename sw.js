@@ -4,26 +4,25 @@
  * CacheFirst / StaleWhileRevalidate for versioned CSS, JS, Fonts & Assets.
  */
 
-const CACHE_NAME = "sp-portfolio-cache-v20261112_v9";
+const CACHE_NAME = "sp-portfolio-cache-v20261112_v10";
 
 const PRECACHE_ASSETS = [
   "./",
   "index.html",
   "assets/favicon.svg",
-  "assets/certificate-udemy-fullstack.jpg",
-  "css/style.css?v=20261112_v9",
-  "css/transitions.css?v=20261112_v9",
-  "js/data/profile.js?v=20261112_v9",
-  "js/data/experience.js?v=20261112_v9",
-  "js/data/projects.js?v=20261112_v9",
-  "js/data/skills.js?v=20261112_v9",
-  "js/data/shelf.js?v=20261112_v9",
-  "js/transitions.js?v=20261112_v9",
-  "js/components/perspective.js?v=20261112_v9",
-  "js/components/case-study.js?v=20261112_v9",
-  "js/components/stack-explorer.js?v=20261112_v9",
-  "js/data/database.js?v=20261112_v9",
-  "js/app.js?v=20261112_v9"
+  "css/style.css?v=20261112_v10",
+  "css/transitions.css?v=20261112_v10",
+  "js/data/profile.js?v=20261112_v10",
+  "js/data/experience.js?v=20261112_v10",
+  "js/data/projects.js?v=20261112_v10",
+  "js/data/skills.js?v=20261112_v10",
+  "js/data/shelf.js?v=20261112_v10",
+  "js/transitions.js?v=20261112_v10",
+  "js/components/perspective.js?v=20261112_v10",
+  "js/components/case-study.js?v=20261112_v10",
+  "js/components/stack-explorer.js?v=20261112_v10",
+  "js/data/database.js?v=20261112_v10",
+  "js/app.js?v=20261112_v10"
 ];
 
 // Install: precache application shell
