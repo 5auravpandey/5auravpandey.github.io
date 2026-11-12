@@ -65,9 +65,10 @@ window.PORTFOLIO_PROFILE = {
 
   certifications: [
     {
-      title: "The Complete Full-Stack Web Development Bootcamp",
-      issuer: "Dr. Angela Yu (London App Brewery)",
-      topics: "React, Node.js, Express, PostgreSQL, Authentication, Web3 basics"
+      title: "The Complete Web Development Bootcamp",
+      issuer: "Dr. Angela Yu (The App Brewery, London)",
+      period: "12-Week Intensive Curriculum",
+      topics: "React.js, Node.js, Express.js, PostgreSQL, REST APIs, Authentication (OAuth 2.0 & Bcrypt), Web3 & Internet Computer (ICP)"
     }
   ],
 

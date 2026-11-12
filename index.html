@@ -44,8 +44,8 @@
   </noscript>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/style.css?v=20261112_v6">
-  <link rel="stylesheet" href="css/transitions.css?v=20261112_v6">
+  <link rel="stylesheet" href="css/style.css?v=20261112_v7">
+  <link rel="stylesheet" href="css/transitions.css?v=20261112_v7">
 </head>
 <body>
 
@@ -325,8 +325,46 @@
         <!-- Injected via app.js -->
       </ol>
 
-      <div style="margin-top: 24px; padding: 14px 18px; background-color: var(--card); border: 1px solid var(--rule); border-radius: var(--radius-sm); font-size: 15px;">
-        <strong>Certification:</strong> The Complete Full-Stack Web Development Bootcamp by Dr. Angela Yu (React.js, Node.js, Express, PostgreSQL, Web3, REST APIs).
+      <!-- Professional Bootcamp Certification Card -->
+      <div class="certification-card">
+        <div class="cert-header">
+          <div class="cert-badge-group">
+            <span class="cert-badge">🏅 Verified Professional Bootcamp</span>
+            <span class="cert-length">12-Week Intensive Curriculum</span>
+          </div>
+          <h3 class="cert-title">The Complete Web Development Bootcamp</h3>
+          <div class="cert-issuer">Taught by <strong>Dr. Angela Yu</strong> • The App Brewery (London)</div>
+        </div>
+
+        <p class="cert-desc">
+          Comprehensive full-stack engineering program covering modern frontend architecture, backend MVC services, RESTful API design, PostgreSQL relational modeling, enterprise authentication, and Web3 decentralized applications.
+        </p>
+
+        <div class="cert-modules-grid">
+          <div class="cert-module-item">
+            <strong>🎨 Frontend Engineering &amp; React</strong>
+            <span>React.js (Hooks, State, JSX, Virtual DOM), JavaScript (ES6+), DOM Manipulation, Responsive CSS3 (Flexbox &amp; CSS Grid), Bootstrap 5, UI/UX Principles</span>
+          </div>
+          <div class="cert-module-item">
+            <strong>⚙️ Backend &amp; Server Architecture</strong>
+            <span>Node.js (Event Loop, Emitters, File System), Express.js (REST Routing, Chained Handlers, Middleware), EJS Templating, Unix Command Line &amp; Bash</span>
+          </div>
+          <div class="cert-module-item">
+            <strong>🗄️ Relational Databases &amp; Security</strong>
+            <span>PostgreSQL (CRUD, One-to-Many &amp; Many-to-Many, <code>pg</code> driver), SQL Schema Modeling, Password Hashing &amp; Salting with Bcrypt, Sessions &amp; Cookies, Google OAuth 2.0</span>
+          </div>
+          <div class="cert-module-item">
+            <strong>🌐 Web3 &amp; Blockchain Development</strong>
+            <span>Internet Computer Protocol (ICP), Motoko Canisters &amp; Actors, Cycles Wallet, On-Chain NFT Marketplace &amp; Token Creation (Plug Wallet, Candid Interface)</span>
+          </div>
+        </div>
+
+        <div class="cert-projects-row">
+          <span class="cert-projects-label">Applied Coursework Projects:</span>
+          <a href="#projects" class="cert-project-chip">🔐 Secure-Authentication-App (OAuth &amp; Bcrypt)</a>
+          <a href="#projects" class="cert-project-chip">🗺️ Family-Travel-Tracker (PostgreSQL &amp; Node)</a>
+          <a href="#projects" class="cert-project-chip">💎 NFT-Marketplace-DApp (ICP Web3 &amp; Motoko)</a>
+        </div>
       </div>
     </section>
 
@@ -439,16 +477,16 @@
   <div id="toast" class="toast-msg" role="status" aria-live="polite"></div>
 
   <!-- Modular Scripts (Zero Bundler Required, 100% Native & Portable, Deferred for Rapid First Paint) -->
-  <script src="js/data/profile.js?v=20261112_v6" defer></script>
-  <script src="js/data/experience.js?v=20261112_v6" defer></script>
-  <script src="js/data/projects.js?v=20261112_v6" defer></script>
-  <script src="js/data/skills.js?v=20261112_v6" defer></script>
-  <script src="js/data/shelf.js?v=20261112_v6" defer></script>
-  <script src="js/transitions.js?v=20261112_v6" defer></script>
-  <script src="js/components/perspective.js?v=20261112_v6" defer></script>
-  <script src="js/components/case-study.js?v=20261112_v6" defer></script>
-  <script src="js/components/stack-explorer.js?v=20261112_v6" defer></script>
-  <script src="js/data/database.js?v=20261112_v6" defer></script>
-  <script src="js/app.js?v=20261112_v6" defer></script>
+  <script src="js/data/profile.js?v=20261112_v7" defer></script>
+  <script src="js/data/experience.js?v=20261112_v7" defer></script>
+  <script src="js/data/projects.js?v=20261112_v7" defer></script>
+  <script src="js/data/skills.js?v=20261112_v7" defer></script>
+  <script src="js/data/shelf.js?v=20261112_v7" defer></script>
+  <script src="js/transitions.js?v=20261112_v7" defer></script>
+  <script src="js/components/perspective.js?v=20261112_v7" defer></script>
+  <script src="js/components/case-study.js?v=20261112_v7" defer></script>
+  <script src="js/components/stack-explorer.js?v=20261112_v7" defer></script>
+  <script src="js/data/database.js?v=20261112_v7" defer></script>
+  <script src="js/app.js?v=20261112_v7" defer></script>
 </body>
 </html>
