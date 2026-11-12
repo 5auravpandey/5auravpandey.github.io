@@ -175,6 +175,57 @@ input:focus-visible {
   white-space: nowrap;
 }
 
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5.5px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2.5px 8.5px;
+  border-radius: 999px;
+  background-color: var(--ok-bg);
+  color: var(--ok);
+  border: 1px solid rgba(32, 114, 58, 0.25);
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+:root[data-theme="dark"] .status-indicator {
+  border-color: rgba(86, 211, 100, 0.3);
+  background-color: rgba(86, 211, 100, 0.12);
+  color: #56d364;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--ok);
+  display: inline-block;
+  box-shadow: 0 0 6px currentColor;
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+:root[data-theme="dark"] .pulse-dot {
+  background-color: #56d364;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.status-text-full {
+  display: inline-block;
+}
+
+.status-text-short {
+  display: none;
+}
+
 /* Desktop Navigation Menu */
 .desktop-nav {
   display: flex;
@@ -2172,9 +2223,31 @@ dialog#invite-dialog::backdrop {
     white-space: nowrap;
   }
 
+  .status-indicator {
+    font-size: 10px;
+    padding: 2px 7px;
+    gap: 4.5px;
+  }
+
+  .pulse-dot {
+    width: 5px;
+    height: 5px;
+  }
+
   @media (max-width: 440px) {
     .brand-name {
       font-size: 13.5px;
+    }
+    .status-text-full {
+      display: none !important;
+    }
+    .status-text-short {
+      display: inline-block !important;
+    }
+    .status-indicator {
+      font-size: 9px;
+      padding: 1.5px 6px;
+      gap: 4px;
     }
   }
 
