@@ -447,9 +447,14 @@ function initShelf() {
     });
   }
 
-  // Quick "Post a Note" handler
+  // Quick "Post a Note" handler (strictly visible for authenticated owner only)
   const postNoteBtn = document.getElementById("btn-post-note");
   if (postNoteBtn) {
+    const currentSession = (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function")
+      ? window.PORTFOLIO_AUTH.getSession()
+      : null;
+    postNoteBtn.style.display = (currentSession && currentSession.isOwner) ? "inline-flex" : "none";
+
     postNoteBtn.addEventListener("click", () => {
       const session = (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function")
         ? window.PORTFOLIO_AUTH.getSession()
@@ -467,12 +472,6 @@ function initShelf() {
               if (titleInput) titleInput.focus();
             }
           });
-        }
-      } else {
-        if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.openLoginDialog === "function") {
-          window.PORTFOLIO_AUTH.openLoginDialog();
-        } else {
-          showToast("Please sign in to post new notes.");
         }
       }
     });
@@ -546,12 +545,34 @@ function renderShelfGrid() {
   });
 
   if (items.length === 0) {
+    let emptyIcon = "📚";
+    let emptyTitle = "No Entries Yet";
+    let emptySub = "Entries will appear here once added.";
+
+    if (currentShelfFilter === "notes") {
+      emptyIcon = "📝";
+      emptyTitle = "Notes Coming Soon";
+      emptySub = "Personal technical reflections, software engineering notes, and thoughts will be published here.";
+    } else if (currentShelfFilter === "books") {
+      emptyIcon = "📚";
+      emptyTitle = "Bookshelf Coming Soon";
+      emptySub = "Recommended engineering books and reading notes will be added here.";
+    } else if (currentShelfFilter === "games") {
+      emptyIcon = "🎮";
+      emptyTitle = "Games Coming Soon";
+      emptySub = "Favorite games will be listed here.";
+    } else if (currentShelfFilter === "shows") {
+      emptyIcon = "🎬";
+      emptyTitle = "Shows Coming Soon";
+      emptySub = "Watched shows and cinema reflections will be listed here.";
+    }
+
     grid.innerHTML = `
       <div class="empty-shelf-state" style="grid-column: 1 / -1; padding: 48px 24px; text-align: center; border: 1px dashed var(--rule); border-radius: var(--radius-md); background: var(--surface);">
-        <span style="font-size: 32px; display: block; margin-bottom: 10px;">📚</span>
-        <h3 style="font-size: 17px; margin: 0 0 8px; font-weight: 600;">No Entries in this Category</h3>
+        <span style="font-size: 32px; display: block; margin-bottom: 10px;">${emptyIcon}</span>
+        <h3 style="font-size: 17px; margin: 0 0 8px; font-weight: 600;">${emptyTitle}</h3>
         <p style="color: var(--muted); font-size: 13.5px; max-width: 440px; margin: 0 auto; line-height: 1.55;">
-          Notes, games, watched shows, and books will be displayed here.
+          ${emptySub}
         </p>
       </div>
     `;
@@ -847,6 +868,11 @@ function initGlobalAuthUI() {
 
   function updateAuthUI(session) {
     const isOwner = Boolean(session && session.isOwner);
+
+    const postNoteBtn = document.getElementById("btn-post-note");
+    if (postNoteBtn) {
+      postNoteBtn.style.display = isOwner ? "inline-flex" : "none";
+    }
 
     if (desktopAdminBtn) {
       if (isOwner) {

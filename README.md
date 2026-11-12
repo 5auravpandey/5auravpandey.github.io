@@ -29,8 +29,8 @@ Live Site: **[https://sauravpandey.me](https://sauravpandey.me)**
    - Deep-dive ASCII system architecture diagrams inside accessible modal dialogs.
 
 4. **📝 Notes, Library & Favorites (Shelf)**:
-   - Personal engineering notes, favorite games (NieR:Automata, Sky: Children of the Light), watched cinema & shows (Steins;Gate, Severance), and recommended books (The Pragmatic Programmer).
-   - Interactive note-posting shortcut protected by Telegram OAuth.
+   - Favorite games (Sky: Children of the Light), watched anime (Attack on Titan), and a clean section ready for technical notes and book reviews.
+   - Discreet note-posting studio for the site owner, completely hidden from public visitors.
 
 5. **⚙️ Discreet Admin Studio**:
    - Hidden from public visitors.

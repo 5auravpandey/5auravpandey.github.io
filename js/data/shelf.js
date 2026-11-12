@@ -5,44 +5,8 @@
  * and seamless code exporting for static GitHub Pages deployment.
  */
 
-// Default grounded shelf entries (Notes, Games, Shows, Books) (editable via Admin Studio)
+// Default grounded shelf entries (editable via Admin Studio)
 const DEFAULT_SHELF = [
-  {
-    id: "note-python-fullstack-architecture",
-    type: "notes",
-    category: "notes",
-    badge: "Full-Stack Web",
-    title: "Structuring Clean Python Backends: REST APIs, Data Layers, and Predictable State",
-    meta: "Python • REST APIs • Architecture",
-    rating: null,
-    summary: "Key observations on structuring maintainable backend routes, input validation, and database connection pooling in modern Python and full-stack web applications.",
-    media: "https://github.com/5auravpandey",
-    content: "When building modern web applications, decoupling API endpoints from frontend rendering provides immense flexibility.\n\nIn Python, structuring applications with explicit service layers, validation schemas, and database session scopes prevents business logic from leaking into routing controllers. This architecture keeps code testable, modular, and ready to scale."
-  },
-  {
-    id: "note-relational-data-modeling",
-    type: "notes",
-    category: "notes",
-    badge: "Database Design",
-    title: "Why Relational Normalization Beats Unstructured Sheets for Production Workflows",
-    meta: "SQL • Database Design • Workflow Automation",
-    rating: null,
-    summary: "Reflections from real-world workflow automation: why moving from spreadsheet chaos to third-normal-form relational tables eliminates duplicate errors and makes queries instant.",
-    media: "https://github.com/5auravpandey",
-    content: "When teams store operational data in spreadsheets, inconsistencies compound over time. Records get copied, columns become irregular, and finding specific information requires tedious manual scanning.\n\nNormalizing records into structured relational tables (primary/foreign keys, indexed lookup identifiers) transforms slow manual searching into sub-second indexed SQL queries and provides a rock-solid foundation for web interfaces."
-  },
-  {
-    id: "game-nier-automata",
-    type: "games",
-    category: "games",
-    badge: "Action RPG",
-    title: "NieR:Automata",
-    meta: "Square Enix • PlatinumGames",
-    rating: "★★★★★",
-    summary: "Philosophical exploration of artificial consciousness, existentialism, and purpose through multiple narrative playthroughs and sublime adaptive music.",
-    media: "",
-    content: "Beyond the fluid combat, NieR:Automata stands as one of the finest artistic achievements in interactive storytelling. Keiichi Okabe's dynamic soundtrack and the brilliant Route C narrative reveal left a lasting impression."
-  },
   {
     id: "game-sky-children",
     type: "games",
@@ -52,44 +16,20 @@ const DEFAULT_SHELF = [
     meta: "thatgamecompany",
     rating: "★★★★★",
     summary: "A peaceful, breathtaking journey through a forgotten kingdom, emphasizing compassion, teamwork, and exploration.",
-    media: "",
+    media: "https://thatgamecompany.com/sky/",
     content: "The ambient soundscapes and flight mechanics create a uniquely calming atmosphere that's perfect for unwinding after deep coding sessions."
   },
   {
-    id: "show-steins-gate",
+    id: "show-aot",
     type: "shows",
     category: "shows",
-    badge: "Anime • Sci-Fi",
-    title: "Steins;Gate",
-    meta: "White Fox • 24 Episodes",
+    badge: "Anime • Masterpiece",
+    title: "Attack on Titan (Shingeki no Kyojin)",
+    meta: "Hajime Isayama • MAPPA / Wit Studio",
     rating: "10/10 Masterpiece",
-    summary: "A brilliant time-travel mystery exploring causality, the butterfly effect, and underground lab experiments in Akihabara.",
-    media: "https://myanimelist.net/anime/9253/Steins_Gate",
-    content: "Starts as a quirky story about eccentric university students tinkering with microwaves and CRT monitors, and evolves into one of the tightest, most emotionally resonant hard sci-fi narratives ever created."
-  },
-  {
-    id: "show-severance",
-    type: "shows",
-    category: "shows",
-    badge: "Series • Mystery",
-    title: "Severance",
-    meta: "Apple TV+ • Dir. Ben Stiller",
-    rating: "9.5/10",
-    summary: "A chilling, darkly funny look at work-life separation with immaculate retro-futuristic computing aesthetics and mind-bending cliffhangers.",
-    media: "https://www.imdb.com/title/tt11280740/",
-    content: "The visual direction—floppy disks, trackball mice, green phosphor screens, and sterile brutalist hallways—is hypnotic. The exploration of identity and consciousness makes every episode unforgettable."
-  },
-  {
-    id: "book-pragmatic-programmer",
-    type: "books",
-    category: "books",
-    badge: "Engineering Book",
-    title: "The Pragmatic Programmer: Your Journey to Mastery",
-    meta: "David Thomas & Andrew Hunt • 20th Anniversary Edition",
-    rating: "★★★★★",
-    summary: "Essential reading on software craftsmanship, DRY principles, orthogonality, and treating programming as a disciplined trade.",
-    media: "",
-    content: "Key takeaways applied daily in my projects: software entropy (broken window theory), investing regularly in your knowledge portfolio, and building software with small, testable, orthogonal components."
+    summary: "A phenomenal exploration of freedom, morality, human nature, and cycles of war with breathtaking storytelling, animation, and Hiroyuki Sawano's score.",
+    media: "https://myanimelist.net/anime/16498/Shingeki_no_Kyojin",
+    content: "From the desperate struggle for survival inside the Walls to complex geopolitical warfare and philosophical reflections on freedom. The thematic depth, foreshadowing, character arcs (Eren, Erwin, Levi), and Sawano's transcendent soundtrack make it one of the greatest stories ever told."
   }
 ];
 
@@ -122,8 +62,15 @@ window.PORTFOLIO_SHELF_STORE = {
         if (Array.isArray(parsed)) {
           // Filter out specific legacy placeholder IDs if present
           const legacyMocks = new Set([
+            "note-python-fullstack-architecture",
+            "note-relational-data-modeling",
+            "game-nier-automata",
+            "show-steins-gate",
+            "show-severance",
+            "book-pragmatic-programmer",
             "research-lightweight-ciphers",
             "note-servlets-jvm",
+            "research-icp-state-consensus",
             "research-hal-gnc",
             "book-deep-work",
             "game-chess",
