@@ -5,13 +5,13 @@
  * and seamless code exporting for static GitHub Pages deployment.
  */
 
-// Default grounded archive entries (editable via Admin Studio)
+// Default grounded technical notes & architectural studies (editable via Admin Studio)
 const DEFAULT_SHELF = [
   {
     id: "research-lightweight-ciphers",
     type: "research",
     category: "research",
-    badge: "Systems Paper",
+    badge: "Systems & Security",
     title: "Lightweight Symmetric Bitwise Ciphers for Resource-Constrained Embedded Controllers",
     meta: "C++ • Cryptography • Embedded Systems",
     rating: null,
@@ -35,7 +35,7 @@ const DEFAULT_SHELF = [
     id: "research-icp-state-consensus",
     type: "research",
     category: "research",
-    badge: "Web3 Analysis",
+    badge: "Distributed Systems",
     title: "Orthogonal Persistence vs Gas-Metered EVM: Architectural Analysis of the Internet Computer",
     meta: "Motoko • WebAssembly • DApps",
     rating: null,
@@ -47,7 +47,7 @@ const DEFAULT_SHELF = [
     id: "book-pragmatic-programmer",
     type: "books",
     category: "books",
-    badge: "Engineering Book",
+    badge: "Recommended Reading",
     title: "The Pragmatic Programmer: Your Journey to Mastery",
     meta: "David Thomas & Andrew Hunt • 20th Anniversary Edition",
     rating: "★★★★★",

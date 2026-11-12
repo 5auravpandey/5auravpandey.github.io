@@ -17,24 +17,24 @@ window.PORTFOLIO_PROFILE = {
   perspectives: {
     engineer: {
       label: "⚡ Systems & Code",
-      role: "Full-Stack, Systems & Web3 Developer",
+      role: "Software Developer • .NET, Systems & Web3",
       tagline: "Programming Assistant Intern (Software Development) at HAL • MCA @ IIIT Ranchi & IIT Patna",
-      bio: "I'm a software developer focused on practical systems, backend engineering, and Web3. Currently working on internal avionics software utilities at Hindustan Aeronautics Limited (HAL) and studying computer applications at IIIT Ranchi and IIT Patna. I enjoy understanding how software works from scratch — whether managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized canisters on the Internet Computer.",
+      bio: "I'm a software developer working inside the Avionics Department at Hindustan Aeronautics Limited (HAL), where I build database-driven ASP.NET web applications and automated data workflows with C#, VB.NET, and SQL. Currently pursuing my MCA with IIIT Ranchi and IIT Patna, with strong foundations in low-level systems, backend architecture, and Web3.",
       keyPillars: [
-        { title: "Systems & C++", desc: "Bitwise encryption, binary file streams, and memory handling." },
-        { title: "Backend & Web", desc: "Java Servlets/JSP, Node.js, Express, and relational SQL." },
-        { title: "Web3 & DApps", desc: "Smart contracts and decentralized canisters on the Internet Computer." }
+        { title: ".NET & Database Systems", desc: "ASP.NET web applications, C#, VB.NET, and relational database modernization." },
+        { title: "SQL & Workflow Automation", desc: "Key-based data retrieval, Microsoft Access, and eliminating manual Excel operations." },
+        { title: "Systems & Web3", desc: "C++ bitwise arithmetic, native Java Servlets, and decentralized canisters." }
       ]
     },
     overview: {
       label: "⚡ Systems & Code",
-      role: "Full-Stack, Systems & Web3 Developer",
+      role: "Software Developer • .NET, Systems & Web3",
       tagline: "Programming Assistant Intern (Software Development) at HAL • MCA @ IIIT Ranchi & IIT Patna",
-      bio: "I'm a software developer focused on practical systems, backend engineering, and Web3. Currently working on internal avionics software utilities at Hindustan Aeronautics Limited (HAL) and studying computer applications at IIIT Ranchi and IIT Patna. I enjoy understanding how software works from scratch — whether managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized canisters on the Internet Computer.",
+      bio: "I'm a software developer working inside the Avionics Department at Hindustan Aeronautics Limited (HAL), where I build database-driven ASP.NET web applications and automated data workflows with C#, VB.NET, and SQL. Currently pursuing my MCA with IIIT Ranchi and IIT Patna, with strong foundations in low-level systems, backend architecture, and Web3.",
       keyPillars: [
-        { title: "Systems & C++", desc: "Bitwise encryption, binary file streams, and memory handling." },
-        { title: "Backend & Web", desc: "Java Servlets/JSP, Node.js, Express, and relational SQL." },
-        { title: "Web3 & DApps", desc: "Smart contracts and decentralized canisters on the Internet Computer." }
+        { title: ".NET & Database Systems", desc: "ASP.NET web applications, C#, VB.NET, and relational database modernization." },
+        { title: "SQL & Workflow Automation", desc: "Key-based data retrieval, Microsoft Access, and eliminating manual Excel operations." },
+        { title: "Systems & Web3", desc: "C++ bitwise arithmetic, native Java Servlets, and decentralized canisters." }
       ]
     }
   },

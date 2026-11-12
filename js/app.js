@@ -57,7 +57,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // 8. Initialize Interactive Components
   if (window.PORTFOLIO_CASE_STUDY) window.PORTFOLIO_CASE_STUDY.init();
   if (window.PORTFOLIO_STACK_EXPLORER) window.PORTFOLIO_STACK_EXPLORER.init();
-  initPlaygroundDeferred();
   initAdminLazyLoader();
 
   // 9. Initialize Clipboard, Print CV & Utility Actions
@@ -416,9 +415,9 @@ function initShelf() {
   const tabsContainer = document.getElementById("shelf-filter-tabs");
   if (tabsContainer) {
     const filters = [
-      { id: "all", label: "All Publications" },
-      { id: "research", label: "🔬 Research Papers" },
-      { id: "notes", label: "📝 Technical Notes" },
+      { id: "all", label: "All Notes" },
+      { id: "research", label: "🔬 Systems & Security" },
+      { id: "notes", label: "📝 Web Architecture" },
       { id: "books", label: "📚 Books" }
     ];
 
@@ -518,9 +517,9 @@ function renderShelfGrid() {
     grid.innerHTML = `
       <div class="empty-shelf-state" style="grid-column: 1 / -1; padding: 48px 24px; text-align: center; border: 1px dashed var(--rule); border-radius: var(--radius-md); background: var(--surface);">
         <span style="font-size: 32px; display: block; margin-bottom: 10px;">📚</span>
-        <h3 style="font-size: 17px; margin: 0 0 8px; font-weight: 600;">Archive Entries Coming Soon</h3>
+        <h3 style="font-size: 17px; margin: 0 0 8px; font-weight: 600;">Technical Notes Coming Soon</h3>
         <p style="color: var(--muted); font-size: 13.5px; max-width: 440px; margin: 0 auto; line-height: 1.55;">
-          Curations, research findings, reading notes, and personal playlists will be published here upon website completion.
+          Architecture studies, systems notes, and recommended reading will be published here.
         </p>
       </div>
     `;
@@ -594,10 +593,6 @@ window.showToast = showToast;
  */
 function initUtilities() {
   const copyBtn = document.getElementById("btn-copy-email");
-  const copyInviteBtn = document.getElementById("btn-copy-invite-link");
-  const inviteLinkInput = document.getElementById("invite-link-input");
-  const inviteCloseBtn = document.getElementById("invite-dialog-close");
-  const inviteDialog = document.getElementById("invite-dialog");
 
   if (copyBtn) {
     copyBtn.addEventListener("click", () => {
@@ -609,36 +604,6 @@ function initUtilities() {
       });
     });
   }
-
-  if (inviteCloseBtn && inviteDialog) {
-    inviteCloseBtn.addEventListener("click", () => inviteDialog.close());
-  }
-
-  if (inviteDialog) {
-    inviteDialog.addEventListener("click", (e) => {
-      if (e.target === inviteDialog) {
-        inviteDialog.close();
-      }
-    });
-  }
-
-  if (copyInviteBtn && inviteLinkInput) {
-    if (!inviteLinkInput.value) {
-      try {
-        inviteLinkInput.value = `${window.location.origin}${window.location.pathname}?tab=focus&sprint=25`;
-      } catch (e) {}
-    }
-
-    copyInviteBtn.addEventListener("click", () => {
-      const link = inviteLinkInput.value || `${window.location.origin}${window.location.pathname}?tab=focus&sprint=25`;
-      navigator.clipboard.writeText(link).then(() => {
-        showToast("Focus sprint invite link copied!");
-        copyInviteBtn.textContent = "Copied! ✓";
-        setTimeout(() => { copyInviteBtn.textContent = "Copy Link"; }, 2000);
-      });
-    });
-  }
-
 }
 
 /**
@@ -647,7 +612,7 @@ function initUtilities() {
 function initCardSpotlight() {
   if (window.matchMedia("(pointer: coarse)").matches) return;
   document.addEventListener("pointermove", (e) => {
-    const card = e.target.closest(".project-card, .shelf-card, .spotlight-card, .pillar-card, .contact-card, .playground-card");
+    const card = e.target.closest(".project-card, .shelf-card, .spotlight-card, .pillar-card, .contact-card");
     if (!card) return;
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -749,7 +714,7 @@ function initDesktopNav() {
   const navLinks = Array.from(desktopNav.querySelectorAll(".nav-link-item"));
   if (!navLinks.length) return;
 
-  const sectionIds = ["about", "experience", "projects", "playground", "curations", "skills", "education", "contact"];
+  const sectionIds = ["about", "experience", "projects", "skills", "curations", "education", "contact"];
   const sections = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
 
   let activeSectionId = "";
@@ -934,48 +899,6 @@ function initGlobalAuthUI() {
   window.addEventListener("portfolio:auth-changed", (e) => {
     updateAuthUI(e.detail);
   });
-}
-
-/**
- * Defer heavy playground initialization until idle or when approaching viewport
- * Eliminates main-thread blocking during critical mobile First Contentful Paint (FCP)
- */
-let playgroundInitialized = false;
-function initPlaygroundDeferred() {
-  if (!window.PORTFOLIO_PLAYGROUND || playgroundInitialized) return;
-
-  const runInit = () => {
-    if (playgroundInitialized) return;
-    playgroundInitialized = true;
-    window.PORTFOLIO_PLAYGROUND.init();
-  };
-
-  // Immediate init if direct link / query parameter to playground is requested
-  const hash = window.location.hash;
-  const search = window.location.search;
-  if (hash === "#playground" || search.includes("room=") || search.includes("game=") || search.includes("tab=")) {
-    runInit();
-    return;
-  }
-
-  // Otherwise, use IntersectionObserver when section approaches viewport, with idle fallback
-  const target = document.getElementById("playground");
-  if (target && "IntersectionObserver" in window) {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some(e => e.isIntersecting)) {
-        observer.disconnect();
-        runInit();
-      }
-    }, { rootMargin: "400px 0px" });
-    observer.observe(target);
-  }
-
-  // Fallback to idle callback / timeout so it's always ready without blocking initial paint
-  if ("requestIdleCallback" in window) {
-    requestIdleCallback(() => runInit(), { timeout: 2000 });
-  } else {
-    setTimeout(runInit, 800);
-  }
 }
 
 /**

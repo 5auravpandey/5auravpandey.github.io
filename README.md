@@ -1,46 +1,47 @@
-# Saurav Pandey — Personal Portfolio & Developer Journal
+# Saurav Pandey — Software Developer Portfolio
 
-A clean and expandable personal portfolio combining developer-first design with an interactive lab, and a curated archive of research, technical notes, books, games, watched cinema, and music.
+A clean, high-performance personal portfolio combining enterprise software engineering experience at Hindustan Aeronautics Limited (HAL) with technical architecture studies, projects, and academic background.
 
-Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
+Live Site: **[https://sauravpandey.me](https://sauravpandey.me)**
 
 ---
 
 ## 👨‍💻 About Saurav Pandey
 
-- **MCA Student** at **IIIT Ranchi** & **IIT Patna**
+- **Software Developer** focused on .NET, Systems, Relational Databases, and Web3 from **Gopalganj, Bihar, India**
 - **Programming Assistant Intern (Software Development)** in the **Avionics Department** at **Hindustan Aeronautics Limited (HAL)**
-- **Developer** focused on Full-Stack, Systems, and Web3 from **Gopalganj, Bihar, India**
+  - Architecting database-driven ASP.NET web applications with C#, VB.NET, and SQL.
+  - Migrating legacy Excel sheets into structured relational databases (Microsoft Access, SQL Server).
+  - Modernizing avionics operational workflows with ADO.NET and key-based record retrieval.
+- **MCA Student** at **IIIT Ranchi** & **IIT Patna** (2026–2028)
 
 ---
 
-## 🌟 Key Features & Interactive Sections
+## 🌟 Key Features
 
-1. **📝 Engineering Notes & Research**:
-   - Filterable showcase across:
-     - 🔬 **Research Papers & Studies** (Distributed state, lightweight ciphers)
-     - 📝 **Technical Notes & Findings** (Java Servlets, C++ bitwise arithmetic)
-     - 📚 **Engineering Books** (The Pragmatic Programmer)
+1. **💼 Authentic Enterprise Experience (HAL Avionics)**:
+   - Detailed breakdown of production engineering contributions: database modernization, ASP.NET/C#/VB.NET application development, ADO.NET integration, key-based operational indexing, and workflow automation.
 
-2. **⚙️ Hidden Admin Studio**:
-   - Discreetly hidden from public visitors.
-   - Triggers: Secret shortcut `Ctrl+Shift+A` (or `Cmd+Shift+A`), typing `admin` in the terminal shell, visiting `#admin`, or triple-clicking the footer copyright.
-   - Protected with **Telegram OAuth (@SauravPandeyBot)** cryptographic signature verification.
-   - Manage YouTube room whitelists, add, edit, delete, and copy updated `shelf.js` JavaScript code directly for committing to GitHub.
+2. **🛠️ Grounded Technical Stack**:
+   - Categorized by production relevance: C#, VB.NET, SQL, ASP.NET, ADO.NET, Java Servlets/JSP, Node.js, Microsoft Access, MySQL, PostgreSQL, and Web3/Distributed Systems.
 
-3. **🔐 Systems & Engineering Lab**:
-   - **CryptoLock Two-Way XOR Cipher**: Real-time bitwise encryption and decryption (`(A ^ Key) ^ Key = A`), live hex byte visualization, and binary bit breakdown.
-   - **Developer Terminal Shell**: Command history (`↑`/`↓`), tab autocompletion, matrix digital rain (`matrix`), theme toggle, and quick portfolio navigation.
-
-4. **📐 Architecture Blueprints & Case Studies**:
+3. **📐 Architecture Blueprints & Case Studies**:
    - Deep-dive ASCII system architecture diagrams inside accessible modal dialogs.
+
+4. **📝 Technical Notes & Architecture Studies**:
+   - Practical engineering write-ups and analyses covering distributed consensus, low-level bitwise arithmetic, servlet lifecycles, and recommended reading.
+
+5. **⚙️ Discreet Admin Studio**:
+   - Hidden from public visitors.
+   - Triggers: Secret shortcut `Ctrl+Shift+A` (or `Cmd+Shift+A`), visiting `#admin`, or triple-clicking the footer.
+   - Protected with **Telegram OAuth (@SauravPandeyBot)** cryptographic signature verification.
 
 ---
 
 ## 📁 Directory Structure
 
 ```
-5auravpandey.github.io/
+sauravpandey.me/
 ├── index.html                 # Semantic HTML entry point
 ├── README.md                  # Project documentation
 ├── .gitignore                 # Git ignore file
@@ -48,28 +49,26 @@ Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
 ├── robots.txt                 # Search engine crawler instructions
 ├── sitemap.xml                # SEO sitemap
 ├── rss.xml                    # Engineering notes RSS feed
-├── sw.js                      # Progressive Web App Service Worker
+├── sw.js                      # Progressive Web App Service Worker (PWA)
 ├── assets/                    # Favicon & assets
 │   └── favicon.svg
 ├── css/
-│   ├── style.css              # Editorial styles, dark theme, UI components
+│   ├── style.css              # Clean typography, dark mode, responsive styles
 │   └── transitions.css        # View Transitions API & motion accessibility
 └── js/
-    ├── app.js                 # App coordinator, clock, search & filtering
+    ├── app.js                 # App coordinator, clock, filter tabs & navigation
     ├── transitions.js         # View Transitions helper with fallback
     ├── components/
     │   ├── admin.js           # Telegram OAuth-protected Admin Studio
     │   ├── case-study.js      # Modal drawer for project blueprints
-    │   ├── games.js           # Lightweight mini-games
-    │   ├── perspective.js     # Systems vs Executive view toggle
-    │   ├── playground.js      # Focus timer, soundscapes, cryptolock & terminal
-    │   └── stack-explorer.js  # Interactive skills matrix
+    │   ├── perspective.js     # Systems vs Story view toggle
+    │   └── stack-explorer.js  # Categorized technical skills matrix
     └── data/
         ├── database.js        # IndexedDB/LocalStorage persistence & Telegram auth
         ├── experience.js      # HAL Avionics experience record
         ├── profile.js         # Bio, education, contact info
         ├── projects.js        # Detailed project stories & architecture diagrams
-        ├── shelf.js           # Reactive curations store
+        ├── shelf.js           # Technical notes and architecture studies
         └── skills.js          # Technical skills cross-referenced with projects
 ```
 
