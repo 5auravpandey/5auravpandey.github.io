@@ -8,6 +8,18 @@
 // Default grounded shelf entries (editable via Admin Studio)
 const DEFAULT_SHELF = [
   {
+    id: "note-coa-memory-hierarchy",
+    type: "notes",
+    category: "notes",
+    badge: "Computer Architecture",
+    title: "Computer Organization & Architecture (COA): Memory Hierarchy, Cache & CPU Pipelining",
+    meta: "COA • MCA Academics • Hardware-Software Interface",
+    rating: null,
+    summary: "Core principles of Computer Organization & Architecture: instruction execution cycles, multi-stage pipelining hazards, cache locality (L1/L2/L3), and how hardware constraints impact software performance.",
+    media: "",
+    content: "Key principles from Computer Organization and Architecture (COA):\n\n1. Instruction Pipeline & Throughput: How instruction fetch (IF), decode (ID), execute (EX), memory access (MEM), and write-back (WB) overlap to maximize clock throughput, and how data/control hazards are resolved with branch prediction and data forwarding.\n\n2. Cache Memory & Spatial/Temporal Locality: Why cache misses (compulsory, capacity, conflict) dictate memory latency, and how writing cache-friendly contiguous data layouts minimizes CPU stall cycles.\n\n3. Memory Hierarchy: Bridging the massive speed gap between ultra-fast CPU registers, multi-level SRAM caches, DRAM main memory, and secondary storage.\n\n4. Hardware-Software Interface: Understanding low-level hardware constraints helps in writing high-performance backend software that respects cache lines and memory bandwidth."
+  },
+  {
     id: "game-sky-children",
     type: "games",
     category: "games",
@@ -30,11 +42,23 @@ const DEFAULT_SHELF = [
     summary: "A phenomenal exploration of freedom, morality, human nature, and cycles of war with breathtaking storytelling, animation, and Hiroyuki Sawano's score.",
     media: "https://myanimelist.net/anime/16498/Shingeki_no_Kyojin",
     content: "From the desperate struggle for survival inside the Walls to complex geopolitical warfare and philosophical reflections on freedom. The thematic depth, foreshadowing, character arcs (Eren, Erwin, Levi), and Sawano's transcendent soundtrack make it one of the greatest stories ever told."
+  },
+  {
+    id: "book-atomic-habits",
+    type: "books",
+    category: "books",
+    badge: "Personal Growth & Systems",
+    title: "Atomic Habits: An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+    meta: "James Clear • System-First Mindset",
+    rating: "★★★★★",
+    summary: "The power of 1% daily compounding improvements, environment design over willpower, and focusing on daily execution systems rather than distant goals.",
+    media: "https://jamesclear.com/atomic-habits",
+    content: "Key principles applied to software engineering and daily learning:\n\n1. The 1% Rule: Compounding small improvements in programming, problem-solving, and architecture daily yields exponential long-term mastery.\n\n2. Systems Over Goals: Winners and losers have the same goals; what separates them is the design of their daily execution system.\n\n3. Identity-Based Habits: Shifting mindset from 'I want to write code' to 'I am a disciplined software developer who crafts reliable software'.\n\n4. Environment Design: Creating a frictionless, distraction-free environment for deep work and technical study."
   }
 ];
 
 window.PORTFOLIO_SHELF_STORE = {
-  STORAGE_KEY: "portfolio_custom_shelf",
+  STORAGE_KEY: "portfolio_custom_shelf_v3",
 
   validateItem(item) {
     if (!item || typeof item !== "object") return null;

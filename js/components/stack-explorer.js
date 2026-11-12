@@ -1,6 +1,6 @@
 /**
  * Saurav Pandey - Interactive Stack Explorer Component
- * Renders categorized skill matrices and establishes interactive bidirectional links to projects.
+ * Renders categorized skill matrices and establishes interactive bidirectional links to projects and HAL production experience.
  * Cleaned with event delegation and XSS sanitization (Zero inline handlers).
  */
 window.PORTFOLIO_STACK_EXPLORER = {
@@ -62,6 +62,25 @@ window.PORTFOLIO_STACK_EXPLORER = {
       });
     }
 
+    const halLink = document.getElementById("link-hal-experience");
+    if (halLink) {
+      halLink.addEventListener("click", (e) => {
+        const expSec = document.getElementById("experience");
+        if (expSec) {
+          expSec.scrollIntoView({ behavior: "smooth" });
+          const card = expSec.querySelector(".spotlight-card");
+          if (card) {
+            card.style.outline = "2px solid var(--accent)";
+            card.style.boxShadow = "0 0 16px rgba(59, 130, 246, 0.35)";
+            setTimeout(() => {
+              card.style.outline = "";
+              card.style.boxShadow = "";
+            }, 2500);
+          }
+        }
+      });
+    }
+
     const banner = document.getElementById("stack-focus-banner");
     if (banner) {
       banner.addEventListener("click", (e) => {
@@ -95,7 +114,10 @@ window.PORTFOLIO_STACK_EXPLORER = {
     if (!this.activeSkill) return "";
 
     const escape = (str) => typeof window.escapeHTML === "function" ? window.escapeHTML(str) : String(str || "");
-    const related = (this.activeSkill.projects || [])
+    const projectsList = this.activeSkill.projects || [];
+    const isHal = projectsList.includes("hal-avionics");
+    const related = projectsList
+      .filter(id => id !== "hal-avionics")
       .map(id => window.PORTFOLIO_PROJECTS.find(p => p.id === id))
       .filter(Boolean);
 
@@ -107,22 +129,43 @@ window.PORTFOLIO_STACK_EXPLORER = {
         <button type="button" id="btn-close-skill-focus" style="font-family: var(--mono); font-size: 12px; background: none; border: none; color: var(--muted); cursor: pointer;">[Close / Reset]</button>
       </div>
       <p style="margin: 6px 0 10px; color: var(--ink-secondary); font-size: 15px;">${escape(this.activeSkill.focus)}</p>
-      ${related.length > 0 ? `
-        <div style="font-size: 14px; color: var(--ink);">
-          <strong>Applied in projects:</strong>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
-            ${related.map(p => `
-              <button 
-                type="button" 
-                class="btn-case-study" 
-                data-project-id="${escape(p.id)}"
-                style="background: var(--tint); padding: 4px 10px; border-radius: 4px; text-decoration: none; font-size: 13.5px; border: 1px solid var(--rule-light); cursor: pointer;">
-                ${escape(p.title)} ↗
-              </button>
-            `).join("")}
+      
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+        ${isHal ? `
+          <div style="font-size: 14px; color: var(--ink);">
+            <strong>Enterprise Production Experience:</strong>
+            <div style="margin-top: 5px;">
+              <a 
+                href="#experience" 
+                id="link-hal-experience"
+                style="display: inline-flex; align-items: center; gap: 6px; background: var(--tint); color: var(--accent); font-weight: 500; padding: 5px 12px; border-radius: 4px; text-decoration: none; font-size: 13.5px; border: 1px solid var(--accent); transition: all 0.2s ease;">
+                💼 Hindustan Aeronautics Limited (HAL) - Avionics Department (.NET Web App) ↗
+              </a>
+            </div>
           </div>
-        </div>
-      ` : '<div style="font-size: 13.5px; color: var(--muted);">Internal scripting & production workflows.</div>'}
+        ` : ''}
+
+        ${related.length > 0 ? `
+          <div style="font-size: 14px; color: var(--ink);">
+            <strong>Applied in Projects:</strong>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
+              ${related.map(p => `
+                <button 
+                  type="button" 
+                  class="btn-case-study" 
+                  data-project-id="${escape(p.id)}"
+                  style="background: var(--tint); padding: 4px 10px; border-radius: 4px; text-decoration: none; font-size: 13.5px; border: 1px solid var(--rule-light); cursor: pointer;">
+                  ${escape(p.title)} ↗
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        ` : ''}
+
+        ${!isHal && related.length === 0 ? `
+          <div style="font-size: 13.5px; color: var(--muted);">Applied in system utilities, development tools, and engineering coursework.</div>
+        ` : ''}
+      </div>
     `;
   }
 };

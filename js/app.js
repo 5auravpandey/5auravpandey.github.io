@@ -275,7 +275,15 @@ function renderSpotlight() {
         ${escapeHTML(exp.summary)}
       </p>
       <ul class="spotlight-highlights">
-        ${exp.responsibilities.map(r => `<li>${escapeHTML(r)}</li>`).join("")}
+        ${exp.responsibilities.map(r => {
+          const colonIdx = r.indexOf(":");
+          if (colonIdx > -1) {
+            const heading = r.substring(0, colonIdx);
+            const body = r.substring(colonIdx + 1);
+            return `<li><strong>${escapeHTML(heading)}:</strong>${escapeHTML(body)}</li>`;
+          }
+          return `<li>${escapeHTML(r)}</li>`;
+        }).join("")}
       </ul>
       <div class="spotlight-tags">
         ${exp.tech.map(t => `<span>${escapeHTML(t)}</span>`).join("")}
@@ -326,19 +334,17 @@ function initProjects() {
     });
   }
 
-  // Event delegation to eliminate inline onclick handlers
-  if (grid) {
-    grid.addEventListener("click", (e) => {
-      const btn = e.target.closest(".btn-case-study");
-      if (btn) {
-        const card = btn.closest(".project-card");
-        const id = card?.dataset?.id;
-        if (id && window.PORTFOLIO_CASE_STUDY) {
-          window.PORTFOLIO_CASE_STUDY.open(id, btn);
-        }
+  // Global event delegation for case study blueprints
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn-case-study");
+    if (btn) {
+      const card = btn.closest(".project-card");
+      const id = btn.dataset.projectId || card?.dataset?.id;
+      if (id && window.PORTFOLIO_CASE_STUDY) {
+        window.PORTFOLIO_CASE_STUDY.open(id, btn);
       }
-    });
-  }
+    }
+  });
 
   renderProjectsGrid();
 }
@@ -350,7 +356,7 @@ function renderProjectsGrid() {
   const currentPerspective = window.PORTFOLIO_PERSPECTIVE?.current || "engineer";
   const filtered = window.PORTFOLIO_PROJECTS.filter(p => {
     if (currentCategoryFilter === "all") return true;
-    return p.category === currentCategoryFilter;
+    return p.categories ? p.categories.includes(currentCategoryFilter) : p.category === currentCategoryFilter;
   });
 
   if (filtered.length === 0) {
@@ -364,7 +370,7 @@ function renderProjectsGrid() {
       : project.simpleStory;
     
     const lensLabel = currentPerspective === "engineer" 
-      ? "Under the Hood:" 
+      ? "Architecture & Core Purpose:" 
       : "Story & Purpose:";
 
     const safeGithub = sanitizeURL(project.github);

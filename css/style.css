@@ -1518,6 +1518,7 @@ h2.section-title {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  cursor: pointer;
 }
 
 .cert-project-chip:hover {

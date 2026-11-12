@@ -8,7 +8,7 @@ window.PORTFOLIO_SKILLS = [
     description: "Core programming languages utilized across full-stack applications, enterprise systems, and automation",
     items: [
       { name: "Python", focus: "Backend Development, REST APIs, Automation, Scripting", projects: ["server-log-analyzer"] },
-      { name: "JavaScript (ES6+)", focus: "Modern ES6, DOM Manipulation, Async/Await, Higher-Order Functions", projects: ["secure-auth-app", "family-travel-tracker", "nft-marketplace-dapp", "portfolio"] },
+      { name: "JavaScript (ES6+)", focus: "Modern ES6, DOM Manipulation, Async/Await, Higher-Order Functions", projects: ["secure-auth-app", "family-travel-tracker", "nft-marketplace-dapp"] },
       { name: "SQL", focus: "Query Engineering, Key-Based Retrieval, JOINs & Indexing", projects: ["hal-avionics", "commercebase", "family-travel-tracker"] },
       { name: "C#", focus: "Enterprise Backend, .NET Web Apps, Business Logic", projects: ["hal-avionics"] },
       { name: "VB.NET", focus: "Application Logic, Database-Driven Web Forms", projects: ["hal-avionics"] },
@@ -16,13 +16,23 @@ window.PORTFOLIO_SKILLS = [
     ]
   },
   {
-    category: "Frameworks & Backend",
-    description: "Web development frameworks, data connectivity layers, and server runtime environments",
+    category: "Frontend & Web Development",
+    description: "Modern frontend architectures, responsive UI design systems, and client-side application logic",
     items: [
-      { name: "React.js", focus: "Component Architecture, Hooks, State Management, JSX", projects: ["nft-marketplace-dapp", "portfolio"] },
-      { name: "Python (Flask / REST APIs)", focus: "Lightweight Web Services, Routing & API Endpoints", projects: ["server-log-analyzer"] },
+      { name: "React.js", focus: "Component Architecture, Hooks, State Management, JSX", projects: ["nft-marketplace-dapp"] },
+      { name: "HTML5 & Semantic Markup", focus: "Semantic Structure, Form Validation, Web Accessibility (A11y)", projects: ["secure-auth-app", "family-travel-tracker", "commercebase"] },
+      { name: "CSS3 (Flexbox & CSS Grid)", focus: "Responsive Layouts, Modern Flexbox & Grid Systems, CSS Variables", projects: ["secure-auth-app", "family-travel-tracker", "commercebase"] },
+      { name: "JavaScript (DOM & UI)", focus: "Event Handling, Dynamic DOM Updates, Asynchronous Fetch API", projects: ["secure-auth-app", "family-travel-tracker"] },
+      { name: "Bootstrap 5", focus: "Component System, Responsive Grid, Utility Classes", projects: ["secure-auth-app", "family-travel-tracker"] }
+    ]
+  },
+  {
+    category: "Frameworks & Backend",
+    description: "Server runtimes, RESTful routing, authentication pipelines, and enterprise application frameworks",
+    items: [
       { name: "Node.js & Express", focus: "RESTful Routing, Middleware, Authentication, MVC Pattern", projects: ["secure-auth-app", "family-travel-tracker"] },
-      { name: "ASP.NET", focus: "Database-Driven Web Applications, Web Forms & MVC", projects: ["hal-avionics"] },
+      { name: "Python (Flask / REST APIs)", focus: "Lightweight Web Services, Routing & API Endpoints", projects: ["server-log-analyzer"] },
+      { name: "ASP.NET", focus: "Database-Driven Web Applications, Web Forms & Business Logic", projects: ["hal-avionics"] },
       { name: "ADO.NET & OLEDB", focus: "Database Connectivity, Data Readers & Command Objects", projects: ["hal-avionics"] },
       { name: "Java Servlets & JSP", focus: "MVC Controllers, Session Management, Pure JVM", projects: ["commercebase"] }
     ]
@@ -31,7 +41,7 @@ window.PORTFOLIO_SKILLS = [
     category: "Databases & Data Management",
     description: "Relational schema design, normalization, ACID transactions, and query optimization",
     items: [
-      { name: "PostgreSQL", focus: "Relational Queries, One-to-Many & Many-to-Many Models, pg Package", projects: ["family-travel-tracker"] },
+      { name: "PostgreSQL", focus: "Relational Queries, One-to-Many & Many-to-Many Models, pg Client", projects: ["family-travel-tracker"] },
       { name: "Microsoft Access", focus: "Relational Database Design, Table Relationships, Migration", projects: ["hal-avionics"] },
       { name: "SQL Query Development", focus: "Complex Filtering, Key-Based Lookups, DDL/DML", projects: ["hal-avionics", "commercebase"] },
       { name: "MySQL", focus: "3NF Normalization, Indexing, Transactional Integrity", projects: ["commercebase"] }

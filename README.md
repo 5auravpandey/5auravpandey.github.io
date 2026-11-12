@@ -23,13 +23,13 @@ Live Site: **[https://sauravpandey.me](https://sauravpandey.me)**
    - Detailed breakdown of production engineering contributions: database modernization, ASP.NET/C#/VB.NET application development, ADO.NET integration, key-based operational indexing, and workflow automation.
 
 2. **🛠️ Grounded Technical Stack**:
-   - Categorized by production relevance: Python (Flask, REST APIs), JavaScript (ES6+), SQL, C#, VB.NET, ASP.NET, ADO.NET, Java Servlets/JSP, Node.js & Express, Microsoft Access, MySQL, and PostgreSQL.
+   - Categorized by production relevance: Languages (Python, JS, SQL, C#, VB.NET, Java), Frontend & Web Development (React.js, HTML5, CSS3 Flexbox/Grid, JS DOM, Bootstrap 5), Frameworks & Backend (Node.js/Express, Python Flask, ASP.NET, ADO.NET, Servlets), Databases (PostgreSQL, Access, MySQL), Tools & Automation, and Web3.
 
 3. **📐 Architecture Blueprints & Case Studies**:
-   - Deep-dive ASCII system architecture diagrams inside accessible modal dialogs.
+   - Deep-dive ASCII system architecture diagrams inside accessible modal dialogs with interactive triggers from project cards, stack explorer, and certification badges.
 
 4. **📝 Notes, Library & Favorites (Shelf)**:
-   - Favorite games (Sky: Children of the Light), watched anime (Attack on Titan), and a clean section ready for technical notes and book reviews.
+   - Technical notes on Computer Organization & Architecture (COA), favorite games (Sky: Children of the Light), watched anime (Attack on Titan), and recommended books (Atomic Habits by James Clear).
    - Discreet note-posting studio for the site owner, completely hidden from public visitors.
 
 5. **⚙️ Discreet Admin Studio**:
