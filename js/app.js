@@ -866,11 +866,9 @@ function initDesktopNav() {
  */
 function initGlobalAuthUI() {
   const desktopAuthBtn = document.getElementById("btn-global-auth");
-  const mobileAuthBtn = document.getElementById("btn-mobile-auth");
   const desktopAdminBtn = document.getElementById("btn-desktop-admin");
   const mobileAdminBtn = document.getElementById("btn-mobile-admin");
   const globalLabel = document.getElementById("global-auth-label");
-  const mobileLabel = document.getElementById("mobile-auth-label");
 
   function updateAuthUI(session) {
     const isOwner = Boolean(session && session.isOwner);
@@ -906,23 +904,15 @@ function initGlobalAuthUI() {
       const handle = session.telegramId || session.username || "Account";
       const displayShort = handle.length > 14 ? handle.slice(0, 12) + "…" : handle;
       if (globalLabel) globalLabel.textContent = isOwner ? `👑 ${handle}` : displayShort;
-      if (mobileLabel) mobileLabel.textContent = `✈️ ${handle} (${session.daysRemaining !== undefined ? session.daysRemaining : 7}d left)`;
       if (desktopAuthBtn) {
         desktopAuthBtn.title = `Connected: ${handle} (${session.displayName}) • Click for Account Center`;
         desktopAuthBtn.classList.add("authenticated");
       }
-      if (mobileAuthBtn) {
-        mobileAuthBtn.classList.add("authenticated");
-      }
     } else {
       if (globalLabel) globalLabel.textContent = "Login";
-      if (mobileLabel) mobileLabel.textContent = "✈️ Connect Telegram / Account";
       if (desktopAuthBtn) {
         desktopAuthBtn.title = "Unified Account Center & Telegram Login";
         desktopAuthBtn.classList.remove("authenticated");
-      }
-      if (mobileAuthBtn) {
-        mobileAuthBtn.classList.remove("authenticated");
       }
     }
   }
@@ -950,7 +940,6 @@ function initGlobalAuthUI() {
   };
 
   if (desktopAuthBtn) desktopAuthBtn.addEventListener("click", openAuth);
-  if (mobileAuthBtn) mobileAuthBtn.addEventListener("click", openAuth);
   if (desktopAdminBtn) desktopAdminBtn.addEventListener("click", openAdmin);
   if (mobileAdminBtn) mobileAdminBtn.addEventListener("click", openAdmin);
 

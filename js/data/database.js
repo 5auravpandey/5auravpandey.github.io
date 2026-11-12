@@ -12,34 +12,13 @@ window.PORTFOLIO_DB = {
   isReady: false,
   readyPromise: null,
 
-  // Initial YouTube Whitelist (Permanent access granted by Saurav - no expiry time)
+  // Initial Authorized Whitelist
   INITIAL_YOUTUBE_WHITELIST: [
-    { handle: "@sauravpandey", userId: "6639686782", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" },
-    { handle: "@aman_iitp", name: "Aman K. (IITP)", role: "Study Buddy", addedAt: "2026-10-10", status: "active" },
-    { handle: "@rohan_v", name: "Rohan V.", role: "Friend", addedAt: "2026-10-12", status: "active" },
-    { handle: "@priya_gopalganj", name: "Priya S.", role: "Hometown Peer", addedAt: "2026-10-14", status: "active" },
-    { handle: "@hal_avionics", name: "HAL Avionics Colleague", role: "HAL Colleague", addedAt: "2026-10-15", status: "active" },
-    { handle: "@iitp_mate", name: "IIT Patna Classmate", role: "MCA Classmate", addedAt: "2026-10-15", status: "active" }
+    { handle: "@sauravpandey", userId: "6639686782", name: "Saurav Pandey", role: "Owner / Host", addedAt: "2026-10-01", status: "active" }
   ],
 
-  // Authorized Master Pass Catalog (Pre-seeded passes issued by Saurav)
-  AUTHORIZED_PASSES: [
-    { key: "SP-HAL-2026", label: "HAL Avionics Department Pass", issuedTo: "HAL Colleagues" },
-    { key: "HAL2026", label: "HAL Avionics Department Pass", issuedTo: "HAL Colleagues" },
-    { key: "HAL", label: "HAL Avionics Department Pass", issuedTo: "HAL Colleagues" },
-    { key: "SP-IIIT-IITP", label: "IIIT Ranchi & IIT Patna Pass", issuedTo: "MCA Classmates" },
-    { key: "IIIT", label: "IIIT Ranchi Pass", issuedTo: "MCA Classmates" },
-    { key: "IITP", label: "IIT Patna Pass", issuedTo: "MCA Classmates" },
-    { key: "SP-VIP-FRIENDS", label: "VIP Friends Circle Pass", issuedTo: "Close Friends" },
-    { key: "FRIENDS", label: "VIP Friends Circle Pass", issuedTo: "Close Friends" },
-    { key: "FRIEND", label: "VIP Friends Circle Pass", issuedTo: "Close Friends" },
-    { key: "VIP", label: "VIP Friends Circle Pass", issuedTo: "Close Friends" },
-    { key: "SP-GOPALGANJ", label: "Gopalganj Bihar Study Pass", issuedTo: "Hometown Peers" },
-    { key: "GOPALGANJ", label: "Gopalganj Bihar Study Pass", issuedTo: "Hometown Peers" },
-    { key: "SP-AVIONICS-DEV", label: "Avionics Dev Lab Pass", issuedTo: "Dev Collaborators" },
-    { key: "DEV", label: "Avionics Dev Lab Pass", issuedTo: "Dev Collaborators" },
-    { key: "STUDY", label: "Synchronized Study Group Pass", issuedTo: "Study Group" }
-  ],
+  // Pass Catalog
+  AUTHORIZED_PASSES: [],
 
   init() {
     if (this.readyPromise) return this.readyPromise;

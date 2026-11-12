@@ -44,8 +44,8 @@
   </noscript>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/style.css?v=20261112_v15">
-  <link rel="stylesheet" href="css/transitions.css?v=20261112_v15">
+  <link rel="stylesheet" href="css/style.css?v=20261112_v16">
+  <link rel="stylesheet" href="css/transitions.css?v=20261112_v16">
 </head>
 <body>
 
@@ -77,17 +77,8 @@
           </a>
         </div>
 
-        <!-- Desktop Perspective & Theme Controls -->
+        <!-- Desktop Controls -->
         <div class="desktop-controls">
-          <div class="perspective-container" role="group" aria-label="Perspective Switcher" style="display: none;">
-            <button id="btn-perspective-eng" class="perspective-btn" type="button" aria-pressed="true" title="Switch to Systems & Code">
-              ⚡ Systems
-            </button>
-            <button id="btn-perspective-exec" class="perspective-btn" type="button" aria-pressed="false" title="Switch to Quick Story">
-              💡 Story
-            </button>
-          </div>
-
           <button id="btn-desktop-admin" class="btn-admin-nav-pill" type="button" aria-label="Open Admin Studio" title="Admin Studio" style="display: none;">
             <span>👑 Admin Studio</span>
           </button>
@@ -142,22 +133,6 @@
   <div id="mobile-dropdown" class="mobile-dropdown-sheet" hidden>
     <div class="dropdown-backdrop" id="dropdown-backdrop"></div>
     <div class="dropdown-panel">
-      <!-- Perspective Switcher Inside Dropdown (Hidden for Clean Minimalism) -->
-      <div class="dropdown-perspective-card" style="display: none;">
-        <div class="dropdown-perspective-meta">
-          <span class="dropdown-section-title">Perspective Mode</span>
-          <span id="mobile-perspective-label" class="dropdown-perspective-indicator">⚡ Systems & Code</span>
-        </div>
-        <div class="dropdown-persp-toggle" role="group" aria-label="Mobile Perspective Switcher">
-          <button id="btn-mobile-eng" class="dropdown-persp-btn active" type="button">
-            ⚡ Systems & Code
-          </button>
-          <button id="btn-mobile-exec" class="dropdown-persp-btn" type="button">
-            💡 Quick Story
-          </button>
-        </div>
-      </div>
-
       <!-- Navigation Links with Icons & Chevrons -->
       <nav class="dropdown-nav-list" aria-label="Mobile Dropdown Navigation">
         <a href="#about" class="dropdown-nav-item">
@@ -197,15 +172,10 @@
         </a>
       </nav>
 
-      <!-- Unified Account & Telegram Auth Strip (Hidden for Clean Minimalism) -->
-      <div style="display: none;">
-        <button type="button" id="btn-mobile-auth" class="btn-mobile-auth-pill">
-          <span id="mobile-auth-label">✈️ Connect Telegram / Account</span>
-        </button>
-        <button type="button" id="btn-mobile-admin" class="btn-mobile-auth-pill" style="display: none;">
-          <span>👑 Open Admin Studio</span>
-        </button>
-      </div>
+      <!-- Admin Studio Trigger for Mobile (Shown dynamically when logged in as Owner) -->
+      <button type="button" id="btn-mobile-admin" class="btn-mobile-auth-pill" style="display: none; margin-bottom: 12px;">
+        <span>👑 Open Admin Studio</span>
+      </button>
 
       <!-- Direct Social / Action Bar -->
       <div class="dropdown-social-strip">
@@ -233,9 +203,20 @@
         </div>
       </div>
 
-      <!-- Perspective Dynamic Pillars -->
+      <!-- Core Engineering Pillars -->
       <div class="pillars-grid" id="hero-pillars">
-        <!-- Dynamically injected via perspective.js -->
+        <div class="pillar-card">
+          <h3>Python &amp; Full-Stack Web</h3>
+          <p>Full-stack web applications, Python backend services, REST APIs, and modern JavaScript.</p>
+        </div>
+        <div class="pillar-card">
+          <h3>.NET &amp; Enterprise Systems</h3>
+          <p>Database-driven ASP.NET web applications, C#, VB.NET, and enterprise tools at HAL.</p>
+        </div>
+        <div class="pillar-card">
+          <h3>SQL &amp; Relational Databases</h3>
+          <p>Schema normalization, Microsoft Access, query optimization, and key-based record retrieval.</p>
+        </div>
       </div>
     </header>
 
@@ -290,7 +271,6 @@
 
     <!-- Notes, Library & Favorites Section -->
     <section id="curations">
-      <a id="shelf" style="position: absolute; pointer-events: none; opacity: 0;"></a>
       <div class="section-head" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
         <div>
           <h2 class="section-title">Notes, Library &amp; Favorites</h2>
@@ -484,16 +464,16 @@
   <div id="toast" class="toast-msg" role="status" aria-live="polite"></div>
 
   <!-- Modular Scripts (Zero Bundler Required, 100% Native & Portable, Deferred for Rapid First Paint) -->
-  <script src="js/data/profile.js?v=20261112_v15" defer></script>
-  <script src="js/data/experience.js?v=20261112_v15" defer></script>
-  <script src="js/data/projects.js?v=20261112_v15" defer></script>
-  <script src="js/data/skills.js?v=20261112_v15" defer></script>
-  <script src="js/data/shelf.js?v=20261112_v15" defer></script>
-  <script src="js/transitions.js?v=20261112_v15" defer></script>
-  <script src="js/components/perspective.js?v=20261112_v15" defer></script>
-  <script src="js/components/case-study.js?v=20261112_v15" defer></script>
-  <script src="js/components/stack-explorer.js?v=20261112_v15" defer></script>
-  <script src="js/data/database.js?v=20261112_v15" defer></script>
-  <script src="js/app.js?v=20261112_v15" defer></script>
+  <script src="js/data/profile.js?v=20261112_v16" defer></script>
+  <script src="js/data/experience.js?v=20261112_v16" defer></script>
+  <script src="js/data/projects.js?v=20261112_v16" defer></script>
+  <script src="js/data/skills.js?v=20261112_v16" defer></script>
+  <script src="js/data/shelf.js?v=20261112_v16" defer></script>
+  <script src="js/transitions.js?v=20261112_v16" defer></script>
+  <script src="js/components/perspective.js?v=20261112_v16" defer></script>
+  <script src="js/components/case-study.js?v=20261112_v16" defer></script>
+  <script src="js/components/stack-explorer.js?v=20261112_v16" defer></script>
+  <script src="js/data/database.js?v=20261112_v16" defer></script>
+  <script src="js/app.js?v=20261112_v16" defer></script>
 </body>
 </html>
