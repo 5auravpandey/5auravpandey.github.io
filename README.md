@@ -23,21 +23,20 @@ Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
      - 📚 **Books Read** (with honest takeaways and ratings)
      - 🎮 **Games Played** (system mechanics and critiques)
      - 🎬 **Watched Shows & Cinema** (sci-fi, tech dramas, and anime)
-     - 🎵 **Playlists & Music** (responsive lazy-loaded Spotify & YouTube player embeds)
+     - 🎵 **Playlists & Music** (responsive lazy-loaded YouTube player embeds and synchronized streams)
 
 2. **⚙️ Hidden Admin Studio**:
    - Discreetly hidden from public visitors.
    - Triggers: Secret shortcut `Ctrl+Shift+A` (or `Cmd+Shift+A`), typing `admin` in the terminal shell, visiting `#admin`, or triple-clicking the footer copyright.
-   - Protected with **RFC 6238 TOTP (Google Authenticator)** verified locally via Web Crypto API.
-   - Add, edit, delete, and copy updated `shelf.js` JavaScript code directly for committing to GitHub.
+   - Protected with **Telegram OAuth (@SauravPandeyBot)** cryptographic signature verification.
+   - Manage YouTube room whitelists, add, edit, delete, and copy updated `shelf.js` JavaScript code directly for committing to GitHub.
 
-3. **⏱️ Focus Sprint & Indian Classical Soundscapes**:
+3. **⏱️ Focus Sprint & Melodic Soundscapes**:
    - Native Web Audio synthesizer for ambient focus:
-     - 🪕 Tanpura & Bansuri Drone (Indian Classical 432Hz meditative resonance)
-     - ☀️ Morning Raga Bhairav (Sa-Re-Ga-Pa meditative harmonics)
-     - 🌧️ Monsoon Rain over Banaras (Warm pink rain with distant thunder rumble)
-     - 🔔 Temple Bells & Singing Bowls (Pure metallic overtone resonance)
-   - Integrated Spotify focus player & synchronized Sprint Invite link generator.
+     - 🍃 Genshin Impact Melodies (Peaceful Mondstadt & Liyue Breeze)
+     - 🕊️ Sky: Children of the Light Ambience (Celestial Cloud Echo)
+     - 🪈 Little Krishna Divine Flute (Vrindavan Bansuri & River Murmur)
+   - Synchronized YouTube focus stream & real-time Sprint Invite room generator.
 
 4. **🔐 CryptoLock Two-Way Cipher**:
    - Symmetric bitwise XOR encryption and decryption (`(A ^ Key) ^ Key = A`).
@@ -58,7 +57,13 @@ Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
 ├── index.html                 # Semantic HTML entry point
 ├── README.md                  # Project documentation
 ├── .gitignore                 # Git ignore file
-├── assets/                    # Images & media assets
+├── CNAME                      # Custom domain configuration (sauravpandey.me)
+├── robots.txt                 # Search engine crawler instructions
+├── sitemap.xml                # SEO sitemap
+├── rss.xml                    # Engineering notes RSS feed
+├── sw.js                      # Progressive Web App Service Worker
+├── assets/                    # Favicon & assets
+│   └── favicon.svg
 ├── css/
 │   ├── style.css              # Editorial styles, dark theme, UI components
 │   └── transitions.css        # View Transitions API & motion accessibility
@@ -66,17 +71,19 @@ Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
     ├── app.js                 # App coordinator, clock, search & filtering
     ├── transitions.js         # View Transitions helper with fallback
     ├── components/
-    │   ├── perspective.js     # Systems vs Executive view toggle
+    │   ├── admin.js           # Telegram OAuth-protected Admin Studio
     │   ├── case-study.js      # Modal drawer for project blueprints
-    │   ├── stack-explorer.js  # Interactive skills matrix
+    │   ├── games.js           # Lightweight mini-games
+    │   ├── perspective.js     # Systems vs Executive view toggle
     │   ├── playground.js      # Focus timer, soundscapes, cryptolock & terminal
-    │   └── admin.js           # Google Authenticator-protected Admin Studio
+    │   └── stack-explorer.js  # Interactive skills matrix
     └── data/
-        ├── profile.js         # Bio, education, contact info
+        ├── database.js        # IndexedDB/LocalStorage persistence & Telegram auth
         ├── experience.js      # HAL Avionics experience record
+        ├── profile.js         # Bio, education, contact info
         ├── projects.js        # Detailed project stories & architecture diagrams
-        ├── skills.js          # Technical skills cross-referenced with projects
-        └── shelf.js           # Reactive curations store with localStorage
+        ├── shelf.js           # Reactive curations store
+        └── skills.js          # Technical skills cross-referenced with projects
 ```
 
 ---
