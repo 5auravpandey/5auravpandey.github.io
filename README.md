@@ -8,7 +8,7 @@ Live Site: **[https://sauravpandey.me](https://sauravpandey.me)**
 
 ## 👨‍💻 About Saurav Pandey
 
-- **Software Developer** focused on .NET, Systems, Relational Databases, and Web3 from **Gopalganj, Bihar, India**
+- **Software Developer** focused on Python, Full-Stack Web Development, Relational Databases, and .NET from **Gopalganj, Bihar, India**
 - **Programming Assistant Intern (Software Development)** in the **Avionics Department** at **Hindustan Aeronautics Limited (HAL)**
   - Architecting database-driven ASP.NET web applications with C#, VB.NET, and SQL.
   - Migrating legacy Excel sheets into structured relational databases (Microsoft Access, SQL Server).
@@ -23,13 +23,14 @@ Live Site: **[https://sauravpandey.me](https://sauravpandey.me)**
    - Detailed breakdown of production engineering contributions: database modernization, ASP.NET/C#/VB.NET application development, ADO.NET integration, key-based operational indexing, and workflow automation.
 
 2. **🛠️ Grounded Technical Stack**:
-   - Categorized by production relevance: C#, VB.NET, SQL, ASP.NET, ADO.NET, Java Servlets/JSP, Node.js, Microsoft Access, MySQL, PostgreSQL, and Web3/Distributed Systems.
+   - Categorized by production relevance: Python (Flask, REST APIs), JavaScript (ES6+), SQL, C#, VB.NET, ASP.NET, ADO.NET, Java Servlets/JSP, Node.js & Express, Microsoft Access, MySQL, and PostgreSQL.
 
 3. **📐 Architecture Blueprints & Case Studies**:
    - Deep-dive ASCII system architecture diagrams inside accessible modal dialogs.
 
-4. **📝 Technical Notes & Architecture Studies**:
-   - Practical engineering write-ups and analyses covering distributed consensus, low-level bitwise arithmetic, servlet lifecycles, and recommended reading.
+4. **📝 Notes, Library & Favorites (Shelf)**:
+   - Personal engineering notes, favorite games (NieR:Automata, Sky: Children of the Light), watched cinema & shows (Steins;Gate, Severance), and recommended books (The Pragmatic Programmer).
+   - Interactive note-posting shortcut protected by Telegram OAuth.
 
 5. **⚙️ Discreet Admin Studio**:
    - Hidden from public visitors.

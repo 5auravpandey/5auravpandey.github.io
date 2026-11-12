@@ -7,7 +7,7 @@ window.PORTFOLIO_PROFILE = {
   handle: "@5auravpandey",
   location: "Gopalganj, Bihar, India",
   timezone: "Asia/Kolkata",
-  status: "Open to Work (Full-Stack, Systems & Web3)",
+  status: "Open to Work (Python, .NET & Full-Stack Web)",
   email: "thesauravpandey@outlook.com",
   phone: "+91 7319889930",
   github: "https://github.com/5auravpandey",
@@ -17,24 +17,24 @@ window.PORTFOLIO_PROFILE = {
   perspectives: {
     engineer: {
       label: "⚡ Systems & Code",
-      role: "Software Developer • .NET, Systems & Web3",
+      role: "Software Developer • Python, .NET & Full-Stack Web",
       tagline: "Programming Assistant Intern (Software Development) at HAL • MCA @ IIIT Ranchi & IIT Patna",
-      bio: "I'm a software developer working inside the Avionics Department at Hindustan Aeronautics Limited (HAL), where I build database-driven ASP.NET web applications and automated data workflows with C#, VB.NET, and SQL. Currently pursuing my MCA with IIIT Ranchi and IIT Patna, with strong foundations in low-level systems, backend architecture, and Web3.",
+      bio: "I'm a software developer working inside the Avionics Department at Hindustan Aeronautics Limited (HAL), where I build database-driven ASP.NET web applications and automated data workflows with C#, VB.NET, and SQL. My core engineering focus is Python, modern full-stack web development, and relational database systems. Currently pursuing my MCA with IIIT Ranchi and IIT Patna.",
       keyPillars: [
-        { title: ".NET & Database Systems", desc: "ASP.NET web applications, C#, VB.NET, and relational database modernization." },
-        { title: "SQL & Workflow Automation", desc: "Key-based data retrieval, Microsoft Access, and eliminating manual Excel operations." },
-        { title: "Systems & Web3", desc: "C++ bitwise arithmetic, native Java Servlets, and decentralized canisters." }
+        { title: "Python & Full-Stack Web", desc: "Full-stack web applications, Python backend services, REST APIs, and modern JavaScript." },
+        { title: ".NET & Enterprise Systems", desc: "Database-driven ASP.NET web applications, C#, VB.NET, and enterprise tools at HAL." },
+        { title: "SQL & Relational Databases", desc: "Schema normalization, Microsoft Access, query optimization, and key-based record retrieval." }
       ]
     },
     overview: {
       label: "⚡ Systems & Code",
-      role: "Software Developer • .NET, Systems & Web3",
+      role: "Software Developer • Python, .NET & Full-Stack Web",
       tagline: "Programming Assistant Intern (Software Development) at HAL • MCA @ IIIT Ranchi & IIT Patna",
-      bio: "I'm a software developer working inside the Avionics Department at Hindustan Aeronautics Limited (HAL), where I build database-driven ASP.NET web applications and automated data workflows with C#, VB.NET, and SQL. Currently pursuing my MCA with IIIT Ranchi and IIT Patna, with strong foundations in low-level systems, backend architecture, and Web3.",
+      bio: "I'm a software developer working inside the Avionics Department at Hindustan Aeronautics Limited (HAL), where I build database-driven ASP.NET web applications and automated data workflows with C#, VB.NET, and SQL. My core engineering focus is Python, modern full-stack web development, and relational database systems. Currently pursuing my MCA with IIIT Ranchi and IIT Patna.",
       keyPillars: [
-        { title: ".NET & Database Systems", desc: "ASP.NET web applications, C#, VB.NET, and relational database modernization." },
-        { title: "SQL & Workflow Automation", desc: "Key-based data retrieval, Microsoft Access, and eliminating manual Excel operations." },
-        { title: "Systems & Web3", desc: "C++ bitwise arithmetic, native Java Servlets, and decentralized canisters." }
+        { title: "Python & Full-Stack Web", desc: "Full-stack web applications, Python backend services, REST APIs, and modern JavaScript." },
+        { title: ".NET & Enterprise Systems", desc: "Database-driven ASP.NET web applications, C#, VB.NET, and enterprise tools at HAL." },
+        { title: "SQL & Relational Databases", desc: "Schema normalization, Microsoft Access, query optimization, and key-based record retrieval." }
       ]
     }
   },

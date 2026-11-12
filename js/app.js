@@ -415,9 +415,10 @@ function initShelf() {
   const tabsContainer = document.getElementById("shelf-filter-tabs");
   if (tabsContainer) {
     const filters = [
-      { id: "all", label: "All Notes" },
-      { id: "research", label: "🔬 Systems & Security" },
-      { id: "notes", label: "📝 Web Architecture" },
+      { id: "all", label: "All Items" },
+      { id: "notes", label: "📝 Notes" },
+      { id: "games", label: "🎮 Games" },
+      { id: "shows", label: "🎬 Watched Shows" },
       { id: "books", label: "📚 Books" }
     ];
 
@@ -443,6 +444,37 @@ function initShelf() {
       });
 
       renderShelfGrid();
+    });
+  }
+
+  // Quick "Post a Note" handler
+  const postNoteBtn = document.getElementById("btn-post-note");
+  if (postNoteBtn) {
+    postNoteBtn.addEventListener("click", () => {
+      const session = (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.getSession === "function")
+        ? window.PORTFOLIO_AUTH.getSession()
+        : null;
+
+      if (session && session.isOwner) {
+        if (typeof window.loadAdminStudio === "function") {
+          window.loadAdminStudio(true).then(() => {
+            const catSelect = document.getElementById("adm-category");
+            if (catSelect) {
+              catSelect.value = "notes";
+              const badgeInput = document.getElementById("adm-badge");
+              if (badgeInput && !badgeInput.value) badgeInput.value = "Tech Note";
+              const titleInput = document.getElementById("adm-title");
+              if (titleInput) titleInput.focus();
+            }
+          });
+        }
+      } else {
+        if (window.PORTFOLIO_AUTH && typeof window.PORTFOLIO_AUTH.openLoginDialog === "function") {
+          window.PORTFOLIO_AUTH.openLoginDialog();
+        } else {
+          showToast("Please sign in to post new notes.");
+        }
+      }
     });
   }
 
@@ -517,9 +549,9 @@ function renderShelfGrid() {
     grid.innerHTML = `
       <div class="empty-shelf-state" style="grid-column: 1 / -1; padding: 48px 24px; text-align: center; border: 1px dashed var(--rule); border-radius: var(--radius-md); background: var(--surface);">
         <span style="font-size: 32px; display: block; margin-bottom: 10px;">📚</span>
-        <h3 style="font-size: 17px; margin: 0 0 8px; font-weight: 600;">Technical Notes Coming Soon</h3>
+        <h3 style="font-size: 17px; margin: 0 0 8px; font-weight: 600;">No Entries in this Category</h3>
         <p style="color: var(--muted); font-size: 13.5px; max-width: 440px; margin: 0 auto; line-height: 1.55;">
-          Architecture studies, systems notes, and recommended reading will be published here.
+          Notes, games, watched shows, and books will be displayed here.
         </p>
       </div>
     `;

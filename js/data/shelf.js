@@ -5,49 +5,85 @@
  * and seamless code exporting for static GitHub Pages deployment.
  */
 
-// Default grounded technical notes & architectural studies (editable via Admin Studio)
+// Default grounded shelf entries (Notes, Games, Shows, Books) (editable via Admin Studio)
 const DEFAULT_SHELF = [
   {
-    id: "research-lightweight-ciphers",
-    type: "research",
-    category: "research",
-    badge: "Systems & Security",
-    title: "Lightweight Symmetric Bitwise Ciphers for Resource-Constrained Embedded Controllers",
-    meta: "C++ • Cryptography • Embedded Systems",
-    rating: null,
-    summary: "Investigating trade-offs between computational overhead, RAM consumption, and entropy dispersion in lightweight circular-rotation XOR cipher blocks for low-memory microcontrollers.",
-    media: "https://github.com/5auravpandey/CryptoLock-Encryption-Utility",
-    content: "In embedded avionics and microcontroller environments, heavy cryptographic suites like AES-256 can introduce prohibitive cycle counts and memory overhead.\n\nThis paper explores lightweight symmetric bitwise XOR ciphers utilizing circular key rotation and linear feedback shifts. By eliminating dynamic heap allocations and streaming strictly over fixed byte chunks, memory consumption remains under 4KB RAM while maintaining deterministic execution time."
-  },
-  {
-    id: "note-servlets-jvm",
+    id: "note-python-fullstack-architecture",
     type: "notes",
     category: "notes",
-    badge: "Web Architecture",
-    title: "Why I Built an E-Commerce Backend in Pure Java Servlets",
-    meta: "Core Java • Servlets & JSP • MySQL",
+    badge: "Full-Stack Web",
+    title: "Structuring Clean Python Backends: REST APIs, Data Layers, and Predictable State",
+    meta: "Python • REST APIs • Architecture",
     rating: null,
-    summary: "Why avoiding Spring Boot for CommerceBase was the best decision for mastering HTTP request lifecycles, multithreaded servlet concurrency, and JDBC connection pooling.",
-    media: "https://github.com/5auravpandey/CommerceBase",
-    content: "Modern web frameworks abstract away the raw HTTP request/response pipeline. Building CommerceBase with vanilla Java Servlets and JSP forced an intimate understanding of the servlet lifecycle (init, service, destroy), session tracking via JSESSIONID cookies, and thread-safe prepared statements with JDBC.\n\nUnderstanding these foundations makes adopting frameworks like Spring Boot or Express second nature, because you understand what is happening under the hood."
+    summary: "Key observations on structuring maintainable backend routes, input validation, and database connection pooling in modern Python and full-stack web applications.",
+    media: "https://github.com/5auravpandey",
+    content: "When building modern web applications, decoupling API endpoints from frontend rendering provides immense flexibility.\n\nIn Python, structuring applications with explicit service layers, validation schemas, and database session scopes prevents business logic from leaking into routing controllers. This architecture keeps code testable, modular, and ready to scale."
   },
   {
-    id: "research-icp-state-consensus",
-    type: "research",
-    category: "research",
-    badge: "Distributed Systems",
-    title: "Orthogonal Persistence vs Gas-Metered EVM: Architectural Analysis of the Internet Computer",
-    meta: "Motoko • WebAssembly • DApps",
+    id: "note-relational-data-modeling",
+    type: "notes",
+    category: "notes",
+    badge: "Database Design",
+    title: "Why Relational Normalization Beats Unstructured Sheets for Production Workflows",
+    meta: "SQL • Database Design • Workflow Automation",
     rating: null,
-    summary: "Comparative analysis of WebAssembly orthogonal memory persistence versus Ethereum Virtual Machine gas metering and state trie architectures.",
-    media: "https://github.com/5auravpandey/NFT-Marketplace-DApp",
-    content: "On the Internet Computer, smart contracts (canisters) run WebAssembly with orthogonal persistence. Variables in memory automatically persist across transactions without explicitly writing to a database or disk.\n\nAdditionally, the reverse gas model allows developers to fuel canisters with cycles so end-users can interact with decentralized applications without buying tokens or setting up crypto browser wallets."
+    summary: "Reflections from real-world workflow automation: why moving from spreadsheet chaos to third-normal-form relational tables eliminates duplicate errors and makes queries instant.",
+    media: "https://github.com/5auravpandey",
+    content: "When teams store operational data in spreadsheets, inconsistencies compound over time. Records get copied, columns become irregular, and finding specific information requires tedious manual scanning.\n\nNormalizing records into structured relational tables (primary/foreign keys, indexed lookup identifiers) transforms slow manual searching into sub-second indexed SQL queries and provides a rock-solid foundation for web interfaces."
+  },
+  {
+    id: "game-nier-automata",
+    type: "games",
+    category: "games",
+    badge: "Action RPG",
+    title: "NieR:Automata",
+    meta: "Square Enix • PlatinumGames",
+    rating: "★★★★★",
+    summary: "Philosophical exploration of artificial consciousness, existentialism, and purpose through multiple narrative playthroughs and sublime adaptive music.",
+    media: "",
+    content: "Beyond the fluid combat, NieR:Automata stands as one of the finest artistic achievements in interactive storytelling. Keiichi Okabe's dynamic soundtrack and the brilliant Route C narrative reveal left a lasting impression."
+  },
+  {
+    id: "game-sky-children",
+    type: "games",
+    category: "games",
+    badge: "Social Adventure",
+    title: "Sky: Children of the Light",
+    meta: "thatgamecompany",
+    rating: "★★★★★",
+    summary: "A peaceful, breathtaking journey through a forgotten kingdom, emphasizing compassion, teamwork, and exploration.",
+    media: "",
+    content: "The ambient soundscapes and flight mechanics create a uniquely calming atmosphere that's perfect for unwinding after deep coding sessions."
+  },
+  {
+    id: "show-steins-gate",
+    type: "shows",
+    category: "shows",
+    badge: "Anime • Sci-Fi",
+    title: "Steins;Gate",
+    meta: "White Fox • 24 Episodes",
+    rating: "10/10 Masterpiece",
+    summary: "A brilliant time-travel mystery exploring causality, the butterfly effect, and underground lab experiments in Akihabara.",
+    media: "https://myanimelist.net/anime/9253/Steins_Gate",
+    content: "Starts as a quirky story about eccentric university students tinkering with microwaves and CRT monitors, and evolves into one of the tightest, most emotionally resonant hard sci-fi narratives ever created."
+  },
+  {
+    id: "show-severance",
+    type: "shows",
+    category: "shows",
+    badge: "Series • Mystery",
+    title: "Severance",
+    meta: "Apple TV+ • Dir. Ben Stiller",
+    rating: "9.5/10",
+    summary: "A chilling, darkly funny look at work-life separation with immaculate retro-futuristic computing aesthetics and mind-bending cliffhangers.",
+    media: "https://www.imdb.com/title/tt11280740/",
+    content: "The visual direction—floppy disks, trackball mice, green phosphor screens, and sterile brutalist hallways—is hypnotic. The exploration of identity and consciousness makes every episode unforgettable."
   },
   {
     id: "book-pragmatic-programmer",
     type: "books",
     category: "books",
-    badge: "Recommended Reading",
+    badge: "Engineering Book",
     title: "The Pragmatic Programmer: Your Journey to Mastery",
     meta: "David Thomas & Andrew Hunt • 20th Anniversary Edition",
     rating: "★★★★★",
@@ -62,7 +98,7 @@ window.PORTFOLIO_SHELF_STORE = {
 
   validateItem(item) {
     if (!item || typeof item !== "object") return null;
-    const validCategories = ["research", "notes", "books", "games", "shows", "music"];
+    const validCategories = ["notes", "games", "shows", "books", "research", "music"];
     const category = validCategories.includes(item.category) ? item.category : "notes";
     return {
       id: String(item.id || `custom-${Date.now()}`),
@@ -85,7 +121,16 @@ window.PORTFOLIO_SHELF_STORE = {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
           // Filter out specific legacy placeholder IDs if present
-          const legacyMocks = new Set(["research-hal-gnc", "book-deep-work", "game-chess", "show-silicon-valley", "music-lofi", "note-distributed"]);
+          const legacyMocks = new Set([
+            "research-lightweight-ciphers",
+            "note-servlets-jvm",
+            "research-hal-gnc",
+            "book-deep-work",
+            "game-chess",
+            "show-silicon-valley",
+            "music-lofi",
+            "note-distributed"
+          ]);
           const cleaned = parsed.filter(i => i && !legacyMocks.has(String(i.id)));
           if (cleaned.length > 0) {
             return cleaned.map(item => this.validateItem(item)).filter(Boolean);
