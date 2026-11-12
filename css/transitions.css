@@ -18,16 +18,6 @@
   z-index: 9999;
 }
 
-/* Perspective State Transition */
-.perspective-transitioning {
-  view-transition-name: active-perspective;
-}
-
-::view-transition-old(active-perspective),
-::view-transition-new(active-perspective) {
-  animation-duration: 0.24s;
-}
-
 /* Case Study Dialog Transition */
 dialog#case-study-dialog[open] {
   animation: dialog-fade-in 0.2s ease-out;
