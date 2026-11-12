@@ -68,6 +68,8 @@ window.PORTFOLIO_PROFILE = {
       title: "The Complete Full-Stack Web Development Bootcamp",
       issuer: "Udemy • Dr. Angela Yu (Developer and Lead Instructor)",
       period: "62 Total Hours • Completed Aug 2026",
+      certificateNo: "UC-abcc68d3-79c7-4a98-ae80-551420c93457",
+      verificationUrl: "https://ude.my/UC-abcc68d3-79c7-4a98-ae80-551420c93457",
       topics: "React.js, Node.js, Express.js, PostgreSQL, REST APIs, Authentication (OAuth 2.0 & Bcrypt), Web3 & Internet Computer (ICP)"
     }
   ],
