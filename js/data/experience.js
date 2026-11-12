@@ -5,12 +5,12 @@
 window.PORTFOLIO_EXPERIENCE = [
   {
     id: "hal-avionics",
-    title: "Software Developer Intern (Programming Assistant)",
-    department: "Avionics Department",
+    title: "Programming Assistant Intern (Software Developer)",
+    department: "Avionics Division",
     company: "Hindustan Aeronautics Limited (HAL)",
     duration: "October 2026 – Present",
     location: "Korwa, Amethi, UP, India",
-    overview: "Working on the development of an integrated database-driven web application inside the Avionics Department at HAL, focused on streamlining existing data management processes, modernizing records, and reducing repetitive manual operations.",
+    overview: "Working on the development of an integrated database-driven web application inside the Avionics Division at HAL, focused on streamlining existing data management processes, modernizing records, and reducing repetitive manual operations.",
     summary: "Developing an integrated database-driven web application with C#, VB.NET, and ASP.NET to modernize legacy Excel-based departmental data into structured Microsoft Access / SQL databases, enabling instant key-based retrieval and automated workflows.",
     responsibilities: [
       "Database Development & Management: Designing and organizing structured relational databases in Microsoft Access and SQL, migrating existing multi-sheet Excel records into normalized schemas.",

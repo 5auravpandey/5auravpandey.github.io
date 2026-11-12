@@ -749,7 +749,7 @@ h1.hero-title {
 
 /* Featured Spotlight: HAL Defense */
 .spotlight-card {
-  margin-top: 48px;
+  margin-top: 0;
   background-color: var(--card);
   border: 1px solid var(--rule);
   border-left: 4px solid var(--hal-gold);

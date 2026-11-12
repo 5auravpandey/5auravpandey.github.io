@@ -9,7 +9,7 @@ Live Site: **[https://sauravpandey.me](https://sauravpandey.me)**
 ## 👨‍💻 About Saurav Pandey
 
 - **Software Developer** focused on Python, Full-Stack Web Development, Relational Databases, and .NET from **Gopalganj, Bihar, India**
-- **Programming Assistant Intern (Software Development)** in the **Avionics Department** at **Hindustan Aeronautics Limited (HAL)**
+- **Programming Assistant Intern (Software Developer)** in the **Avionics Division** at **Hindustan Aeronautics Limited (HAL)**
   - Architecting database-driven ASP.NET web applications with C#, VB.NET, and SQL.
   - Migrating legacy Excel sheets into structured relational databases (Microsoft Access, SQL Server).
   - Modernizing avionics operational workflows with ADO.NET and key-based record retrieval.
