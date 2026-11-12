@@ -65,9 +65,12 @@ window.PORTFOLIO_PROFILE = {
 
   certifications: [
     {
-      title: "The Complete Web Development Bootcamp",
-      issuer: "Dr. Angela Yu (The App Brewery, London)",
-      period: "12-Week Intensive Curriculum",
+      title: "The Complete Full-Stack Web Development Bootcamp",
+      issuer: "Udemy • Dr. Angela Yu (Developer and Lead Instructor)",
+      period: "Completed Aug 30, 2026 • 62 total hours",
+      certificateNo: "UC-abcc68d3-79c7-4a98-ae80-551420c93457",
+      verificationUrl: "https://ude.my/UC-abcc68d3-79c7-4a98-ae80-551420c93457",
+      image: "assets/certificate-udemy-fullstack.jpg",
       topics: "React.js, Node.js, Express.js, PostgreSQL, REST APIs, Authentication (OAuth 2.0 & Bcrypt), Web3 & Internet Computer (ICP)"
     }
   ],
