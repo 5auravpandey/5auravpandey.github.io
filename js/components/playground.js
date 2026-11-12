@@ -352,9 +352,6 @@ window.PORTFOLIO_PLAYGROUND = {
           <button type="button" class="playground-tab ${this.currentTab === 'terminal' ? 'active' : ''}" data-tab="terminal">
             💻 Systems Terminal
           </button>
-          <button type="button" class="playground-tab ${this.currentTab === 'focus' ? 'active' : ''}" data-tab="focus">
-            ⏱️ Deep Work Timer
-          </button>
         </div>
 
         <!-- Playground Content Panes -->
@@ -1539,18 +1536,12 @@ window.PORTFOLIO_PLAYGROUND = {
   hal             - Programming Assistant Intern (Software Development) in Avionics at HAL
   projects        - Overview of projects with links
   research        - Academic research & technical findings
-  books           - Books I recommend
-  games           - Games I love playing
-  skills          - My technical stack
+  books           - Recommended engineering books
+  skills          - My technical stack & competencies
   contact         - Email, Telegram, GitHub & LinkedIn info
+  crypto [enc|dec] <key> <msg> - Quick bitwise XOR cipher
   matrix          - Launch Matrix digital rain in terminal
   theme [dark|light] - Toggle site theme
-  timer [start|pause|reset] - Control focus timer
-  sound [genshin|sky|krishna|off] - Play melodic ambient soundscapes
-  friend [name]   - Unlock VIP Friends access for Games & YouTube
-  crypto [enc|dec] <key> <msg> - Quick bitwise cipher
-  weather         - Local weather (Gopalganj, Bihar & HAL Korwa)
-  quote           - Dev & systems wisdom
   clear           - Clear terminal window`;
         break;
 

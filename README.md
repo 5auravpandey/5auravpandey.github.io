@@ -31,7 +31,6 @@ Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
 3. **🔐 Systems & Engineering Lab**:
    - **CryptoLock Two-Way XOR Cipher**: Real-time bitwise encryption and decryption (`(A ^ Key) ^ Key = A`), live hex byte visualization, and binary bit breakdown.
    - **Developer Terminal Shell**: Command history (`↑`/`↓`), tab autocompletion, matrix digital rain (`matrix`), theme toggle, and quick portfolio navigation.
-   - **Deep Work Sprint Timer**: Distraction-free Pomodoro timer (25m / 50m intervals) with goal tracking.
 
 4. **📐 Architecture Blueprints & Case Studies**:
    - Deep-dive ASCII system architecture diagrams inside accessible modal dialogs.
