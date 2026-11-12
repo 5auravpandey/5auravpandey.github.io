@@ -1743,7 +1743,7 @@ window.PORTFOLIO_PLAYGROUND = {
       case "help":
         reply = `Available Commands:
   about           - Short bio & background
-  hal             - Programming Assistant in Avionics at HAL
+  hal             - Programming Assistant Intern (Software Development) in Avionics at HAL
   projects        - Overview of projects with links
   research        - Academic research & technical findings
   books           - Books I recommend
@@ -1858,11 +1858,11 @@ window.PORTFOLIO_PLAYGROUND = {
         break;
 
       case "about":
-        reply = "Saurav Pandey: BCA graduate, MCA student at IIIT Ranchi and IIT Patna, and Programming Assistant in Avionics at HAL (Korwa, Amethi). Home base: Gopalganj, Bihar.";
+        reply = "Saurav Pandey: BCA graduate, MCA student at IIIT Ranchi and IIT Patna, and Programming Assistant Intern (Software Development) in Avionics at HAL (Korwa, Amethi). Home base: Gopalganj, Bihar.";
         break;
 
       case "hal":
-        reply = "Role: Programming Assistant in Avionics Department at Hindustan Aeronautics Limited (HAL), Korwa, Amethi, UP. Assisting with internal software tooling, automation scripts, and database operations.";
+        reply = "Role: Programming Assistant Intern (Software Development) in Avionics Department at Hindustan Aeronautics Limited (HAL), Korwa, Amethi, UP. Assisting with internal software tooling, automation scripts, and database operations.";
         break;
 
       case "projects":

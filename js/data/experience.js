@@ -5,12 +5,12 @@
 window.PORTFOLIO_EXPERIENCE = [
   {
     id: "hal-avionics",
-    title: "Programming Assistant",
+    title: "Programming Assistant Intern (Software Development)",
     department: "Avionics Department",
     company: "Hindustan Aeronautics Limited (HAL)",
     duration: "October 2026 – Present",
     location: "Korwa, Amethi, UP, India",
-    overview: "Working as a Programming Assistant inside the Avionics Department at HAL (Korwa, Amethi, UP), India's leading aerospace organization.",
+    overview: "Working as a Programming Assistant Intern (Software Development) inside the Avionics Department at HAL (Korwa, Amethi, UP), India's leading aerospace organization.",
     summary: "I work with the team on internal software utilities, data processing scripts, and database queries that support the department's avionics operations.",
     responsibilities: [
       "Writing and maintaining internal utilities and scripts for the avionics team.",

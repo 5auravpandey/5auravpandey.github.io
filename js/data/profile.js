@@ -19,7 +19,7 @@ window.PORTFOLIO_PROFILE = {
       label: "⚡ Systems & Code",
       role: "Full-Stack, Systems & Web3 Developer",
       tagline: "I like building practical web apps, low-level utilities, and experimenting with Web3.",
-      bio: "Hey, I'm Saurav! I'm an MCA student at IIIT Ranchi and IIT Patna, and working as a Programming Assistant in the Avionics Department at HAL. I like understanding how software works from scratch — whether that's managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized apps on the Internet Computer.",
+      bio: "Hey, I'm Saurav! I'm an MCA student at IIIT Ranchi and IIT Patna, and working as a Programming Assistant Intern (Software Development) in the Avionics Department at HAL. I like understanding how software works from scratch — whether that's managing bitwise operations in C++, writing native Java Servlets without heavy frameworks, or building decentralized apps on the Internet Computer.",
       keyPillars: [
         { title: "Systems & C++", desc: "Bitwise encryption, binary file streams, and memory handling." },
         { title: "Backend & Web", desc: "Java Servlets/JSP, Node.js, Express, and SQL databases." },
@@ -32,7 +32,7 @@ window.PORTFOLIO_PROFILE = {
       tagline: "Learning computer science at IIIT Ranchi & IIT Patna, and writing code at HAL.",
       bio: "I'm a passionate computer science student from Gopalganj, Bihar. I enjoy building useful software, learning core engineering fundamentals, and solving practical problems with technology. Outside of programming, I love reading books, playing video games, and exploring tech.",
       keyPillars: [
-        { title: "HAL Experience", desc: "Programming Assistant at Hindustan Aeronautics Limited." },
+        { title: "HAL Experience", desc: "Programming Assistant Intern (Software Development) at Hindustan Aeronautics Limited." },
         { title: "MCA Student", desc: "Studying computer applications with IIIT Ranchi & IIT Patna." },
         { title: "Personal Projects", desc: "Building hands-on projects across web, systems, and Web3." }
       ]

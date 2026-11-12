@@ -9,7 +9,7 @@ Live Site: **[https://5auravpandey.github.io](https://5auravpandey.github.io)**
 ## 👨‍💻 About Saurav Pandey
 
 - **MCA Student** at **IIIT Ranchi** & **IIT Patna**
-- **Programming Assistant** in the **Avionics Department** at **Hindustan Aeronautics Limited (HAL)**
+- **Programming Assistant Intern (Software Development)** in the **Avionics Department** at **Hindustan Aeronautics Limited (HAL)**
 - **Developer** focused on Full-Stack, Systems, and Web3 from **Gopalganj, Bihar, India**
 
 ---
